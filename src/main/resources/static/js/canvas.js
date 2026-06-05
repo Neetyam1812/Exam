@@ -6,9 +6,12 @@
 
 window.canvasStates = window.canvasStates || {};
 (function () {
-    // Immediate Theme Sync to avoid styling flashes
+    // Immediate Theme Sync to avoid styling flashes (skipped for student pages)
     const savedTheme = localStorage.getItem('theme') || 'light';
-    if (savedTheme === 'dark') {
+    const isStudentPage = window.location.pathname.startsWith('/student') || 
+                          window.location.pathname === '/' || 
+                          window.location.pathname === '/login';
+    if (savedTheme === 'dark' && !isStudentPage) {
         document.documentElement.classList.add('dark-theme');
         if (document.body) {
             document.body.classList.add('dark-theme');
@@ -132,9 +135,12 @@ window.canvasStates = window.canvasStates || {};
             // ────────────────────────────────────────────────────────────────────
             init_instance_callback: function (editor) {
                 const theme = localStorage.getItem('theme') || 'light';
+                const isStudentPage = window.location.pathname.startsWith('/student') || 
+                                      window.location.pathname === '/' || 
+                                      window.location.pathname === '/login';
                 const body = editor.getBody();
                 if (body) {
-                    if (theme === 'dark') {
+                    if (theme === 'dark' && !isStudentPage) {
                         body.style.backgroundColor = '#1e293b';
                         body.style.color = '#f8fafc';
                     } else {

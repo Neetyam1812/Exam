@@ -81,7 +81,8 @@ public class PaperParsingService {
             "figures on the right", "figures to the right", "draw the figures",
             "seat no", "seatno", "enrolment", "enrollment", "roll no", "rollno",
             "university", "subject name", "subject code", "course code", "duration", "total marks",
-            "maximum marks", "date:", "date/"
+            "maximum marks", "date:", "date/", "draw diagrams", "draw graphs",
+            "wherever necessary", "where necessary", "wherever required", "where required"
         };
         
         boolean extractionStarted = false;

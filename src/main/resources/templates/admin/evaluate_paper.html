@@ -568,7 +568,7 @@
                                            th:value="${answer.marksObtained}"
                                            th:attr="data-pair-id=${answer.question != null ? answer.question.pairId : ''}, data-attempted=${answer.studentAnswer != null and !answer.studentAnswer.trim().isEmpty()}">
                                     <span class="fs-4 fw-bold text-muted">/</span>
-                                    <span class="fs-4 fw-bold text-dark" th:text="${answer.maxMarks != null ? answer.maxMarks : (answer.question != null and answer.question.marks != null ? answer.question.marks : 0)}">0</span>
+                                    <span class="fs-4 fw-bold" style="color: var(--text-main) !important;" th:text="${answer.maxMarks != null ? answer.maxMarks : (answer.question != null and answer.question.marks != null ? answer.question.marks : 0)}">0</span>
                                 </div>
                             </div>
                             <div class="col-lg-9">
@@ -626,11 +626,57 @@
                 return isValid;
             }
 
+            const pairInputs = document.querySelectorAll('.marks-input[data-pair-id]');
+
+            function handlePairLogic() {
+                const activePairs = {};
+
+                // Identify which pairIds have active marks (> 0)
+                pairInputs.forEach(input => {
+                    const pairId = input.getAttribute('data-pair-id');
+                    if (pairId && pairId.trim() !== '') {
+                        const val = parseFloat(input.value);
+                        if (!isNaN(val) && val > 0) {
+                            activePairs[pairId] = input;
+                        }
+                    }
+                });
+
+                // Apply readOnly and style adjustments for inactive choice partners
+                pairInputs.forEach(input => {
+                    const pairId = input.getAttribute('data-pair-id');
+                    if (pairId && pairId.trim() !== '') {
+                        const activeInput = activePairs[pairId];
+
+                        if (activeInput && activeInput !== input) {
+                            input.value = '0';
+                            input.readOnly = true;
+                            input.style.opacity = '0.45';
+                            input.style.pointerEvents = 'none';
+                            input.setAttribute('title', 'Disabled: Marks already assigned to the other OR option.');
+                        } else {
+                            input.readOnly = false;
+                            input.style.opacity = '1';
+                            input.style.pointerEvents = 'auto';
+                            input.removeAttribute('title');
+                        }
+                    }
+                });
+            }
+
             marksInputs.forEach(input => {
-                input.addEventListener('input', calculateTotal);
+                input.addEventListener('input', function() {
+                    handlePairLogic();
+                    calculateTotal();
+                });
+                input.addEventListener('change', function() {
+                    handlePairLogic();
+                    calculateTotal();
+                });
             });
 
-            // Initial calculation
+            // Initial calculation & pair validation on page load
+            handlePairLogic();
             calculateTotal();
 
             // Initialize read-only static canvases for drawings
