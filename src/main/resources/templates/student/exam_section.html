@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Exam Student Portal</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Drawing Canvas Styles -->
+    <link href="/css/canvas.css" rel="stylesheet">
+    <link href="/css/drawing.css?v=1.0.3" rel="stylesheet">
+    <!-- TinyMCE and DOMPurify CDNs for rich text editing and secure HTML sanitization -->
+    <script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js" referrerpolicy="origin"></script>
+    <!-- Fabric.js and dynamic whiteboard drawing scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <script src="/js/drawing.js?v=1.0.3"></script>
+
+    <style>
+        :root {
+            --primary-blue: #0d6efd;
+            --purple-banner: #6f42c1;
+            --cyan-badge: #0dcaf0;
+            --yellow-badge: #ffc107;
+            --warning-soft: #fff3cd;
+            --danger-soft: #f8d7da;
+            --bg-light: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 1. Top Header */
+        .top-header {
+            background-color: white;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #dee2e6;
+            z-index: 1050;
+        }
+
+        .student-badge {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #212529;
+        }
+
+        .pill-timer {
+            background-color: #212529;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* 2. Secondary Info Bar */
+        .info-bar {
+            background-color: #e9ecef;
+            padding: 6px 24px;
+            display: flex;
+            gap: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .info-item { display: flex; align-items: center; gap: 6px; }
+
+        /* 3. Main Layout Grid */
+        .main-wrapper {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar - Exam Navigator */
+        .sidebar-navigator {
+            width: 300px;
+            background-color: white;
+            border-right: 1px solid #dee2e6;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .navigator-card {
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            padding: 16px;
+            background: white;
+        }
+
+        .navigator-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 800;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            color: #212529;
+        }
+
+        .section-list { display: flex; flex-direction: column; gap: 10px; }
+
+        .section-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: transform 0.1s;
+        }
+
+        .section-item:active { transform: scale(0.98); }
+
+        .section-active {
+            background-color: var(--warning-soft);
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .section-inactive {
+            background-color: var(--danger-soft);
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Right Column - Question Area */
+        .question-area {
+            flex: 1;
+            padding: 24px 40px;
+            overflow-y: auto;
+            background-color: var(--bg-light);
+        }
+
+        .area-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            overflow: hidden;
+            margin-bottom: 40px;
+        }
+
+        .purple-banner {
+            background-color: var(--purple-banner);
+            color: white;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+
+        .question-item {
+            padding: 30px;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .q-num-badge {
+            width: 32px;
+            height: 32px;
+            background: #f1f3f5;
+            color: #495057;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .question-text {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #212529;
+            margin-bottom: 20px;
+        }
+
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .type-cyan { background-color: #e0f7fa; color: #00838f; border: 1px solid #b2ebf2; }
+        .marks-yellow { background-color: #fffde7; color: #f9a825; border: 1px solid #fff9c4; }
+
+        .answer-textarea {
+            width: 100%;
+            min-height: 250px;
+            border: 1px solid #dee2e8;
+            border-radius: 12px;
+            padding: 20px;
+            font-size: 1.05rem;
+            margin-top: 20px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: #fdfdfd;
+        }
+
+        .answer-textarea:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
+        }
+
+        .char-helper {
+            font-size: 0.8rem;
+            color: #adb5bd;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+
+        /* 4. Sticky Bottom Footer */
+        .sticky-footer {
+            background-color: white;
+            border-top: 1px solid #dee2e6;
+            padding: 16px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1050;
+        }
+
+        .btn-footer {
+            padding: 12px 30px;
+            font-weight: 800;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s;
+        }
+
+        .btn-prev {
+            border: 2px solid #212529;
+            color: #212529;
+            background: transparent;
+        }
+
+        .btn-prev:hover {
+            background: #212529;
+            color: white;
+        }
+
+        .btn-save-next {
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+        }
+
+        .btn-save-next:hover {
+            background-color: #0b5ed7;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
+        }
+
+        /* Mobile Viewports */
+        @media (max-width: 768px) {
+            .sidebar-navigator { display: none; }
+            .question-area { padding: 20px; }
+            .sticky-footer { padding: 12px 20px; }
+        }
+        /* OR Question Logic */
+        .or-divider {
+            position: relative;
+            text-align: center;
+            margin: 30px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .or-divider::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e9ecef;
+            z-index: 1;
+        }
+        .or-text {
+            position: relative;
+            z-index: 2;
+            background: #f8f9fa;
+            padding: 0 20px;
+            font-weight: 800;
+            color: var(--purple-banner);
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+        .or-choice-card {
+            border: 2px solid #e9ecef;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #fff;
+            position: relative;
+            cursor: pointer;
+        }
+        .or-choice-card:hover {
+            border-color: #dee2e6;
+            transform: translateY(-2px);
+        }
+        .or-choice-card.active-choice {
+            border-color: var(--primary-blue);
+            background-color: #f0f7ff;
+            box-shadow: 0 4px 15px rgba(13, 110, 253, 0.1);
+        }
+        .or-choice-card.disabled-choice {
+            opacity: 0.5;
+            background-color: #f8f9fa;
+            cursor: not-allowed;
+            filter: grayscale(1);
+        }
+        .choice-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            transform: scale(1.5);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 1. Top Header -->
+<header class="top-header">
+    <div class="student-badge">
+        🎓 <span th:text="${session.loggedInStudent} + ' (' + ${session.loggedInStudent} + ')'">23CS001 (23CS001)</span>
+    </div>
+    <div id="timerDisplay" class="pill-timer">Time Remaining: 00:00:00</div>
+</header>
+
+<!-- 2. Secondary Info Bar -->
+<div class="info-bar">
+    <div class="info-item"><i class="fas fa-book"></i> Subject: <span th:text="${exam.subject}">DS</span></div>
+    <div class="info-item"><i class="fas fa-graduation-cap"></i> Semester: <span th:text="${student != null && student.semester != null ? student.semester : '1'}">1</span></div>
+    <div class="info-item"><i class="fas fa-file-alt"></i> Exam: <span th:text="${exam.examName != null ? exam.examName : 'DS'}">DS</span></div>
+    <div class="info-item"><i class="fas fa-clock"></i> Total Time: <span th:text="${exam.examDuration != null ? exam.examDuration : 120}">120</span> Minutes</div>
+</div>
+
+<!-- 3. Main Layout Grid -->
+<div class="main-wrapper">
+    <!-- Left Column (Sidebar) -->
+    <aside class="sidebar-navigator">
+        <div class="navigator-card">
+            <div class="navigator-header">
+                Exam Navigator
+                <i class="fas fa-filter text-muted"></i>
+            </div>
+            <nav class="section-list">
+                <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                    <a th:href="@{'/student/exam/section/' + ${i}}" 
+                       class="section-item"
+                       th:classappend="${i == currentIndex ? 'section-active' : 'section-inactive'}">
+                        <span th:text="'Section ' + (${i + 1})">Section 1</span>
+                        <i th:class="${i == currentIndex ? 'fas fa-hourglass-half' : 'fas fa-times'}"></i>
+                    </a>
+                </th:block>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- Right Column (Question Area) -->
+    <main class="question-area">
+        <div class="area-top-bar">
+            <div th:text="'Section ' + (${currentIndex + 1}) + ' of ' + ${totalPages}">Section 1 of 5</div>
+            <div class="text-primary" th:text="(${ (currentIndex + 1) * 100 / totalPages }) + '% Completed'">0% Completed</div>
+        </div>
+
+        <div class="question-card">
+            <!-- Card Header -->
+            <div class="purple-banner">
+                <i class="fas fa-layer-group"></i>
+                <span th:text="'Q' + (${currentIndex + 1})">Q1</span>
+            </div>
+
+            <!-- Questions List -->
+            <div th:each="q, iterStat : ${section.questions}" 
+                 class="question-item"
+                 th:classappend="${q.pairId != null and q.pairId != '' ? 'or-choice-card' : ''}"
+                 th:attr="data-pair-id=${q.pairId}">
+                
+                <div th:if="${q.pairId != null and q.pairId != ''}" class="mb-3 d-flex align-items-center">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input choice-selector" type="radio" 
+                               th:name="'choice-' + ${q.pairId}" 
+                               th:id="'radio-' + ${q.id}"
+                               th:checked="${savedAnswers != null && savedAnswers.containsKey(q.id) && savedAnswers.get(q.id) != ''}"
+                               th:data-id="${q.id}"
+                               th:data-pair-id="${q.pairId}"
+                               onchange="toggleORChoice(this, this.getAttribute('data-id'), this.getAttribute('data-pair-id'))">
+                        <label class="form-check-label fw-bold text-primary ms-3" th:for="'radio-' + ${q.id}">Attempt This Option</label>
+                    </div>
+                </div>
+
+                <div class="q-num-badge" th:text="${iterStat.count}">1</div>
+                <div class="question-text">
+                    <span th:if="${q.isOptional()}" class="badge bg-warning text-dark me-2">OR</span>
+                    <span th:text="${q.text}">Give any two examples of data structure.</span>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="badge-pill type-cyan">
+                        ✏️ <span th:text="${q.marks > 2 ? 'Long Answer' : 'Short Answer'}">Short Answer</span>
+                    </div>
+                    <div class="badge-pill marks-yellow">
+                        (<span th:text="${q.marks}">1.0</span> Marks)
+                    </div>
+                </div>
+
+                <!-- Input Area -->
+                <textarea class="answer-textarea answer-area" 
+                          th:attr="data-qid=${q.id}" 
+                          placeholder="Type your detailed answer here. Your progress is automatically saved..." 
+                          th:text="${savedAnswers != null && savedAnswers.containsKey(q.id) ? savedAnswers.get(q.id) : ''}"
+                          th:disabled="${q.pairId != null and q.pairId != '' and (savedAnswers == null || !savedAnswers.containsKey(q.id) || savedAnswers.get(q.id) == '')}"></textarea>
+                
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <div class="char-helper" th:id="'char-count-' + ${q.id}">0 characters</div>
+                    <div class="char-helper text-success" th:id="'status-' + ${q.id}"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- 4. Sticky Bottom Footer -->
+<footer class="sticky-footer">
+    <button type="button" class="btn-footer btn-prev" 
+            th:disabled="${currentIndex == 0}"
+            onclick="navigateSection('prev')">
+        <i class="fas fa-arrow-left me-2"></i> PREVIOUS
+    </button>
+
+    <button th:if="${currentIndex < totalPages - 1}" 
+            type="button" class="btn-footer btn-save-next" 
+            onclick="navigateSection('next')">
+        SAVE & NEXT <i class="fas fa-arrow-right ms-2"></i>
+    </button>
+    
+    <button th:if="${currentIndex == totalPages - 1}" 
+            type="button" class="btn-footer btn-save-next" 
+            style="background-color: #198754;"
+            onclick="confirmSubmit()">
+        FINISH EXAM <i class="fas fa-check-circle ms-2"></i>
+    </button>
+</footer>
+
+<!-- Logic & Metadata -->
+<input type="hidden" id="attemptId" th:value="${attemptId}">
+<input type="hidden" id="type" th:value="${type}">
+<input type="hidden" id="remainingSeconds" th:value="${remainingSeconds}">
+<input type="hidden" id="currentIndex" th:value="${currentIndex}">
+
+<script>
+    const attemptId = document.getElementById('attemptId').value;
+    const type = document.getElementById('type').value;
+    let remainingSeconds = parseInt(document.getElementById('remainingSeconds').value);
+    const currentIndex = parseInt(document.getElementById('currentIndex').value);
+    
+    function toggleORChoice(radio, qid, pairId) {
+        const cards = document.querySelectorAll(`[data-pair-id="${pairId}"]`);
+        cards.forEach(card => {
+            const textarea = card.querySelector('.answer-area');
+            const cardQid = textarea.getAttribute('data-qid');
+            if (cardQid == qid) {
+                card.classList.add('active-choice');
+                card.classList.remove('disabled-choice');
+                textarea.disabled = false;
+                textarea.focus();
+            } else {
+                card.classList.add('disabled-choice');
+                card.classList.remove('active-choice');
+                textarea.disabled = true;
+                if (textarea.value !== "") {
+                    textarea.value = "";
+                    saveAnswer(cardQid, ""); // Clear partner answer
+                }
+            }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const pairs = new Set();
+        document.querySelectorAll('[data-pair-id]').forEach(el => {
+            const pid = el.getAttribute('data-pair-id');
+            if (pid) pairs.add(pid);
+        });
+
+        pairs.forEach(pid => {
+            const cards = document.querySelectorAll(`[data-pair-id="${pid}"]`);
+            let anySelected = false;
+            cards.forEach(card => {
+                const radio = card.querySelector('.choice-selector');
+                if (radio && radio.checked) {
+                    anySelected = true;
+                    toggleORChoice(radio, card.querySelector('.answer-area').getAttribute('data-qid'), pid);
+                }
+            });
+            
+            // Insert "OR" divider
+            for (let i = 0; i < cards.length - 1; i++) {
+                const divider = document.createElement('div');
+                divider.className = 'or-divider';
+                divider.innerHTML = '<span class="or-text">OR</span>';
+                cards[i].insertAdjacentElement('afterend', divider);
+            }
+        });
+    });
+
+    // Prevent leaving
+    window.onbeforeunload = function() {
+        if(remainingSeconds > 0 && !window.isNavigating) return "Exam in progress.";
+    };
+
+    // Auto-save
+    setInterval(saveAllAnswers, 15000);
+
+    document.querySelectorAll('.answer-area').forEach(textarea => {
+        // Initial char count
+        updateCharCount(textarea);
+
+        textarea.addEventListener('input', function() {
+            updateCharCount(this);
+            debouncedSave(this.getAttribute('data-qid'), this.value);
+        });
+    });
+
+    function updateCharCount(textarea) {
+        const qid = textarea.getAttribute('data-qid');
+        const helper = document.getElementById('char-count-' + qid);
+        if(helper) helper.innerText = textarea.value.length + ' characters';
+    }
+
+    const debouncedSave = debounce((qid, val) => saveAnswer(qid, val), 3000);
+
+    async function saveAllAnswers() {
+        if(remainingSeconds <= 0) return;
+        const promises = Array.from(document.querySelectorAll('.answer-area')).map(ta => 
+            saveAnswer(ta.getAttribute('data-qid'), ta.value)
+        );
+        if (window.saveAllCanvasesImmediately) {
+            promises.push(window.saveAllCanvasesImmediately());
+        }
+        return Promise.all(promises);
+    }
+
+    async function saveAnswer(questionId, answer) {
+        const statusEl = document.getElementById(`status-${questionId}`);
+        try {
+            const body = { questionId, answer };
+            if (type === 'paper') body.submissionId = attemptId;
+            else body.attemptId = attemptId;
+
+            const response = await fetch('/api/answer/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if(statusEl && response.ok) {
+                statusEl.innerHTML = '<i class="fas fa-check-circle me-1"></i> Auto-saved';
+                setTimeout(() => { statusEl.innerHTML = ''; }, 3000);
+            }
+        } catch (error) { console.error(error); }
+    }
+
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
+    async function navigateSection(direction) {
+        window.isNavigating = true;
+        document.querySelectorAll('.btn-footer').forEach(btn => btn.disabled = true);
+        await saveAllAnswers();
+        let newIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
+        window.location.href = `/student/exam/section/${newIndex}`;
+    }
+
+    function startTimer() {
+        const display = document.getElementById('timerDisplay');
+        const interval = setInterval(function () {
+            if (remainingSeconds <= 0) {
+                clearInterval(interval);
+                display.innerText = "Time Remaining: 00:00:00";
+                autoSubmitExam();
+                return;
+            }
+            let hrs = Math.floor(remainingSeconds / 3600);
+            let mins = Math.floor((remainingSeconds % 3600) / 60);
+            let secs = remainingSeconds % 60;
+            display.innerText = "Time Remaining: " +
+                (hrs < 10 ? "0"+hrs : hrs) + ":" + 
+                (mins < 10 ? "0"+mins : mins) + ":" + 
+                (secs < 10 ? "0"+secs : secs);
+
+            if (remainingSeconds <= 600) display.style.backgroundColor = "#dc3545";
+            remainingSeconds--;
+        }, 1000);
+    }
+    startTimer();
+
+    function confirmSubmit() {
+        if (confirm("Finish and submit your exam?")) submitExam();
+    }
+
+    function autoSubmitExam() {
+        alert("Time is up!");
+        submitExam();
+    }
+
+    async function submitExam() {
+        window.isNavigating = true;
+        document.querySelectorAll('.answer-area').forEach(ta => ta.disabled = true);
+        await saveAllAnswers();
+        try {
+            const body = (type === 'paper') ? { submissionId: attemptId } : { attemptId: attemptId };
+            const response = await fetch('/api/exam/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (response.ok) {
+                sessionStorage.removeItem("examWarningCount");
+                window.location.href = '/student/exam/feedback';
+            }
+        } catch (e) { alert("Error."); }
+    }
+
+    // PROCTORING DETECTION & VIOLATION HANDLING
+    let warningCount = 0;
+    if (sessionStorage.getItem("examWarningCount")) {
+        warningCount = parseInt(sessionStorage.getItem("examWarningCount"));
+    }
+
+    window.isNavigating = false;
+    window.isDisplayingModal = false;
+
+    // Set navigating flag on local clicks
+    document.addEventListener("click", function(e) {
+        const interactiveEl = e.target.closest("a, button, form, input[type='submit']");
+        if (interactiveEl) {
+            window.isNavigating = true;
+        }
+    });
+
+    // Detect Tab switching or minimize
+    document.addEventListener("visibilitychange", function() {
+        if (document.hidden && !window.isNavigating) {
+            handleViolation("tab_switch");
+        }
+    });
+
+    // Detect Window focus loss
+    window.addEventListener("blur", function() {
+        setTimeout(() => {
+            if (!document.hasFocus() && !window.isNavigating && !window.isDisplayingModal) {
+                handleViolation("window_blur");
+            }
+        }, 200);
+    });
+
+    function handleViolation(reason) {
+        if (window.isNavigating || window.isDisplayingModal) return;
+
+        warningCount++;
+        sessionStorage.setItem("examWarningCount", warningCount);
+        console.warn("Violation detected: " + reason + ". Warning count: " + warningCount);
+
+        if (warningCount === 1) {
+            window.isDisplayingModal = true;
+            alert("⚠️ WARNING: Do not switch tabs or leave the exam window. This is your ONLY warning. Another violation will terminate your exam instantly.");
+            window.isDisplayingModal = false;
+        } else {
+            terminateExamDueToViolation();
+        }
+    }
+
+    async function terminateExamDueToViolation() {
+        window.isNavigating = true;
+        sessionStorage.removeItem("examWarningCount");
+
+        try {
+            document.querySelectorAll('.answer-area').forEach(ta => ta.disabled = true);
+            await saveAllAnswers();
+            
+            const response = await fetch('/student/exam/auto-submit', {
+                method: 'POST'
+            });
+            window.location.href = '/student/exam/terminated';
+        } catch (error) {
+            console.error("Termination failed, forcing redirect", error);
+            window.location.href = '/student/exam/terminated';
+        }
+    }
+
+    // ANTI-CHEAT: DISABLE COPY-PASTE & RIGHT-CLICK
+    // 1. Disable Right Click (Context Menu) globally on the exam page
+    document.addEventListener("contextmenu", function(e) {
+        e.preventDefault();
+    });
+
+    // 2. Disable Paste, Copy, and Cut events on all answer textarea elements
+    document.querySelectorAll("textarea.answer-area").forEach(function(el) {
+        el.addEventListener("paste", function(e) {
+            e.preventDefault();
+            console.warn("Suspicious Behavior: Paste attempt detected on textarea ID: " + el.getAttribute("data-qid"));
+            alert("Pasting is not allowed. Please type your answer manually.");
+        });
+        
+        el.addEventListener("copy", function(e) {
+            e.preventDefault();
+            console.warn("Suspicious Behavior: Copy attempt detected on textarea ID: " + el.getAttribute("data-qid"));
+            alert("Copying content is disabled during the exam.");
+        });
+
+        el.addEventListener("cut", function(e) {
+            e.preventDefault();
+            console.warn("Suspicious Behavior: Cut attempt detected on textarea ID: " + el.getAttribute("data-qid"));
+            alert("Cutting content is disabled during the exam.");
+        });
+    });
+
+    // 3. Disable Keyboard shortcuts (Ctrl+C, Ctrl+V, Ctrl+X, Cmd+C, Cmd+V, Cmd+X)
+    document.addEventListener("keydown", function(e) {
+        const key = e.key.toLowerCase();
+        const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+
+        const isPaste = (isCtrlOrCmd && key === 'v') || (isCtrlOrCmd && e.shiftKey && key === 'v');
+        const isCopy = isCtrlOrCmd && key === 'c';
+        const isCut = isCtrlOrCmd && key === 'x';
+
+        if (isPaste) {
+            e.preventDefault();
+            console.warn("Suspicious Behavior: Paste keyboard shortcut attempt detected.");
+            alert("Pasting is not allowed. Please type your answer manually.");
+        } else if (isCopy) {
+            e.preventDefault();
+            console.warn("Suspicious Behavior: Copy keyboard shortcut attempt detected.");
+            alert("Copying content is disabled during the exam.");
+        } else if (isCut) {
+            e.preventDefault();
+            console.warn("Suspicious Behavior: Cut keyboard shortcut attempt detected.");
+            alert("Cutting content is disabled during the exam.");
+        }
+    });
+</script>
+
+<!-- Drawing Canvas JS Engine -->
+<script src="/js/canvas.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

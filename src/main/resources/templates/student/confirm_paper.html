@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Exam Details | Student Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Premium Global Theme Style & Toggle -->
+    <link href="/css/canvas.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-blue: #2b6cb0;
+            --accent-purple: #805ad5;
+            --success-green: #38a169;
+            --bg-light: #f8fafc;
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 40px 0;
+        }
+
+        .confirm-card {
+            max-width: 650px;
+            width: 90%;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: var(--card-shadow);
+            padding: 45px;
+            animation: fadeIn 0.8s ease-out;
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo-section img {
+            max-height: 70px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .header-icon {
+            font-size: 2.5rem;
+            color: var(--primary-blue);
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .header-section h2 {
+            font-weight: 800;
+            color: #1a202c;
+            font-size: 1.75rem;
+            letter-spacing: -0.5px;
+        }
+
+        /* Student Details Box */
+        .details-container {
+            background: #fdfdfd;
+            border: 1px solid #edf2f7;
+            border-radius: 16px;
+            padding: 25px 30px;
+            margin-bottom: 30px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .label {
+            font-weight: 700;
+            color: #718096;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .value {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 1rem;
+        }
+
+        /* Exam Info Section */
+        .exam-info-panel {
+            background: linear-gradient(to right, #f8faff, #ffffff);
+            border-left: 5px solid var(--primary-blue);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+
+        .subject-name {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--primary-blue);
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .meta-info {
+            display: flex;
+            gap: 20px;
+            color: #4a5568;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .meta-info span i {
+            color: var(--accent-purple);
+            margin-right: 6px;
+        }
+
+        /* Button Styling */
+        .btn-start {
+            width: 100%;
+            padding: 18px;
+            font-weight: 800;
+            font-size: 1.15rem;
+            border-radius: 16px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #38a169, #2f855a);
+            border: none;
+            color: white;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 10px 20px rgba(56, 161, 105, 0.25);
+            text-decoration: none;
+        }
+
+        .btn-start:hover {
+            transform: scale(1.02) translateY(-2px);
+            box-shadow: 0 15px 30px rgba(56, 161, 105, 0.35);
+            color: white;
+            filter: brightness(1.1);
+        }
+
+        .btn-start:active {
+            transform: scale(0.98);
+        }
+
+        /* Responsive */
+        @media (max-width: 576px) {
+            .confirm-card { padding: 30px 20px; }
+            .detail-item { flex-direction: column; align-items: flex-start; gap: 4px; }
+            .meta-info { flex-direction: column; gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="confirm-card">
+        <!-- Logo -->
+        <div class="logo-section">
+            <img th:src="@{/images/logo.png}" alt="University Logo" onerror="this.src='https://via.placeholder.com/180x60?text=University+Logo'">
+        </div>
+        
+        <!-- Premium Welcome Section with Avatar & Initials -->
+        <div class="header-section text-center">
+            <div class="avatar-container mb-3 d-flex justify-content-center">
+                <div class="student-avatar d-flex align-items-center justify-content-center rounded-circle shadow-sm" 
+                     style="width: 76px; height: 76px; background: linear-gradient(135deg, var(--primary-blue), var(--accent-purple)); color: white; font-size: 2rem; font-weight: 800; border: 4px solid #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                    <span th:text="${#strings.substring(student.studentName ?: 'S', 0, 1).toUpperCase()}">S</span>
+                </div>
+            </div>
+            <h2>Welcome, <span th:text="${student.studentName ?: 'Student'}">Student</span>!</h2>
+            <p class="text-muted small fw-medium">Please verify your academic information before initiating the exam.</p>
+        </div>
+
+        <!-- Student Details Grid -->
+        <div class="details-container">
+            <div class="detail-item">
+                <span class="label">Enrollment Number</span>
+                <span class="value" th:text="${student.enrollmentNo}">ENR001</span>
+            </div>
+            <div class="detail-item">
+                <span class="label">Student Name</span>
+                <span class="value text-primary fw-bold" th:text="${student.studentName != null ? student.studentName : 'Not Available'}">John Doe</span>
+            </div>
+            <div class="detail-item">
+                <span class="label">Academic Semester</span>
+                <span class="value" 
+                      th:text="${student.semester != null ? student.semester : (paper.semester != null ? paper.semester : 'Not Available')}"
+                      th:classappend="${student.semester == null and paper.semester == null} ? 'badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1' : ''">Semester 1</span>
+            </div>
+            <div class="detail-item">
+                <span class="label">Division / Batch</span>
+                <span class="value" 
+                      th:text="${student.division != null ? student.division : 'Not Assigned'}"
+                      th:classappend="${student.division == null} ? 'badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1' : ''">Division A</span>
+            </div>
+            <div class="detail-item" th:if="${student.rollNo != null}">
+                <span class="label">Roll Number</span>
+                <span class="value" th:text="${student.rollNo}">1</span>
+            </div>
+        </div>
+
+        <!-- Exam Information Panel -->
+        <div class="exam-info-panel">
+            <span class="subject-name" th:text="${paper.subject} + ' - ' + ${paper.course}">Subject Name - Course Name</span>
+            <div class="meta-info">
+                <span>
+                    <i class="fas fa-clock"></i> 
+                    <span th:text="${paper.examDuration ?: 120}">120</span> Minutes
+                </span>
+                <span th:if="${paper.totalMarks != null}">
+                    <i class="fas fa-star"></i> 
+                    <span th:text="${paper.totalMarks}">100</span> Total Marks
+                </span>
+            </div>
+        </div>
+
+        <!-- Manual Content Preview (For Direct Manual Papers) -->
+        <div th:if="${paper.manualContent != null and !paper.manualContent.trim().isEmpty()}" class="mb-4 p-4 rounded-4 bg-light border border-light-subtle">
+            <h6 class="fw-bold text-muted text-uppercase small mb-3" style="letter-spacing: 0.5px;">
+                <i class="fas fa-file-signature text-success me-2"></i> Paper Reference Content
+            </h6>
+            <pre style="white-space: pre-wrap; font-family: 'Inter', sans-serif; font-size: 0.9rem; color: #4a5568; line-height: 1.6; max-height: 200px; overflow-y: auto;" th:text="${paper.manualContent}"></pre>
+        </div>
+
+        <!-- Action Button -->
+        <a th:href="@{'/student/exam/start-paper/' + ${paper.id}}" class="btn-start">
+            Confirm and Start Exam <i class="fas fa-play-circle"></i>
+        </a>
+        
+        <p class="text-center text-muted mt-4 small fw-medium">
+            <i class="fas fa-info-circle me-1"></i> Once started, the timer cannot be paused.
+        </p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Global Theme Engine -->
+<script src="/js/canvas.js"></script>
+</body>
+</html>

@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Extracted Questions - Admin Dashboard</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-canvas: #f8fafc;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --border-color: rgba(0, 0, 0, 0.06);
+            --text-main: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.02), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+            --card-shadow-hover: 0 20px 35px -8px rgba(99, 102, 241, 0.08), 0 10px 15px -10px rgba(0, 0, 0, 0.02);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body.dark-theme {
+            --bg-canvas: #090d16;
+            --card-bg: rgba(17, 24, 39, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #f9fafb;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+        }
+
+        body, .question-card, .section-header, .form-select, .form-control, .sticky-top-bar {
+            transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif !important;
+            background-color: var(--bg-canvas);
+            color: var(--text-secondary);
+            min-height: 100vh;
+        }
+        
+        /* Premium Sticky Header with Glassmorphism */
+        .sticky-top-bar {
+            position: sticky;
+            top: 0;
+            z-index: 1050;
+            background: rgba(255, 255, 255, 0.80);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.25rem 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+            margin-bottom: 2.5rem;
+            transition: var(--transition-smooth);
+        }
+
+        body.dark-theme .sticky-top-bar {
+            background: rgba(17, 24, 39, 0.80);
+            border-bottom-color: var(--border-color);
+        }
+
+        .header-title-box h4 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text-main);
+        }
+
+        /* SaaS Editor Cards */
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 1.75rem;
+            margin-bottom: 1.25rem;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: var(--transition-smooth);
+            position: relative;
+            border-left: 6px solid #10b981; /* Premium Green */
+        }
+        .question-card:hover { 
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.1) !important;
+            transform: translateY(-2px);
+            border-color: var(--primary);
+        }
+        
+        /* Invalid State Card color shift */
+        .question-card.invalid-question { 
+            border-left-color: #f43f5e; /* Premium Rose Red */
+            background-color: rgba(244, 63, 94, 0.03); 
+        }
+
+        .question-card.invalid-question:hover {
+            box-shadow: 0 10px 20px rgba(244, 63, 94, 0.1) !important;
+        }
+
+        /* Section Accordions */
+        .section-container { 
+            margin-bottom: 2rem; 
+        }
+
+        .section-header {
+            font-family: 'Outfit', sans-serif;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 1.25rem 1.75rem;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--text-main);
+            cursor: pointer;
+            margin-bottom: 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: var(--transition-smooth);
+        }
+        
+        .section-header:hover {
+            border-color: var(--primary);
+            background-color: var(--bg-canvas);
+        }
+
+        .section-header span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Inputs & Inputs Glow */
+        .form-label { 
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700; 
+            font-size: 0.75rem; 
+            color: var(--text-muted); 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+        .form-control, .form-select { 
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            border-radius: 10px; 
+            border: 1.5px solid var(--border-color); 
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 0.6rem 0.85rem;
+            transition: var(--transition-smooth);
+        }
+        .form-control:focus, .form-select:focus { 
+            border-color: var(--primary); 
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12); 
+            outline: none;
+            background-color: var(--card-bg);
+            color: var(--text-main);
+        }
+        
+        /* Premium Buttons */
+        .btn-custom-action { 
+            font-family: 'Outfit', sans-serif;
+            border-radius: 10px; 
+            font-weight: 600; 
+            padding: 0.6rem 1.25rem; 
+            font-size: 0.875rem;
+            transition: var(--transition-smooth);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary-glow {
+            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+        .btn-primary-glow:hover {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            box-shadow: 0 6px 18px rgba(79, 70, 229, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-delete-card { 
+            font-family: 'Outfit', sans-serif;
+            color: #f43f5e; 
+            background: var(--card-bg); 
+            border: 1.5px solid rgba(244, 63, 94, 0.3); 
+            border-radius: 10px; 
+            padding: 0.5rem 1rem; 
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: var(--transition-smooth); 
+        }
+        .btn-delete-card:hover { 
+            background: #f43f5e; 
+            color: #ffffff; 
+            border-color: #f43f5e;
+            box-shadow: 0 4px 12px rgba(244, 63, 94, 0.15);
+        }
+
+        .stat-badge-pill { 
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem; 
+            padding: 0.5rem 1rem; 
+            border-radius: 100px; 
+            font-weight: 600;
+        }
+
+        /* Checkbox styling */
+        .form-check-input {
+            background-color: var(--card-bg);
+            border: 1.5px solid var(--border-color);
+            transition: var(--transition-smooth);
+        }
+        .form-check-input:checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+    </style>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem("theme") || "light";
+            if (savedTheme === "dark") {
+                document.documentElement.classList.add("dark-theme");
+            }
+        })();
+    </script>
+    <script src="/js/canvas.js"></script>
+</head>
+<body>
+
+<form id="questionsForm" th:action="@{/admin/paper/{id}/confirm-questions(id=${paper.id})}" method="POST">
+    
+    <!-- Sticky Header -->
+    <div class="sticky-top-bar d-flex justify-content-between align-items-center">
+        <div class="header-title-box">
+            <h4 class="m-0"><i class="fas fa-layer-group me-2 text-primary"></i>Review Questions</h4>
+            <p class="text-muted small mb-0">Clean up extracted statements, structure choice configurations, and finalize marks.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-warning btn-custom-action" onclick="autoAssignMarks()"><i class="fas fa-check-circle"></i> Auto Assign Marks</button>
+            <button type="button" class="btn btn-outline-primary btn-custom-action" onclick="autoClean()"><i class="fas fa-magic"></i> Auto Clean</button>
+            <button type="button" class="btn btn-outline-danger btn-custom-action" onclick="deleteSelected()"><i class="fas fa-trash"></i> Delete Selected</button>
+            <a href="/admin/dashboard" class="btn btn-outline-secondary btn-custom-action">Cancel</a>
+            <button type="submit" class="btn btn-primary-glow btn-custom-action"><i class="fas fa-save"></i> Save Questions</button>
+        </div>
+    </div>
+
+    <div class="container pb-5">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <span class="badge bg-primary stat-badge-pill me-2">Paper: <span th:text="${paper.subject}"></span></span>
+                <span class="badge bg-success stat-badge-pill" id="totalCountBadge"><span th:text="${questions.size()}"></span> Questions Extracted</span>
+            </div>
+            <div>
+                <span class="badge border" style="background-color: var(--card-bg) !important; color: var(--text-main) !important; border-color: var(--border-color) !important;"><i class="fas fa-circle text-success me-1"></i> Valid</span>
+                <span class="badge border ms-2" style="background-color: var(--card-bg) !important; color: var(--text-main) !important; border-color: var(--border-color) !important;"><i class="fas fa-circle text-danger me-1"></i> Needs Review</span>
+            </div>
+        </div>
+
+        <div id="questionsContainer">
+            <div id="originalQuestions" style="display:none;">
+                <div th:each="q, stat : ${questions}" class="raw-question-data"
+                     th:data-group="${q.questionGroup}"
+                     th:data-marks="${q.marks}"
+                     th:data-optional="${q.isOptional()}"
+                     th:data-pair-id="${q.pairId}"
+                     th:data-text="${q.text}">
+                </div>
+            </div>
+        </div>
+
+    </div>
+</form>
+
+<script>
+    const filterKeywords = ["instructions", "attempt all questions", "university", "subject name", "duration", "attempt any"];
+    
+    document.addEventListener("DOMContentLoaded", function() {
+        const rawQuestions = document.querySelectorAll('.raw-question-data');
+        let questions = [];
+        
+        rawQuestions.forEach((el, index) => {
+            questions.push({
+                id: index,
+                group: el.getAttribute('data-group') || 'Q1',
+                marks: el.getAttribute('data-marks') || '1.0',
+                isOptional: el.getAttribute('data-optional') === 'true',
+                pairId: el.getAttribute('data-pair-id') || '',
+                text: el.getAttribute('data-text') || ''
+            });
+        });
+
+        renderGroupedQuestions(questions);
+    });
+
+    function isInvalidText(text) {
+        const lowerText = text.toLowerCase();
+        return filterKeywords.some(kw => lowerText.includes(kw));
+    }
+
+    function renderGroupedQuestions(questions) {
+        const container = document.getElementById('questionsContainer');
+        container.innerHTML = ''; 
+
+        const groups = {};
+        questions.forEach(q => {
+            if (!groups[q.group]) groups[q.group] = [];
+            groups[q.group].push(q);
+        });
+
+        const sortedGroups = Object.keys(groups).sort();
+
+        sortedGroups.forEach(groupName => {
+            const sectionDiv = document.createElement('div');
+            sectionDiv.className = 'section-container';
+
+            const header = document.createElement('div');
+            header.className = 'section-header';
+            header.innerHTML = `
+                <span><i class="fas fa-layer-group text-primary me-2"></i> Section ${groupName} <span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-2 rounded-pill">${groups[groupName].length} Items</span></span>
+                <i class="fas fa-chevron-down toggle-icon text-muted"></i>
+            `;
+            header.onclick = function() {
+                const body = sectionDiv.querySelector('.section-body');
+                const icon = sectionDiv.querySelector('.toggle-icon');
+                if (body.style.display === 'none') {
+                    body.style.display = 'block';
+                    icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+                } else {
+                    body.style.display = 'none';
+                    icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+                }
+            };
+            sectionDiv.appendChild(header);
+
+            const body = document.createElement('div');
+            body.className = 'section-body';
+            
+            groups[groupName].forEach((q) => {
+                const isInvalid = isInvalidText(q.text);
+                const card = document.createElement('div');
+                card.className = `question-card ${isInvalid ? 'invalid-question' : ''}`;
+                card.dataset.id = q.id;
+
+                card.innerHTML = `
+                    <div class="row align-items-center g-3 mb-3">
+                        <div class="col-md-1 d-flex justify-content-center">
+                            <input class="form-check-input bulk-select-chk shadow-sm" type="checkbox" value="${q.id}" style="transform: scale(1.3); cursor: pointer;">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Section</label>
+                            <select class="form-select q-group shadow-sm">
+                                <option value="Q1" ${q.group === 'Q1' ? 'selected' : ''}>Q1</option>
+                                <option value="Q2" ${q.group === 'Q2' ? 'selected' : ''}>Q2</option>
+                                <option value="Q3" ${q.group === 'Q3' ? 'selected' : ''}>Q3</option>
+                                <option value="Q4" ${q.group === 'Q4' ? 'selected' : ''}>Q4</option>
+                                <option value="Q5" ${q.group === 'Q5' ? 'selected' : ''}>Q5</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Marks</label>
+                            <input type="number" step="0.5" class="form-control q-marks shadow-sm" value="${q.marks}" required>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end pb-2">
+                            <div class="form-check">
+                                <input class="form-check-input q-optional shadow-sm" type="checkbox" ${q.isOptional ? 'checked' : ''} style="cursor: pointer;" onchange="togglePairId(this)">
+                                <label class="form-check-label text-warning fw-bold ms-1" style="cursor: pointer;">Optional (OR)</label>
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                            <label class="form-label">Pair ID</label>
+                            <input type="text" class="form-control q-pair-id shadow-sm" value="${q.pairId || ''}" ${q.isOptional ? '' : 'disabled'} placeholder="e.g. P1">
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <button type="button" class="btn-delete-card" onclick="deleteQuestion(this)"><i class="fas fa-trash-alt me-1"></i> Delete</button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-2 px-1">
+                        <label class="form-label">Question Text ${isInvalid ? '<span class="text-danger ms-2"><i class="fas fa-exclamation-triangle"></i> Contains review keywords</span>' : ''}</label>
+                        <textarea class="form-control q-text shadow-sm" rows="3" required>${q.text}</textarea>
+                    </div>
+                `;
+                body.appendChild(card);
+            });
+
+            sectionDiv.appendChild(body);
+            container.appendChild(sectionDiv);
+        });
+        
+        updateTotalCount();
+    }
+
+    function deleteQuestion(btn) {
+        const card = btn.closest('.question-card');
+        card.style.opacity = '0';
+        setTimeout(() => {
+            card.remove();
+            updateTotalCount();
+        }, 200);
+    }
+
+    function deleteSelected() {
+        const checkboxes = document.querySelectorAll('.bulk-select-chk:checked');
+        if (checkboxes.length === 0) {
+            alert('Please select questions to delete.');
+            return;
+        }
+        if (confirm(`Are you sure you want to delete ${checkboxes.length} selected questions?`)) {
+            checkboxes.forEach(chk => {
+                chk.closest('.question-card').remove();
+            });
+            updateTotalCount();
+        }
+    }
+
+    function autoClean() {
+        let removedCount = 0;
+        const cards = document.querySelectorAll('.question-card');
+        cards.forEach(card => {
+            const text = card.querySelector('.q-text').value;
+            if (isInvalidText(text)) {
+                card.remove();
+                removedCount++;
+            }
+        });
+        updateTotalCount();
+        if (removedCount > 0) {
+            alert(`Auto Clean removed ${removedCount} instruction-type lines.`);
+        } else {
+            alert(`No invalid lines found to clean.`);
+        }
+    }
+
+    function autoAssignMarks() {
+        const marks = prompt("Enter marks to assign to ALL remaining questions:", "1.0");
+        if (marks && !isNaN(marks)) {
+            document.querySelectorAll('.q-marks').forEach(input => {
+                input.value = marks;
+            });
+        }
+    }
+
+    function updateTotalCount() {
+        const total = document.querySelectorAll('.question-card').length;
+        document.getElementById('totalCountBadge').innerHTML = `${total} Questions Extracted`;
+        
+        document.querySelectorAll('.section-container').forEach(sec => {
+            if (sec.querySelectorAll('.question-card').length === 0) {
+                sec.remove();
+            } else {
+                const badge = sec.querySelector('.section-header .badge');
+                if (badge) badge.innerText = `${sec.querySelectorAll('.question-card').length} Items`;
+            }
+        });
+    }
+
+    function togglePairId(chk) {
+        const row = chk.closest('.row');
+        const pairInput = row.querySelector('.q-pair-id');
+        pairInput.disabled = !chk.checked;
+        if (!chk.checked) pairInput.value = '';
+    }
+
+    document.getElementById('questionsForm').addEventListener('submit', function(e) {
+        document.querySelectorAll('.dynamic-input').forEach(el => el.remove());
+
+        const cards = document.querySelectorAll('.question-card');
+        let isValid = true;
+
+        if (cards.length === 0) {
+            e.preventDefault();
+            alert("No questions to save! Please extract again or add questions manually.");
+            return;
+        }
+
+        cards.forEach((card, index) => {
+            const group = card.querySelector('.q-group').value;
+            const marks = card.querySelector('.q-marks').value;
+            const optional = card.querySelector('.q-optional').checked;
+            const pairId = card.querySelector('.q-pair-id').value;
+            const text = card.querySelector('.q-text').value.trim();
+
+            if (!text || !marks) {
+                isValid = false;
+                card.style.borderLeftColor = '#f43f5e'; 
+            }
+
+            this.appendChild(createHiddenInput(`q_${index}_group`, group));
+            this.appendChild(createHiddenInput(`q_${index}_marks`, marks));
+            if (optional) {
+                this.appendChild(createHiddenInput(`q_${index}_optional`, 'on'));
+            }
+            this.appendChild(createHiddenInput(`q_${index}_pair_id`, pairId));
+            this.appendChild(createHiddenInput(`q_${index}_text`, text));
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+            alert("Validation Failed! Please fill out all Question Texts and Marks before saving.");
+        }
+    });
+
+    function createHiddenInput(name, value) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        input.className = 'dynamic-input';
+        return input;
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

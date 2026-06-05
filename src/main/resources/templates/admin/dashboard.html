@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Exam System</title>
+    <!-- Bootstrap CSS, Icons, and Google Fonts -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #ff6b00;
+            --primary-hover: #ea580c;
+            --primary-light: rgba(255, 107, 0, 0.05);
+            --bg-canvas: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: rgba(0, 0, 0, 0.05);
+            --text-primary: #111827;
+            --text-secondary: #4b5563;
+            --text-muted: #9ca3af;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --sidebar-width: 260px;
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
+            --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+        }
+
+        body.dark-theme {
+            --bg-canvas: #090d16;
+            --card-bg: #111827;
+            --border-color: rgba(255, 255, 255, 0.06);
+            --text-primary: #f9fafb;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --card-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.1);
+            --card-shadow-hover: 0 20px 40px -12px rgba(0, 0, 0, 0.4), 0 1px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, h4, h5, h6, .brand-name, .profile-name, .btn, .saas-table thead th, .status-badge-saas, .timer-badge-premium {
+            font-family: 'Outfit', sans-serif !important;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2.5rem;
+            transition: var(--transition-smooth);
+            background-color: var(--bg-canvas);
+        }
+
+        /* Metric Stats Card */
+        .stat-card {
+            border: 1px solid var(--border-color) !important;
+            border-radius: 16px !important;
+            box-shadow: var(--card-shadow) !important;
+            transition: var(--transition-smooth);
+            background: var(--card-bg);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--card-shadow-hover) !important;
+            border-color: rgba(255, 107, 0, 0.2) !important;
+        }
+
+        .icon-box-saas {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition-smooth);
+        }
+
+        /* Hover Action Card Styling */
+        .hover-action:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 107, 0, 0.25) !important;
+            box-shadow: 0 4px 10px rgba(255, 107, 0, 0.05);
+        }
+
+        /* SaaS Table */
+        .saas-table-card {
+            border: 1px solid var(--border-color) !important;
+            border-radius: 16px !important;
+            overflow: hidden;
+            box-shadow: var(--card-shadow) !important;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            transition: var(--transition-smooth);
+            padding: 6px;
+        }
+
+        .saas-table {
+            margin-bottom: 0 !important;
+        }
+
+        .saas-table thead th {
+            background-color: transparent !important;
+            color: var(--text-primary) !important;
+            font-weight: 700 !important;
+            font-size: 11px !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.75px !important;
+            padding: 1.25rem 1.5rem !important;
+            border-bottom: 2px solid var(--border-color) !important;
+        }
+
+        .saas-table tbody tr {
+            transition: var(--transition-smooth);
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .saas-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .saas-table tbody tr:hover {
+            background-color: rgba(255, 107, 0, 0.015) !important;
+        }
+
+        .saas-table tbody td {
+            padding: 1.25rem 1.5rem !important;
+            vertical-align: middle !important;
+        }
+
+        /* Status badges */
+        .status-badge-saas {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 0.4rem 0.85rem;
+            font-size: 10.5px;
+            font-weight: 700;
+            border-radius: 50px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .status-badge-draft {
+            background-color: rgba(100, 116, 139, 0.08) !important;
+            color: #475569 !important;
+            border: 1px solid rgba(100, 116, 139, 0.15) !important;
+        }
+
+        .status-badge-published {
+            background-color: rgba(245, 158, 11, 0.08) !important;
+            color: #d97706 !important;
+            border: 1px solid rgba(245, 158, 11, 0.15) !important;
+        }
+
+        .status-badge-active {
+            background-color: rgba(16, 185, 129, 0.08) !important;
+            color: #059669 !important;
+            border: 1px solid rgba(16, 185, 129, 0.15) !important;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.05);
+            animation: activePulse 2s infinite ease-in-out;
+        }
+
+        .status-badge-ended {
+            background-color: rgba(239, 68, 68, 0.08) !important;
+            color: #dc2626 !important;
+            border: 1px solid rgba(239, 68, 68, 0.15) !important;
+        }
+
+        @keyframes activePulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.05); }
+            50% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
+        }
+
+        .btn-activate-premium {
+            background: var(--primary-gradient);
+            color: #ffffff !important;
+            font-weight: 700;
+            font-size: 11.5px;
+            padding: 0.55rem 1.25rem;
+            border-radius: 50px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(255, 107, 0, 0.25);
+            transition: var(--transition-smooth);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            text-decoration: none;
+        }
+
+        .btn-activate-premium:hover {
+            transform: translateY(-1.5px);
+            box-shadow: 0 6px 16px rgba(255, 107, 0, 0.35);
+        }
+
+        .timer-badge-premium {
+            background-color: rgba(255, 107, 0, 0.05);
+            color: var(--primary) !important;
+            border: 1px solid rgba(255, 107, 0, 0.15) !important;
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 0.5rem 1.1rem;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.08); }
+        }
+        .animate-pulse {
+            animation: pulse 1.5s infinite ease-in-out;
+            display: inline-block;
+        }
+
+        @media (max-width: 991.98px) {
+            .main-content {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem("theme") || "light";
+            if (savedTheme === "dark") {
+                document.documentElement.classList.add("dark-theme");
+            }
+        })();
+    </script>
+</head>
+<body>
+
+    <!-- Include Sidebar Fragment -->
+    <div th:replace="~{admin/fragments :: sidebar('dashboard')}"></div>
+
+    <main class="main-content">
+        <!-- Top Sticky Header Area -->
+        <header class="d-flex flex-wrap align-items-center justify-content-between pb-4 mb-4 border-bottom" style="border-bottom-color: var(--border-color) !important;">
+            <div>
+                <h1 class="h2 mb-1" style="color: var(--text-primary) !important; font-weight: 800; font-size: 26px; letter-spacing: -0.5px;">Welcome back, superadmin! 👋</h1>
+                <p class="text-secondary small mb-0" style="font-weight: 500;">
+                    Here's what's happening with your exam system today.
+                </p>
+            </div>
+            
+            <div class="d-flex align-items-center gap-3 mt-3 mt-md-0">
+                <!-- Date Widget -->
+                <div class="d-flex align-items-center gap-2 px-3 py-2 border rounded-3 text-secondary" style="font-size: 13px; font-weight: 600; border-color: var(--border-color) !important; background-color: var(--card-bg) !important;">
+                    <i class="bi bi-calendar3 text-muted"></i>
+                    <span id="current-date">Friday, June 5, 2026</span>
+                </div>
+                
+                <!-- Notification Bell Badge -->
+                <button class="btn btn-light bg-white border rounded-circle d-flex align-items-center justify-content-center position-relative" style="width: 40px; height: 40px; border-color: var(--border-color) !important; background-color: var(--card-bg) !important; color: var(--text-secondary);">
+                    <i class="bi bi-bell-fill"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-danger" style="width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 10px; padding: 0;">3</span>
+                </button>
+                
+                <!-- Export Report Button -->
+                <a th:href="@{/admin/results}" class="btn btn-primary d-flex align-items-center gap-2" style="background-color: #ff6b00; border-color: #ff6b00; padding: 0.6rem 1.25rem;">
+                    <i class="bi bi-box-arrow-up-right"></i>
+                    <span>Export Report</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- Stats Grid (Orange, Green, Amber, Purple) -->
+        <div class="row g-4 mb-4">
+            <!-- Total Papers -->
+            <div class="col-md-3">
+                <div class="card h-100 border-0 p-4 stat-card" style="border-radius: 16px !important;">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-box-saas bg-opacity-10 text-primary" style="width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background-color: rgba(255, 107, 0, 0.08) !important; color: #ff6b00 !important;">
+                            <i class="bi bi-file-earmark-text-fill fs-5"></i>
+                        </div>
+                        <div class="text-end">
+                            <span class="text-uppercase text-muted fw-bold" style="font-size: 11px; letter-spacing: 0.5px;">TOTAL PAPERS</span>
+                            <h3 class="fw-extrabold mb-0 mt-1" style="font-size: 26px; color: var(--text-primary);" th:text="${totalPapers ?: 0}">0</h3>
+                        </div>
+                    </div>
+                    <div class="mt-2 pt-2 border-top" style="border-top-color: var(--border-color) !important;">
+                        <a th:href="@{/admin/upload-paper}" class="text-decoration-none fw-bold small d-flex align-items-center justify-content-between" style="color: #ff6b00;">
+                            <span>Exam papers uploaded</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Total Submissions -->
+            <div class="col-md-3">
+                <div class="card h-100 border-0 p-4 stat-card" style="border-radius: 16px !important;">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-box-saas bg-opacity-10 text-success" style="width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background-color: rgba(16, 185, 129, 0.08) !important; color: #10b981 !important;">
+                            <i class="bi bi-clipboard2-check-fill fs-5"></i>
+                        </div>
+                        <div class="text-end">
+                            <span class="text-uppercase text-muted fw-bold" style="font-size: 11px; letter-spacing: 0.5px;">TOTAL SUBMISSIONS</span>
+                            <h3 class="fw-extrabold mb-0 mt-1" style="font-size: 26px; color: var(--text-primary);" th:text="${totalSubmissions ?: 0}">0</h3>
+                        </div>
+                    </div>
+                    <div class="mt-2 pt-2 border-top" style="border-top-color: var(--border-color) !important;">
+                        <a th:href="@{/admin/submissions}" class="text-decoration-none fw-bold small d-flex align-items-center justify-content-between" style="color: #10b981;">
+                            <span>Student responses submitted</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pending Evaluation -->
+            <div class="col-md-3">
+                <div class="card h-100 border-0 p-4 stat-card" style="border-radius: 16px !important;">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-box-saas bg-opacity-10 text-warning" style="width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background-color: rgba(245, 158, 11, 0.08) !important; color: #f59e0b !important;">
+                            <i class="bi bi-clock-fill fs-5"></i>
+                        </div>
+                        <div class="text-end">
+                            <span class="text-uppercase text-muted fw-bold" style="font-size: 11px; letter-spacing: 0.5px;">PENDING EVALUATION</span>
+                            <h3 class="fw-extrabold mb-0 mt-1" style="font-size: 26px; color: var(--text-primary);" th:text="${pendingEvaluations ?: 0}">0</h3>
+                        </div>
+                    </div>
+                    <div class="mt-2 pt-2 border-top" style="border-top-color: var(--border-color) !important;">
+                        <a th:href="@{/admin/submissions}" class="text-decoration-none fw-bold small d-flex align-items-center justify-content-between" style="color: #f59e0b;">
+                            <span th:text="${pendingEvaluations > 0 ? 'Awaiting grading' : 'All clear'}">All clear</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Total Students -->
+            <div class="col-md-3">
+                <div class="card h-100 border-0 p-4 stat-card" style="border-radius: 16px !important;">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-box-saas bg-opacity-10 text-purple" style="width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background-color: rgba(139, 92, 246, 0.08) !important; color: #8b5cf6 !important;">
+                            <i class="bi bi-people-fill fs-5"></i>
+                        </div>
+                        <div class="text-end">
+                            <span class="text-uppercase text-muted fw-bold" style="font-size: 11px; letter-spacing: 0.5px;">TOTAL STUDENTS</span>
+                            <h3 class="fw-extrabold mb-0 mt-1" style="font-size: 26px; color: var(--text-primary);" th:text="${totalStudentsCount ?: 0}">0</h3>
+                        </div>
+                    </div>
+                    <div class="mt-2 pt-2 border-top" style="border-top-color: var(--border-color) !important;">
+                        <a th:href="@{/admin/results}" class="text-decoration-none fw-bold small d-flex align-items-center justify-content-between" style="color: #8b5cf6;">
+                            <span>Manage students</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Middle Row: Attempt pill blocks + Quick Action grid -->
+        <div class="row g-4 mb-4">
+            <!-- Left Column: Attempt & Results Summary -->
+            <div class="col-lg-7">
+                <div class="card border-0 p-4 h-100" style="border-radius: 16px !important;">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <h4 class="fw-bold mb-0" style="font-size: 17px; color: var(--text-primary);">Exam Attempt & Results Summary</h4>
+                        <a th:href="@{/admin/results}" class="text-decoration-none fw-bold small d-flex align-items-center gap-1" style="color: #ff6b00;">
+                            <span>View Details</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap" style="flex-grow: 1;">
+                        <!-- Block 1: Passed -->
+                        <div class="text-center flex-grow-1 p-3 border rounded-3" style="border-color: var(--border-color) !important; background: var(--bg-canvas); min-width: 90px; border-radius: 12px !important;">
+                            <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success rounded-circle mb-2" style="width: 36px; height: 36px;">
+                                <i class="bi bi-check-circle-fill fs-5"></i>
+                            </div>
+                            <span class="text-uppercase text-muted fw-bold d-block mb-1" style="font-size: 10px; letter-spacing: 0.5px;">PASSED</span>
+                            <h4 class="fw-extrabold mb-0 text-success" style="font-size: 20px;" th:text="${passedCount ?: 0}">12</h4>
+                        </div>
+                        
+                        <!-- Block 2: Failed -->
+                        <div class="text-center flex-grow-1 p-3 border rounded-3" style="border-color: var(--border-color) !important; background: var(--bg-canvas); min-width: 90px; border-radius: 12px !important;">
+                            <div class="d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger rounded-circle mb-2" style="width: 36px; height: 36px;">
+                                <i class="bi bi-x-circle-fill fs-5"></i>
+                            </div>
+                            <span class="text-uppercase text-muted fw-bold d-block mb-1" style="font-size: 10px; letter-spacing: 0.5px;">FAILED</span>
+                            <h4 class="fw-extrabold mb-0 text-danger" style="font-size: 20px;" th:text="${failedCount ?: 0}">0</h4>
+                        </div>
+                        
+                        <!-- Block 3: Terminated -->
+                        <div class="text-center flex-grow-1 p-3 border rounded-3" style="border-color: var(--border-color) !important; background: var(--bg-canvas); min-width: 90px; border-radius: 12px !important;">
+                            <div class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 text-warning rounded-circle mb-2" style="width: 36px; height: 36px;">
+                                <i class="bi bi-exclamation-circle-fill fs-5"></i>
+                            </div>
+                            <span class="text-uppercase text-muted fw-bold d-block mb-1" style="font-size: 10px; letter-spacing: 0.5px;">TERMINATED</span>
+                            <h4 class="fw-extrabold mb-0 text-warning" style="font-size: 20px;" th:text="${terminatedCount ?: 0}">0</h4>
+                        </div>
+                        
+                        <!-- Block 4: Blocked -->
+                        <div class="text-center flex-grow-1 p-3 border rounded-3" style="border-color: var(--border-color) !important; background: var(--bg-canvas); min-width: 90px; border-radius: 12px !important;">
+                            <div class="d-inline-flex align-items-center justify-content-center bg-purple bg-opacity-10 text-purple rounded-circle mb-2" style="width: 36px; height: 36px; background-color: rgba(139, 92, 246, 0.08) !important; color: #8b5cf6 !important;">
+                                <i class="bi bi-slash-circle-fill fs-5"></i>
+                            </div>
+                            <span class="text-uppercase text-muted fw-bold d-block mb-1" style="font-size: 10px; letter-spacing: 0.5px;">BLOCKED</span>
+                            <h4 class="fw-extrabold mb-0" style="font-size: 20px; color: #8b5cf6;" th:text="${disqualifiedCount ?: 0}">0</h4>
+                        </div>
+                        
+                        <!-- Block 5: Absent -->
+                        <div class="text-center flex-grow-1 p-3 border rounded-3" style="border-color: var(--border-color) !important; background: var(--bg-canvas); min-width: 90px; border-radius: 12px !important;">
+                            <div class="d-inline-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary rounded-circle mb-2" style="width: 36px; height: 36px;">
+                                <i class="bi bi-person-x-fill fs-5"></i>
+                            </div>
+                            <span class="text-uppercase text-muted fw-bold d-block mb-1" style="font-size: 10px; letter-spacing: 0.5px;">ABSENT</span>
+                            <h4 class="fw-extrabold mb-0 text-secondary" style="font-size: 20px;" th:text="${absentCount ?: 0}">0</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column: Quick Actions -->
+            <div class="col-lg-5">
+                <div class="card border-0 p-4 h-100" style="border-radius: 16px !important;">
+                    <h4 class="fw-bold mb-4" style="font-size: 17px; color: var(--text-primary);">Quick Actions</h4>
+                    <div class="row g-3" style="flex-grow: 1;">
+                        <!-- Action 1: Upload Paper -->
+                        <div class="col-6">
+                            <a th:href="@{/admin/upload-paper}" class="text-decoration-none d-block p-3 border rounded-3 h-100 text-secondary hover-action" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important; transition: var(--transition-smooth);">
+                                <div class="d-inline-flex align-items-center justify-content-center bg-opacity-10 rounded-3 mb-2" style="width: 32px; height: 32px; background-color: rgba(255, 107, 0, 0.08); color: #ff6b00;">
+                                    <i class="bi bi-cloud-arrow-up-fill fs-5"></i>
+                                </div>
+                                <h5 class="fw-bold mb-1" style="font-size: 13px; color: var(--text-primary);">Upload Paper</h5>
+                                <p class="mb-0 text-muted" style="font-size: 10px;">Add new exam paper</p>
+                            </a>
+                        </div>
+                        
+                        <!-- Action 2: Review Submissions -->
+                        <div class="col-6">
+                            <a th:href="@{/admin/submissions}" class="text-decoration-none d-block p-3 border rounded-3 h-100 text-secondary hover-action" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important; transition: var(--transition-smooth);">
+                                <div class="d-inline-flex align-items-center justify-content-center bg-opacity-10 rounded-3 mb-2" style="width: 32px; height: 32px; background-color: rgba(255, 107, 0, 0.08); color: #ff6b00;">
+                                    <i class="bi bi-clipboard2-check-fill fs-5"></i>
+                                </div>
+                                <h5 class="fw-bold mb-1" style="font-size: 13px; color: var(--text-primary);">Review Submissions</h5>
+                                <p class="mb-0 text-muted" style="font-size: 10px;">Evaluate responses</p>
+                            </a>
+                        </div>
+                        
+                        <!-- Action 3: View Results -->
+                        <div class="col-6">
+                            <a th:href="@{/admin/results}" class="text-decoration-none d-block p-3 border rounded-3 h-100 text-secondary hover-action" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important; transition: var(--transition-smooth);">
+                                <div class="d-inline-flex align-items-center justify-content-center bg-opacity-10 rounded-3 mb-2" style="width: 32px; height: 32px; background-color: rgba(255, 107, 0, 0.08); color: #ff6b00;">
+                                    <i class="bi bi-bar-chart-fill fs-5"></i>
+                                </div>
+                                <h5 class="fw-bold mb-1" style="font-size: 13px; color: var(--text-primary);">View Results</h5>
+                                <p class="mb-0 text-muted" style="font-size: 10px;">Analyze performance</p>
+                            </a>
+                        </div>
+                        
+                        <!-- Action 4: Manage Students -->
+                        <div class="col-6">
+                            <a th:href="@{/admin/results}" class="text-decoration-none d-block p-3 border rounded-3 h-100 text-secondary hover-action" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important; transition: var(--transition-smooth);">
+                                <div class="d-inline-flex align-items-center justify-content-center bg-opacity-10 rounded-3 mb-2" style="width: 32px; height: 32px; background-color: rgba(255, 107, 0, 0.08); color: #ff6b00;">
+                                    <i class="bi bi-people-fill fs-5"></i>
+                                </div>
+                                <h5 class="fw-bold mb-1" style="font-size: 13px; color: var(--text-primary);">Manage Students</h5>
+                                <p class="mb-0 text-muted" style="font-size: 10px;">Add or manage students</p>
+                            </a>
+                        </div>
+                        
+                        <!-- Action 5: Generate Report -->
+                        <div class="col-6">
+                            <a th:href="@{/admin/results}" class="text-decoration-none d-block p-3 border rounded-3 h-100 text-secondary hover-action" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important; transition: var(--transition-smooth);">
+                                <div class="d-inline-flex align-items-center justify-content-center bg-opacity-10 rounded-3 mb-2" style="width: 32px; height: 32px; background-color: rgba(255, 107, 0, 0.08); color: #ff6b00;">
+                                    <i class="bi bi-file-earmark-bar-graph-fill fs-5"></i>
+                                </div>
+                                <h5 class="fw-bold mb-1" style="font-size: 13px; color: var(--text-primary);">Generate Report</h5>
+                                <p class="mb-0 text-muted" style="font-size: 10px;">Download reports</p>
+                            </a>
+                        </div>
+                        
+                        <!-- Action 6: System Settings -->
+                        <div class="col-6">
+                            <a href="#" class="text-decoration-none d-block p-3 border rounded-3 h-100 text-secondary hover-action" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important; transition: var(--transition-smooth);">
+                                <div class="d-inline-flex align-items-center justify-content-center bg-opacity-10 rounded-3 mb-2" style="width: 32px; height: 32px; background-color: rgba(255, 107, 0, 0.08); color: #ff6b00;">
+                                    <i class="bi bi-gear-fill fs-5"></i>
+                                </div>
+                                <h5 class="fw-bold mb-1" style="font-size: 13px; color: var(--text-primary);">System Settings</h5>
+                                <p class="mb-0 text-muted" style="font-size: 10px;">Configure system</p>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Latest Activity Section -->
+        <div class="card border-0 p-4 mb-4" style="border-radius: 16px !important;">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <h4 class="fw-bold mb-0" style="font-size: 17px; color: var(--text-primary);">Latest Activity</h4>
+                <a th:href="@{/admin/submissions}" class="text-decoration-none fw-bold small d-flex align-items-center gap-1" style="color: #ff6b00;">
+                    <span>View All Activity</span>
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            
+            <div class="d-flex flex-column gap-3">
+                <!-- Activity 1: New paper uploaded -->
+                <div class="d-flex align-items-center justify-content-between p-3 border rounded-3" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-opacity-10 text-primary rounded-circle" style="width: 36px; height: 36px; background-color: rgba(99, 102, 241, 0.08) !important; color: #6366f1 !important;">
+                            <i class="bi bi-file-earmark-text-fill fs-5"></i>
+                        </div>
+                        <div>
+                            <span class="fw-bold d-block" style="font-size: 13px; color: var(--text-primary);">New paper uploaded</span>
+                            <span class="small text-muted" th:text="${!papers.isEmpty() ? papers[0].subject : 'Mathematics 101'}">Mathematics 101</span>
+                        </div>
+                    </div>
+                    <span class="small text-muted fw-semibold">2 min ago</span>
+                </div>
+                
+                <!-- Activity 2: Submission received -->
+                <div class="d-flex align-items-center justify-content-between p-3 border rounded-3" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success rounded-circle" style="width: 36px; height: 36px;">
+                            <i class="bi bi-check-lg fs-5"></i>
+                        </div>
+                        <div>
+                            <span class="fw-bold d-block" style="font-size: 13px; color: var(--text-primary);">Submission received</span>
+                            <span class="small text-muted" th:text="${submissionsList != null && !submissionsList.isEmpty() ? (submissionsList[0].student != null ? submissionsList[0].student.name : 'Student') + ' - ' + (submissionsList[0].paper != null ? submissionsList[0].paper.subject : 'Exam') : 'John Doe - Physics 201'}">John Doe - Physics 201</span>
+                        </div>
+                    </div>
+                    <span class="small text-muted fw-semibold">10 min ago</span>
+                </div>
+                
+                <!-- Activity 3: Evaluation completed -->
+                <div class="d-flex align-items-center justify-content-between p-3 border rounded-3" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 text-warning rounded-circle" style="width: 36px; height: 36px; background-color: rgba(245, 158, 11, 0.08) !important; color: #f59e0b !important;">
+                            <i class="bi bi-clock-fill fs-5"></i>
+                        </div>
+                        <div>
+                            <span class="fw-bold d-block" style="font-size: 13px; color: var(--text-primary);">Evaluation completed</span>
+                            <span class="small text-muted" th:text="${!papers.isEmpty() ? papers[0].subject : 'Chemistry 101'}">Chemistry 101</span>
+                        </div>
+                    </div>
+                    <span class="small text-muted fw-semibold">1 hour ago</span>
+                </div>
+                
+                <!-- Activity 4: New student registered -->
+                <div class="d-flex align-items-center justify-content-between p-3 border rounded-3" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-purple bg-opacity-10 text-purple rounded-circle" style="width: 36px; height: 36px; background-color: rgba(139, 92, 246, 0.08) !important; color: #8b5cf6 !important;">
+                            <i class="bi bi-person-fill fs-5"></i>
+                        </div>
+                        <div>
+                            <span class="fw-bold d-block" style="font-size: 13px; color: var(--text-primary);">New student registered</span>
+                            <span class="small text-muted">Mike Johnson</span>
+                        </div>
+                    </div>
+                    <span class="small text-muted fw-semibold">2 hours ago</span>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <button class="btn btn-outline-secondary btn-sm px-4 py-2 border rounded-pill d-inline-flex align-items-center gap-2 fw-semibold" style="font-size: 12px; border-color: var(--border-color) !important; color: var(--text-secondary);">
+                    <span>Load More</span>
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Question Papers & Exam Status (Bottom Table) -->
+        <h3 class="fw-bold mb-3 mt-5" style="font-size: 17px !important; letter-spacing: -0.3px; color: var(--text-primary) !important;"><i class="bi bi-file-earmark-check-fill text-primary me-2"></i>Question Papers & Exam Status</h3>
+        <div class="card border-0 saas-table-card mb-4">
+            <div class="table-responsive">
+                <table class="table align-middle saas-table">
+                    <thead>
+                        <tr>
+                            <th>Subject Name</th>
+                            <th>Course / Sem</th>
+                            <th>Eligible Students</th>
+                            <th>Attempts</th>
+                            <th>Uploaded At</th>
+                            <th>Status</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-secondary">
+                        <tr th:each="p : ${papers}">
+                            <td class="fw-bold" style="color: var(--text-primary) !important;">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-3" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background-color: rgba(255, 107, 0, 0.08) !important; color: #ff6b00 !important;">
+                                        <i class="bi bi-file-earmark-text-fill fs-5"></i>
+                                    </div>
+                                    <span th:text="${p.subject}">Subject</span>
+                                </div>
+                            </td>
+                            <td class="fw-semibold" style="color: var(--text-primary) !important;">
+                                <span class="d-inline-flex align-items-center gap-2">
+                                    <i class="bi bi-mortarboard text-secondary"></i>
+                                    <span th:text="${p.course} + ' - Sem ' + ${p.semester}">B.Tech - Sem 1</span>
+                                </span>
+                            </td>
+                            <td class="fw-semibold" style="color: var(--text-primary) !important;">
+                                <span class="d-inline-flex align-items-center gap-2">
+                                    <i class="bi bi-people text-secondary"></i>
+                                    <span th:text="${eligibleStudentsMap.get(p.id)}">0</span>
+                                </span>
+                            </td>
+                            <td class="fw-semibold" style="color: var(--text-primary) !important;">
+                                <span class="d-inline-flex align-items-center gap-2">
+                                    <i class="bi bi-clipboard-check text-secondary"></i>
+                                    <span th:text="${attemptsMap.get(p.id)}">0</span>
+                                </span>
+                            </td>
+                            <td class="text-meta fw-semibold">
+                                <span class="d-inline-flex align-items-center gap-2">
+                                    <i class="bi bi-calendar3"></i>
+                                    <span th:text="${#temporals.format(p.uploadedAt, 'yyyy-MM-dd HH:mm')}">Uploaded At</span>
+                                </span>
+                            </td>
+                            <td class="paper-status-cell" th:attr="data-paper-id=${p.id}">
+                                <span th:if="${p.examStatus == 'DRAFT'}" class="status-badge-saas status-badge-draft"><i class="bi bi-pencil-square"></i> DRAFT</span>
+                                <span th:if="${p.examStatus == 'PUBLISHED'}" class="status-badge-saas status-badge-published"><i class="bi bi-file-earmark-arrow-up"></i> PUBLISHED</span>
+                                <span th:if="${p.examStatus == 'ACTIVE'}" class="status-badge-saas status-badge-active"><i class="bi bi-broadcast"></i> ACTIVE</span>
+                                <span th:if="${p.examStatus == 'ENDED'}" class="status-badge-saas status-badge-ended"><i class="bi bi-slash-circle"></i> ENDED</span>
+                            </td>
+                            <td class="text-end paper-action-cell" th:attr="data-paper-id=${p.id}">
+                                <!-- Show Activate Exam button ONLY if paper is DRAFT or PUBLISHED -->
+                                <a th:if="${p.examStatus == 'DRAFT' or p.examStatus == 'PUBLISHED'}" th:href="@{'/admin/paper/' + ${p.id} + '/activate'}" class="btn-activate-premium"><i class="bi bi-play-fill"></i> Activate Exam</a>
+                                
+                                <!-- Show Countdown Timer and End Exam button if ACTIVE -->
+                                <div th:if="${p.examStatus == 'ACTIVE'}" class="d-inline-flex align-items-center gap-2">
+                                    <div class="timer-badge-premium active-countdown-timer"
+                                         th:attr="data-paper-id=${p.id}, data-activation-time=${p.activationTime}, data-duration=${p.examDuration}">
+                                        <i class="bi bi-stopwatch animate-pulse"></i>
+                                        <span class="timer-countdown-text">--:--</span>
+                                    </div>
+                                    <a th:href="@{'/admin/paper/' + ${p.id} + '/end-dashboard'}" class="btn btn-sm btn-outline-danger rounded-pill fw-bold px-3 py-1.5" style="font-size: 11px; display: inline-flex; align-items: center; gap: 4px;"><i class="bi bi-stop-fill"></i> End Exam</a>
+                                </div>
+
+                                <!-- Show Ended label if ENDED -->
+                                <span th:if="${p.examStatus == 'ENDED'}" class="text-danger fw-bold small"><i class="bi bi-x-circle-fill me-1"></i> Ended</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${papers == null or papers.isEmpty()}">
+                            <td colspan="7" class="py-5 text-center text-muted">
+                                <div class="py-3">
+                                    <i class="bi bi-file-earmark-x fs-1 text-secondary opacity-30 d-block mb-2"></i>
+                                    <span>No question papers uploaded yet.</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set dynamic date in header
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateEl = document.getElementById('current-date');
+            if (dateEl) {
+                dateEl.textContent = new Date().toLocaleDateString('en-US', options);
+            }
+
+            // Real-Time Countdown Timer Engine for Active Exams
+            const activeTimers = document.querySelectorAll('.active-countdown-timer');
+            
+            activeTimers.forEach(timer => {
+                const paperId = timer.getAttribute('data-paper-id');
+                const activationTimeStr = timer.getAttribute('data-activation-time');
+                const durationMinutes = parseInt(timer.getAttribute('data-duration')) || 0;
+                const textSpan = timer.querySelector('.timer-countdown-text');
+                const icon = timer.querySelector('i');
+
+                if (!activationTimeStr || durationMinutes <= 0) {
+                    textSpan.textContent = "Expired";
+                    return;
+                }
+
+                const startTime = new Date(activationTimeStr).getTime();
+                const durationMs = durationMinutes * 60 * 1000;
+                const endTime = startTime + durationMs;
+
+                function updateCountdown() {
+                    const now = new Date().getTime();
+                    const remainingMs = endTime - now;
+
+                    if (remainingMs <= 0) {
+                        textSpan.textContent = "00m 00s";
+                        timer.className = "d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill border text-danger bg-danger bg-opacity-10 border-danger border-opacity-20";
+                        if (icon) {
+                            icon.className = "bi bi-stopwatch-fill text-danger";
+                        }
+                        
+                        // Auto-terminate the exam on server asynchronously
+                        fetch(`/admin/paper/${paperId}/end`)
+                            .then(response => response.text())
+                            .then(data => {
+                                console.log(`Paper ${paperId} automatically terminated:`, data);
+                            })
+                            .catch(err => console.error("Error auto-terminating paper:", err));
+
+                        // Change Action column to Ended label
+                        const actionCell = document.querySelector(`.paper-action-cell[data-paper-id="${paperId}"]`);
+                        if (actionCell) {
+                            actionCell.innerHTML = `<span class="text-danger fw-bold small"><i class="bi bi-x-circle-fill me-1"></i> Ended</span>`;
+                        }
+
+                        // Change Status badge to ENDED (Red)
+                        const statusCell = document.querySelector(`.paper-status-cell[data-paper-id="${paperId}"]`);
+                        if (statusCell) {
+                            statusCell.innerHTML = `<span class="status-badge-saas status-badge-ended"><i class="bi bi-slash-circle"></i> ENDED</span>`;
+                        }
+
+                        clearInterval(timerInterval);
+                        return;
+                    }
+
+                    const totalSecs = Math.floor(remainingMs / 1000);
+                    const hours = Math.floor(totalSecs / 3600);
+                    const mins = Math.floor((totalSecs % 3600) / 60);
+                    const secs = totalSecs % 60;
+
+                    let displayStr = "";
+                    if (hours > 0) {
+                        displayStr += `${hours}h ${mins}m ${secs}s`;
+                    } else {
+                        displayStr += `${mins}m ${secs}s`;
+                    }
+
+                    textSpan.textContent = displayStr;
+
+                    // Urgent Warning: Less than 5 minutes remaining
+                    if (remainingMs < 5 * 60 * 1000) {
+                        timer.className = "d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill border text-danger bg-danger bg-opacity-10 border-danger border-opacity-20";
+                        if (icon) icon.className = "bi bi-stopwatch animate-pulse text-danger";
+                    }
+                }
+
+                // Initial run
+                updateCountdown();
+                // Tick every second
+                const timerInterval = setInterval(updateCountdown, 1000);
+            });
+        });
+    </script>
+</body>
+</html>

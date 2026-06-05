@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management - Admin Dashboard</title>
+    <!-- Bootstrap CSS & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <style>
+        :root {
+            --primary: #ff6b00;
+            --primary-hover: #ea580c;
+            --sidebar-bg: #090d16;
+            --bg-canvas: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --autofill-bg: #ffffff;
+            --border-color: rgba(0, 0, 0, 0.06);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --sidebar-width: 260px;
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.02), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+            --card-shadow-hover: 0 20px 35px -8px rgba(255, 107, 0, 0.08), 0 10px 15px -10px rgba(0, 0, 0, 0.02);
+        }
+
+        body.dark-theme {
+            --bg-canvas: #090d16;
+            --card-bg: rgba(17, 24, 39, 0.7);
+            --autofill-bg: #111827;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #f9fafb;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --sidebar-bg: #111827;
+            --sidebar-hover: rgba(255, 255, 255, 0.04);
+        }
+
+        body, .card, .table-responsive, thead th, tbody tr, td, .form-select, .form-control {
+            transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2.5rem;
+            transition: var(--transition-smooth);
+            background-color: var(--bg-canvas);
+        }
+
+        .table-responsive {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .table thead th {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700 !important;
+            font-size: 11.5px !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+            padding: 1.15rem 1.5rem !important;
+            color: var(--text-primary) !important;
+            background-color: var(--bg-canvas) !important;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table tbody tr {
+            transition: var(--transition-smooth);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(255, 107, 0, 0.015) !important;
+        }
+
+        .table tbody td {
+            padding: 1.15rem 1.5rem !important;
+            vertical-align: middle;
+        }
+
+        /* Floating label focus border */
+        .form-floating > .form-control:focus,
+        .form-floating > .form-select:focus {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.15) !important;
+        }
+        
+        .form-control, .form-select {
+            background-color: var(--card-bg) !important;
+            color: var(--text-primary) !important;
+            border-radius: 12px;
+            border: 1.5px solid var(--border-color);
+            font-weight: 500;
+            transition: var(--transition-smooth);
+        }
+
+        .form-floating > label {
+            color: var(--text-muted);
+            transition: var(--transition-smooth);
+        }
+
+        /* Override Bootstrap 5 floating label background mask for dark theme/custom theme */
+        .form-floating > .form-control:focus ~ label::after,
+        .form-floating > .form-control:not(:placeholder-shown) ~ label::after,
+        .form-floating > .form-control-plaintext ~ label::after,
+        .form-floating > .form-select ~ label::after {
+            background-color: var(--card-bg) !important;
+            color: var(--text-muted) !important;
+        }
+
+        /* Label colors for floating label states */
+        .form-floating > .form-control:focus ~ label,
+        .form-floating > .form-select:focus ~ label {
+            color: var(--primary) !important;
+        }
+
+        .form-floating > .form-control:not(:placeholder-shown) ~ label,
+        .form-floating > .form-select ~ label {
+            color: var(--text-muted);
+        }
+
+        /* Ensure options inside select have proper background and color in dark mode */
+        body.dark-theme select.form-select option {
+            background-color: #111827 !important;
+            color: var(--text-primary) !important;
+        }
+
+        /* Autofill overrides */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus,
+        textarea:-webkit-autofill,
+        textarea:-webkit-autofill:hover,
+        textarea:-webkit-autofill:focus,
+        select:-webkit-autofill,
+        select:-webkit-autofill:hover,
+        select:-webkit-autofill:focus {
+            -webkit-text-fill-color: var(--text-primary) !important;
+            -webkit-box-shadow: 0 0 0px 1000px var(--autofill-bg) inset !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        .text-primary {
+            color: var(--primary) !important;
+        }
+
+        /* Cards SaaS Styling */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color) !important;
+            border-radius: 20px !important;
+            box-shadow: var(--card-shadow) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: var(--transition-smooth);
+        }
+
+        /* Input Group integrated styling */
+        .input-group {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .input-group .input-group-text {
+            background-color: var(--card-bg) !important;
+            border: 1.5px solid var(--border-color);
+            border-right: none;
+            color: var(--text-muted) !important;
+            transition: var(--transition-smooth);
+        }
+
+        .input-group .form-control {
+            border-left: none;
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        .input-group:focus-within .input-group-text {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.15);
+        }
+
+        /* Modal custom styles for dark theme */
+        body.dark-theme .modal-content {
+            background-color: #111827 !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-primary) !important;
+        }
+
+        body.dark-theme .modal-header {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        body.dark-theme .modal-footer {
+            border-top: 1px solid var(--border-color);
+        }
+
+        @media (max-width: 991.98px) {
+            .main-content {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem("theme") || "light";
+            if (savedTheme === "dark") {
+                document.documentElement.classList.add("dark-theme");
+            }
+        })();
+    </script>
+</head>
+<body>
+
+    <!-- Include Sidebar Fragment -->
+    <div th:replace="~{admin/fragments :: sidebar('students')}"></div>
+
+    <main class="main-content">
+        <!-- Page Header -->
+        <header class="d-flex flex-wrap align-items-center justify-content-between pb-3 mb-4 border-bottom" style="border-bottom-color: var(--border-color) !important;">
+            <div>
+                <h1 class="h2 mb-1" style="color: var(--text-primary) !important;">Student Management</h1>
+                <p class="text-meta small mb-0">Register and manage student profiles in the database</p>
+            </div>
+            
+            <div class="d-flex align-items-center gap-3 mt-3 mt-md-0">
+                <!-- Trigger Modal Button -->
+                <button class="btn btn-primary d-inline-flex align-items-center gap-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#registerStudentModal">
+                    <i class="bi bi-person-plus-fill"></i> Register Student
+                </button>
+                <div class="profile-avatar bg-primary text-white" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-weight: 700;" th:text="${#strings.substring(adminName, 0, 1)}">S</div>
+            </div>
+        </header>
+
+        <!-- Alerts -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show border-0 rounded-3 shadow-sm mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <span th:text="${successMessage}">Success message.</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show border-0 rounded-3 shadow-sm mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <span th:text="${errorMessage}">Error message.</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Top Filter Bar -->
+        <div class="card border-0 p-3 mb-4">
+            <form th:action="@{/admin/students}" method="get" class="row g-3 align-items-end">
+                <!-- Search Input -->
+                <div class="col-md-4">
+                    <label class="label-custom small text-muted mb-2 d-block">Search</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-end-0 text-secondary" style="background-color: var(--card-bg) !important; border-color: var(--border-color) !important;"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control border-start-0 text-secondary small" name="search" th:value="${searchQuery}" placeholder="Search by name or enrollment...">
+                    </div>
+                </div>
+                <!-- Semester dropdown -->
+                <div class="col-md-3">
+                    <label class="label-custom small text-muted mb-2 d-block">Semester</label>
+                    <select class="form-select py-2 fw-medium" name="semester">
+                        <option value="">All Semesters</option>
+                        <option th:each="sem : ${distinctSemesters}" 
+                                th:value="${sem}" 
+                                th:text="${sem}"
+                                th:selected="${sem == selectedSemester}"></option>
+                    </select>
+                </div>
+                <!-- Division dropdown -->
+                <div class="col-md-3">
+                    <label class="label-custom small text-muted mb-2 d-block">Division</label>
+                    <select class="form-select py-2 fw-medium" name="division">
+                        <option value="">All Divisions</option>
+                        <option th:each="divVal : ${distinctDivisions}" 
+                                th:value="${divVal}" 
+                                th:text="${'Division ' + divVal}"
+                                th:selected="${divVal == selectedDivision}"></option>
+                    </select>
+                </div>
+                <!-- Apply Filters Button -->
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100 fw-semibold py-2">
+                        <i class="bi bi-funnel me-2"></i>Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Data Table Card -->
+        <div class="card border-0 p-4">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0" style="color: var(--text-secondary) !important;">
+                    <thead class="sticky-top">
+                        <tr class="label-custom small">
+                            <th class="py-3">Enrollment No</th>
+                            <th class="py-3">Student Name</th>
+                            <th class="py-3">Roll No</th>
+                            <th class="py-3">Semester</th>
+                            <th class="py-3">Division</th>
+                            <th class="py-3">Phone No</th>
+                            <th class="py-3 text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-secondary">
+                        <tr th:each="stud : ${students}">
+                            <td class="py-3 fw-bold text-primary" th:text="${stud.enrollmentNo}">2023BCA001</td>
+                            <td class="py-3 fw-semibold" th:text="${stud.studentName}" style="color: var(--text-primary) !important;">Student Name</td>
+                            <td class="py-3 fw-bold font-monospace" th:text="${stud.rollNo != null ? stud.rollNo : '-'}">1</td>
+                            <td class="py-3" th:text="${stud.semester}">Semester 3</td>
+                            <td class="py-3" th:text="${stud.division}">A</td>
+                            <td class="py-3" th:text="${stud.phoneNo != null ? stud.phoneNo : '-'}">+91 00000 00000</td>
+                            <td class="py-3 text-end">
+                                <form th:action="@{/admin/students/delete/{id}(id=${stud.id})}" method="post" onsubmit="return confirm('Are you absolutely sure you want to delete this student record? This cannot be undone.');" style="display:inline-block;">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm px-3 py-1 d-inline-flex align-items-center gap-1 fw-semibold">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        
+                        <!-- Empty State Placeholders -->
+                        <tr th:if="${students == null or students.isEmpty()}">
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <div class="bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%;">
+                                    <i class="bi bi-people fs-3 text-primary"></i>
+                                </div>
+                                <h6 class="fw-bold mb-1" style="color: var(--text-primary) !important;">No students found</h6>
+                                <p class="small text-secondary mb-0">Try registering a new student or adjusting filters</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Registration Modal -->
+        <div class="modal fade" id="registerStudentModal" tabindex="-1" aria-labelledby="registerStudentModalLabel" aria-hidden="true" style="z-index: 1070;">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 rounded-4 shadow-lg">
+                    <div class="modal-header text-white" style="background-color: var(--primary);">
+                        <h5 class="modal-title fw-bold" id="registerStudentModalLabel"><i class="bi bi-person-plus-fill me-2"></i> Register New Student</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form th:action="@{/admin/students/add}" method="post" class="needs-validation" novalidate>
+                        <div class="modal-body p-4">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control fw-medium" id="studentName" name="studentName" placeholder=" " required>
+                                        <label for="studentName">Full Name</label>
+                                        <div class="invalid-feedback">Please enter the student's full name.</div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control fw-medium" id="enrollmentNo" name="enrollmentNo" placeholder=" " required>
+                                        <label for="enrollmentNo">Enrollment Number</label>
+                                        <div class="invalid-feedback">Please enter a unique enrollment number.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="number" class="form-control fw-medium" id="rollNo" name="rollNo" placeholder=" " required>
+                                        <label for="rollNo">Roll Number</label>
+                                        <div class="invalid-feedback">Please enter a valid roll number.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control fw-medium" id="division" name="division" placeholder=" " required>
+                                        <label for="division">Division</label>
+                                        <div class="invalid-feedback">Please specify a class division (e.g. A).</div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <select class="form-select fw-medium" id="semester" name="semester" required>
+                                            <option value="" selected disabled>Select Semester</option>
+                                            <option value="Semester 1">Semester 1</option>
+                                            <option value="Semester 2">Semester 2</option>
+                                            <option value="Semester 3">Semester 3</option>
+                                            <option value="Semester 4">Semester 4</option>
+                                            <option value="Semester 5">Semester 5</option>
+                                            <option value="Semester 6">Semester 6</option>
+                                            <option value="Semester 7">Semester 7</option>
+                                            <option value="Semester 8">Semester 8</option>
+                                        </select>
+                                        <label for="semester">Academic Semester</label>
+                                        <div class="invalid-feedback">Please select the current semester.</div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <input type="tel" class="form-control fw-medium" id="phoneNo" name="phoneNo" placeholder=" " required>
+                                        <label for="phoneNo">Phone Number</label>
+                                        <div class="invalid-feedback">Please enter student phone contact.</div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <input type="password" class="form-control fw-medium" id="password" name="password" placeholder=" " required>
+                                        <label for="password">Student Password</label>
+                                        <div class="invalid-feedback">Please set a password for student login access.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer p-3">
+                            <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary px-4 fw-semibold">Save Details</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Form validations
+        (() => {
+            'use strict'
+            const forms = document.querySelectorAll('.needs-validation')
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+    </script>
+</body>
+</html>

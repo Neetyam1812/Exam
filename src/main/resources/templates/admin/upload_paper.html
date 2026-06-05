@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Exam Paper - Admin Dashboard</title>
+    <!-- Bootstrap CSS & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <style>
+        :root {
+            --primary: #ff6b00;
+            --primary-hover: #ea580c;
+            --sidebar-bg: #090d16;
+            --bg-canvas: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --autofill-bg: #ffffff;
+            --border-color: rgba(0, 0, 0, 0.06);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --sidebar-width: 260px;
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.02), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+            --card-shadow-hover: 0 20px 35px -8px rgba(255, 107, 0, 0.08), 0 10px 15px -10px rgba(0, 0, 0, 0.02);
+        }
+
+        body.dark-theme {
+            --bg-canvas: #090d16;
+            --card-bg: rgba(17, 24, 39, 0.7);
+            --autofill-bg: #111827;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #f9fafb;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --sidebar-bg: #111827;
+            --sidebar-hover: rgba(255, 255, 255, 0.04);
+        }
+
+        body, .card, .form-select, .form-control, .segmented-control, .upload-dropzone {
+            transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2.5rem;
+            transition: var(--transition-smooth);
+            background-color: var(--bg-canvas);
+        }
+
+        /* Segmented Control Toggle CSS */
+        .segmented-control {
+            background-color: var(--bg-canvas) !important;
+            padding: 5px;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+        }
+
+        .segmented-control .btn {
+            font-family: 'Outfit', sans-serif;
+            border-radius: 10px !important;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 0.6rem 1rem;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-check:checked + .btn-toggle-custom {
+            background-color: var(--card-bg) !important;
+            color: var(--primary) !important;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05) !important;
+            font-weight: 700 !important;
+        }
+
+        body.dark-theme .btn-check:checked + .btn-toggle-custom {
+            background-color: var(--card-bg) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .btn-check:not(:checked) + .btn-toggle-custom {
+            background-color: transparent !important;
+            color: var(--text-secondary) !important;
+            font-weight: 600 !important;
+        }
+
+        /* Drag & Drop File Zone */
+        .upload-dropzone {
+            border: 2px dashed var(--border-color);
+            border-radius: 16px;
+            background: var(--card-bg);
+            padding: 4rem 2rem;
+            text-align: center;
+            position: relative;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.01);
+        }
+
+        .upload-dropzone:hover {
+            border-color: var(--primary);
+            background: rgba(255, 107, 0, 0.02);
+            transform: scale(1.005);
+        }
+
+        .real-file-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        /* Floating label focus border */
+        .form-floating > .form-control:focus,
+        .form-floating > .form-select:focus {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.15) !important;
+        }
+        
+        .form-control, .form-select {
+            background-color: var(--card-bg) !important;
+            color: var(--text-primary) !important;
+            border-radius: 12px;
+            border: 1.5px solid var(--border-color);
+            font-weight: 500;
+            transition: var(--transition-smooth);
+        }
+
+        .form-floating > label {
+            color: var(--text-muted);
+            transition: var(--transition-smooth);
+        }
+
+        /* Override Bootstrap 5 floating label background mask for dark theme/custom theme */
+        .form-floating > .form-control:focus ~ label::after,
+        .form-floating > .form-control:not(:placeholder-shown) ~ label::after,
+        .form-floating > .form-control-plaintext ~ label::after,
+        .form-floating > .form-select ~ label::after {
+            background-color: var(--card-bg) !important;
+            color: var(--text-muted) !important;
+        }
+
+        /* Label colors for floating label states */
+        .form-floating > .form-control:focus ~ label,
+        .form-floating > .form-select:focus ~ label {
+            color: var(--primary) !important;
+        }
+
+        .form-floating > .form-control:not(:placeholder-shown) ~ label,
+        .form-floating > .form-select ~ label {
+            color: var(--text-muted);
+        }
+
+        /* Ensure options inside select have proper background and color in dark mode */
+        body.dark-theme select.form-select option {
+            background-color: #111827 !important;
+            color: var(--text-primary) !important;
+        }
+
+        /* Autofill overrides */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus,
+        textarea:-webkit-autofill,
+        textarea:-webkit-autofill:hover,
+        textarea:-webkit-autofill:focus,
+        select:-webkit-autofill,
+        select:-webkit-autofill:hover,
+        select:-webkit-autofill:focus {
+            -webkit-text-fill-color: var(--text-primary) !important;
+            -webkit-box-shadow: 0 0 0px 1000px var(--autofill-bg) inset !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        .text-primary {
+            color: var(--primary) !important;
+        }
+
+        /* Cards SaaS Styling */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color) !important;
+            border-radius: 20px !important;
+            box-shadow: var(--card-shadow) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: var(--transition-smooth);
+        }
+
+        /* Standard 44px Button heights */
+        .btn-action-saas {
+            height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-weight: 600;
+            padding: 0 1.75rem;
+        }
+
+        @media (max-width: 991.98px) {
+            .main-content {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem("theme") || "light";
+            if (savedTheme === "dark") {
+                document.documentElement.classList.add("dark-theme");
+            }
+        })();
+    </script>
+</head>
+<body>
+
+    <!-- Include Sidebar Fragment -->
+    <div th:replace="~{admin/fragments :: sidebar('upload')}"></div>
+
+    <main class="main-content">
+        <!-- Page Header -->
+        <header class="d-flex flex-wrap align-items-center justify-content-between pb-3 mb-4 border-bottom" style="border-bottom-color: var(--border-color) !important;">
+            <div>
+                <h1 class="h2 mb-1" style="color: var(--text-primary) !important;">Upload Question Paper</h1>
+                <p class="text-meta small mb-0">Add new exam papers to the system</p>
+            </div>
+            
+            <div class="d-flex align-items-center gap-3 mt-3 mt-md-0">
+                <div class="profile-avatar bg-primary text-white" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-weight: 700;" th:text="${#strings.substring(adminName, 0, 1)}">S</div>
+            </div>
+        </header>
+
+        <!-- Form Card Container -->
+        <div class="card border-0 p-4">
+            <form th:action="@{/admin/upload-paper}" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                
+                <!-- Section 1: Exam Details -->
+                <h4 class="h4 mb-3" style="color: var(--text-primary) !important;">Exam Details</h4>
+                <div class="row g-3 mb-4">
+                    <!-- Row 1: Subject Name & Course Name -->
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input type="text" class="form-control fw-medium" id="subject" name="subject" placeholder=" " required>
+                            <label for="subject">Subject Name</label>
+                            <div class="invalid-feedback">Please provide a valid subject name.</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input type="text" class="form-control fw-medium" id="course" name="course" placeholder=" " required>
+                            <label for="course">Course Name</label>
+                            <div class="invalid-feedback">Please provide a course name.</div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Semester, Exam Duration, Total Marks -->
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <select class="form-select fw-medium" id="semester" name="semester" required>
+                                <option value="" selected disabled>Select Semester</option>
+                                <option value="1">Semester 1</option>
+                                <option value="2">Semester 2</option>
+                                <option value="3">Semester 3</option>
+                                <option value="4">Semester 4</option>
+                                <option value="5">Semester 5</option>
+                                <option value="6">Semester 6</option>
+                                <option value="7">Semester 7</option>
+                                <option value="8">Semester 8</option>
+                            </select>
+                            <label for="semester">Semester</label>
+                            <div class="invalid-feedback">Please select an academic semester.</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input type="number" class="form-control fw-medium" id="duration" name="duration" placeholder=" " min="1" max="300" required>
+                            <label for="duration">Exam Duration (minutes)</label>
+                            <div class="invalid-feedback">Please enter valid exam duration (1-300 minutes).</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input type="number" class="form-control fw-medium" id="totalMarks" name="totalMarks" placeholder=" " min="1" max="500" required>
+                            <label for="totalMarks">Total Marks</label>
+                            <div class="invalid-feedback">Please enter valid total marks (1-500).</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Paper Source & Content -->
+                <h4 class="h4 mb-3" style="color: var(--text-primary) !important;">Paper Content</h4>
+                
+                <!-- Segmented Tab Picker -->
+                <div class="segmented-control w-100 d-flex mb-4">
+                    <input type="radio" class="btn-check" name="paperSource" id="sourceFile" autocomplete="off" checked>
+                    <label class="btn btn-toggle-custom w-50 py-2 border-0" for="sourceFile">
+                        <i class="bi bi-file-earmark-pdf me-2"></i> Upload Document
+                    </label>
+                    
+                    <input type="radio" class="btn-check" name="paperSource" id="sourceManual" autocomplete="off">
+                    <label class="btn btn-toggle-custom w-50 py-2 border-0" for="sourceManual">
+                        <i class="bi bi-pencil-square me-2"></i> Enter Manually
+                    </label>
+                </div>
+
+                <!-- File Upload Option Panel -->
+                <div class="col-12 mb-4" id="panel-file-upload">
+                    <div class="upload-dropzone" id="dropzone">
+                        <!-- Real hidden file input layered on top -->
+                        <input class="real-file-input" type="file" id="paperFile" name="file" accept=".pdf,.doc,.docx" required>
+                        
+                        <div class="text-primary mb-3">
+                            <i class="bi bi-cloud-arrow-up text-primary" style="font-size: 3rem;"></i>
+                        </div>
+                        <h6 class="fw-semibold mb-1" id="file-name-label" style="color: var(--text-primary) !important;">Drag & drop or click to browse</h6>
+                        <p class="text-muted small mb-0">Accepted: PDF, DOCX (Max 5MB)</p>
+                        <div class="invalid-feedback mt-2">Please upload a valid paper document.</div>
+                    </div>
+                </div>
+
+                <!-- Manual Entry Option Panel -->
+                <div class="col-12 mb-4 d-none" id="panel-manual-entry">
+                    <div class="form-floating">
+                        <textarea class="form-control fw-medium" id="manualContent" name="manualContent" style="height: 240px;" placeholder=" "></textarea>
+                        <label for="manualContent">Manually Enter Paper Questions</label>
+                        <div class="invalid-feedback">Please enter the paper questions.</div>
+                    </div>
+                    <small class="text-muted mt-2 d-block">
+                        <i class="bi bi-info-circle me-1 text-primary"></i> 
+                        Use section groups like <strong>Q1.</strong> or <strong>Q2.</strong> and marks like <strong>(5 Marks)</strong> to define question parameters.
+                    </small>
+                </div>
+
+                <!-- Bottom Actions -->
+                <div class="mt-4 d-flex gap-3 justify-content-end">
+                    <button type="reset" class="btn btn-outline-secondary px-4 btn-action-saas" id="reset-btn">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4 btn-action-saas d-flex align-items-center gap-2">
+                        <i class="bi bi-cloud-upload"></i>
+                        <span>Start Processing</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Bootstrap Validation
+        (() => {
+            'use strict'
+            const forms = document.querySelectorAll('.needs-validation')
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+
+        // Tab Switching Logic
+        const sourceFile = document.getElementById('sourceFile');
+        const sourceManual = document.getElementById('sourceManual');
+        const panelFileUpload = document.getElementById('panel-file-upload');
+        const panelManualEntry = document.getElementById('panel-manual-entry');
+        
+        const fileInput = document.getElementById('paperFile');
+        const manualTextarea = document.getElementById('manualContent');
+        const fileNameLabel = document.getElementById('file-name-label');
+        const dropzone = document.getElementById('dropzone');
+        const resetBtn = document.getElementById('reset-btn');
+
+        function togglePaperSource() {
+            if (sourceFile.checked) {
+                // Show File upload
+                panelFileUpload.classList.remove('d-none');
+                panelManualEntry.classList.add('d-none');
+                
+                fileInput.setAttribute('required', '');
+                manualTextarea.removeAttribute('required');
+                
+                manualTextarea.value = '';
+            } else {
+                // Show Manual Entry
+                panelFileUpload.classList.add('d-none');
+                panelManualEntry.classList.remove('d-none');
+                
+                manualTextarea.setAttribute('required', '');
+                fileInput.removeAttribute('required');
+                
+                fileInput.value = '';
+                fileNameLabel.textContent = 'Drag & drop or click to browse';
+                dropzone.style.borderColor = 'var(--border-color)';
+                dropzone.style.background = 'var(--card-bg)';
+            }
+        }
+
+        sourceFile.addEventListener('change', togglePaperSource);
+        sourceManual.addEventListener('change', togglePaperSource);
+
+        fileInput.addEventListener('change', (e) => {
+            if (fileInput.files.length > 0) {
+                fileNameLabel.textContent = `Selected: ${fileInput.files[0].name}`;
+                dropzone.style.borderColor = 'var(--primary)';
+                dropzone.style.background = 'var(--bg-canvas)';
+            }
+        });
+
+        resetBtn.addEventListener('click', () => {
+            setTimeout(() => {
+                sourceFile.checked = true;
+                togglePaperSource();
+                const form = document.querySelector('.needs-validation');
+                if (form) form.classList.remove('was-validated');
+            }, 50);
+        });
+    </script>
+</body>
+</html>

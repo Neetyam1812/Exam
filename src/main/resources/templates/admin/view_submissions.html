@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submissions - Admin Dashboard</title>
+    <!-- Bootstrap CSS & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --sidebar-bg: #090d16;
+            --bg-canvas: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --border-color: rgba(0, 0, 0, 0.06);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --sidebar-width: 260px;
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.02), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+            --card-shadow-hover: 0 20px 35px -8px rgba(99, 102, 241, 0.08), 0 10px 15px -10px rgba(0, 0, 0, 0.02);
+        }
+
+        body.dark-theme {
+            --bg-canvas: #090d16;
+            --card-bg: rgba(17, 24, 39, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #f9fafb;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --sidebar-bg: #111827;
+            --sidebar-hover: rgba(255, 255, 255, 0.04);
+        }
+
+        body, .card, .table-responsive, thead th, tbody tr, td, .form-select, .form-control {
+            transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2.5rem;
+            transition: var(--transition-smooth);
+            background-color: var(--bg-canvas);
+        }
+
+        .table-responsive {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .table thead th {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700 !important;
+            font-size: 11.5px !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+            padding: 1.15rem 1.5rem !important;
+            color: var(--text-primary) !important;
+            background-color: var(--bg-canvas) !important;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table tbody tr {
+            transition: var(--transition-smooth);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(99, 102, 241, 0.015) !important;
+        }
+
+        .table tbody td {
+            padding: 1.15rem 1.5rem !important;
+            vertical-align: middle;
+        }
+
+        /* SaaS Table pill styling */
+        .badge-pill-custom {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.75rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 100px;
+            text-transform: uppercase;
+        }
+
+        .badge-pending {
+            background-color: rgba(245, 158, 11, 0.08);
+            color: #d97706;
+            border: 1px solid rgba(245, 158, 11, 0.15);
+        }
+
+        .badge-evaluated {
+            background-color: rgba(16, 185, 129, 0.08);
+            color: #059669;
+            border: 1px solid rgba(16, 185, 129, 0.15);
+        }
+
+        .badge-terminated {
+            background-color: rgba(239, 68, 68, 0.08);
+            color: #dc2626;
+            border: 1px solid rgba(239, 68, 68, 0.15);
+        }
+
+        .form-select {
+            background-color: var(--card-bg) !important;
+            color: var(--text-primary) !important;
+            border-radius: 10px;
+            border: 1.5px solid var(--border-color);
+            transition: var(--transition-smooth);
+            font-weight: 500;
+        }
+
+        .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+            background-color: var(--card-bg) !important;
+            color: var(--text-primary) !important;
+        }
+
+        /* Cards SaaS Styling */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color) !important;
+            border-radius: 20px !important;
+            box-shadow: var(--card-shadow) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: var(--transition-smooth);
+        }
+
+        .pagination .page-link {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+            color: var(--text-secondary);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: #ffffff;
+        }
+        .pagination .page-item.disabled .page-link {
+            background-color: var(--bg-canvas);
+            border-color: var(--border-color);
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 991.98px) {
+            .main-content {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem("theme") || "light";
+            if (savedTheme === "dark") {
+                document.documentElement.classList.add("dark-theme");
+            }
+        })();
+    </script>
+</head>
+<body>
+
+    <!-- Include Sidebar Fragment -->
+    <div th:replace="~{admin/fragments :: sidebar('submissions')}"></div>
+
+    <main class="main-content">
+        <!-- Page Header -->
+        <header class="d-flex flex-wrap align-items-center justify-content-between pb-3 mb-4 border-bottom" style="border-bottom-color: var(--border-color) !important;">
+            <div>
+                <h1 class="h2 mb-1" style="color: var(--text-primary) !important;">Student Submissions</h1>
+                <p class="text-meta small mb-0">Monitor and evaluate exam submissions</p>
+            </div>
+            
+            <div class="d-flex align-items-center gap-3 mt-3 mt-md-0">
+                <div class="profile-avatar bg-primary text-white" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-weight: 700;" th:text="${#strings.substring(adminName, 0, 1)}">S</div>
+            </div>
+        </header>
+
+        <!-- Top Filter Bar -->
+        <div class="card border-0 p-3 mb-4">
+            <form th:action="@{/admin/submissions}" method="get" class="row g-3 align-items-end">
+                <!-- Course Name dropdown -->
+                <div class="col-md-3">
+                    <label class="label-custom small text-muted mb-2 d-block">Course Name</label>
+                    <select class="form-select py-2 fw-medium" name="course">
+                        <option value="">All Courses</option>
+                        <option value="BCA" th:selected="${selectedCourse == 'BCA'}">BCA</option>
+                        <option value="MCA" th:selected="${selectedCourse == 'MCA'}">MCA</option>
+                    </select>
+                </div>
+                <!-- Semester dropdown -->
+                <div class="col-md-3">
+                    <label class="label-custom small text-muted mb-2 d-block">Academic Semester</label>
+                    <select class="form-select py-2 fw-medium" name="semester">
+                        <option value="">All Semesters</option>
+                        <option value="1" th:selected="${selectedSemester == '1'}">Sem 1</option>
+                        <option value="2" th:selected="${selectedSemester == '2'}">Sem 2</option>
+                        <option value="3" th:selected="${selectedSemester == '3'}">Sem 3</option>
+                        <option value="4" th:selected="${selectedSemester == '4'}">Sem 4</option>
+                        <option value="5" th:selected="${selectedSemester == '5'}">Sem 5</option>
+                        <option value="6" th:selected="${selectedSemester == '6'}">Sem 6</option>
+                    </select>
+                </div>
+                <!-- Division dropdown -->
+                <div class="col-md-3">
+                    <label class="label-custom small text-muted mb-2 d-block">Division</label>
+                    <select class="form-select py-2 fw-medium" name="division">
+                        <option value="">All Divisions</option>
+                        <option value="A" th:selected="${selectedDivision == 'A'}">Division A</option>
+                        <option value="B" th:selected="${selectedDivision == 'B'}">Division B</option>
+                    </select>
+                </div>
+                <!-- Apply Filters Button -->
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100 fw-semibold py-2">
+                        <i class="bi bi-funnel me-2"></i>Apply Filters
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Data Table Card -->
+        <div class="card border-0 p-4">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0" style="color: var(--text-secondary) !important;">
+                    <thead class="sticky-top">
+                        <tr class="label-custom small">
+                            <th class="py-3">Enrollment No</th>
+                            <th class="py-3">Student Name</th>
+                            <th class="py-3">Course & Sem</th>
+                            <th class="py-3">Subject</th>
+                            <th class="py-3">Status</th>
+                            <th class="py-3 text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-secondary">
+                        <!-- Submission Row Iteration -->
+                        <tr th:each="sub : ${submissions}">
+                            <td class="py-3">
+                                <a th:href="@{/admin/evaluate(id=${sub.id})}" class="text-primary fw-semibold text-decoration-none" th:text="${sub.student != null ? sub.student.enrollmentNo : 'N/A'}">2023BCA001</a>
+                            </td>
+                            <td class="py-3 fw-semibold" th:text="${sub.student != null ? sub.student.name : 'Student Name'}" style="color: var(--text-primary) !important;">Student Name</td>
+                            <td class="py-3" th:text="${sub.paper != null ? (sub.paper.course + ' - Sem ' + sub.paper.semester) : 'N/A'}">BCA - Sem 3</td>
+                            <td class="py-3 fw-semibold" th:text="${sub.paper != null ? sub.paper.subject : 'N/A'}" style="color: var(--text-primary) !important;">Advanced Java</td>
+                            <td class="py-3">
+                                <span class="badge-pill-custom" 
+                                      th:classappend="${sub.status == 'Evaluated'} ? 'badge-evaluated' : (${sub.status == 'Pending'} ? 'badge-pending' : 'badge-terminated')">
+                                    <i class="bi" th:classappend="${sub.status == 'Evaluated'} ? 'bi-check-circle-fill' : (${sub.status == 'Pending'} ? 'bi-hourglass-split' : 'bi-slash-circle-fill')"></i>
+                                    <span th:text="${sub.status}">Pending</span>
+                                </span>
+                            </td>
+                            <td class="py-3 text-end">
+                                <a th:href="@{/admin/evaluate(id=${sub.id})}" 
+                                   class="btn btn-outline-primary btn-sm py-1 fw-semibold" 
+                                   th:text="${sub.status == 'Pending' ? 'Evaluate' : 'View Result'}">Evaluate</a>
+                            </td>
+                        </tr>
+                        
+                        <!-- Empty State Placeholders -->
+                        <tr th:if="${submissions == null or submissions.isEmpty()}">
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <div class="bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%;">
+                                    <i class="bi bi-inbox fs-3 text-primary"></i>
+                                </div>
+                                <h6 class="fw-bold mb-1" style="color: var(--text-primary) !important;">No submissions found</h6>
+                                <p class="small text-secondary mb-0">Try adjusting your filter criteria</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- SaaS Standard Pagination component -->
+            <div class="d-flex justify-content-center mt-4 mb-0" th:if="${submissions != null and !submissions.isEmpty()}">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
