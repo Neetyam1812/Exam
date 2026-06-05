@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Result Management - Admin Dashboard</title>
+    <!-- Bootstrap CSS & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem("theme") || "light";
+            if (savedTheme === "dark") {
+                document.documentElement.classList.add("dark-theme");
+            }
+        })();
+    </script>
+    
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --sidebar-bg: #090d16;
+            --bg-canvas: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --border-color: rgba(0, 0, 0, 0.06);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --sidebar-width: 260px;
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.02), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+            --card-shadow-hover: 0 20px 35px -8px rgba(99, 102, 241, 0.08), 0 10px 15px -10px rgba(0, 0, 0, 0.02);
+        }
+
+        body.dark-theme {
+            --bg-canvas: #090d16;
+            --card-bg: rgba(17, 24, 39, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #f9fafb;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --sidebar-bg: #111827;
+            --sidebar-hover: rgba(255, 255, 255, 0.04);
+        }
+
+        body, .card, .table-responsive, thead th, tbody tr, td, .form-select, .form-control {
+            transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2.5rem;
+            transition: var(--transition-smooth);
+            background-color: var(--bg-canvas);
+        }
+
+        .table-responsive {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .table tbody tr {
+            transition: var(--transition-smooth);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(99, 102, 241, 0.015) !important;
+        }
+
+        .table thead th {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700 !important;
+            font-size: 11.5px !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+            padding: 1.15rem 1.5rem !important;
+            color: var(--text-primary) !important;
+            background-color: var(--bg-canvas) !important;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table tbody td {
+            padding: 1.15rem 1.5rem !important;
+            vertical-align: middle;
+        }
+
+        .form-select, .form-control {
+            background-color: var(--card-bg) !important;
+            color: var(--text-primary) !important;
+            border-radius: 10px;
+            border: 1.5px solid var(--border-color);
+            transition: var(--transition-smooth);
+            font-weight: 500;
+        }
+
+        .form-select:focus, .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+            background-color: var(--card-bg) !important;
+            color: var(--text-primary) !important;
+        }
+
+        /* Cards SaaS Styling */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color) !important;
+            border-radius: 20px !important;
+            box-shadow: var(--card-shadow) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: var(--transition-smooth);
+        }
+
+        .card:hover {
+            box-shadow: var(--card-shadow-hover) !important;
+        }
+
+        /* Input Group integrated styling */
+        .input-group {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .input-group .input-group-text {
+            background-color: var(--card-bg) !important;
+            border: 1.5px solid var(--border-color);
+            border-right: none;
+            color: var(--text-muted) !important;
+            transition: var(--transition-smooth);
+        }
+
+        .input-group .form-control {
+            border-left: none;
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        .input-group:focus-within .input-group-text {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+        }
+
+        /* SaaS Table pill styling */
+        .badge-pill-custom {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.75rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 100px;
+            text-transform: uppercase;
+        }
+
+        .badge-pending {
+            background-color: rgba(245, 158, 11, 0.08);
+            color: #d97706;
+            border: 1px solid rgba(245, 158, 11, 0.15);
+        }
+
+        .badge-evaluated {
+            background-color: rgba(16, 185, 129, 0.08);
+            color: #059669;
+            border: 1px solid rgba(16, 185, 129, 0.15);
+        }
+
+        .badge-terminated {
+            background-color: rgba(239, 68, 68, 0.08);
+            color: #dc2626;
+            border: 1px solid rgba(239, 68, 68, 0.15);
+        }
+
+        .badge-disqualified {
+            background-color: rgba(127, 29, 29, 0.08);
+            color: #dc2626;
+            border: 1px solid rgba(239, 68, 68, 0.15);
+        }
+
+        .badge-absent {
+            background-color: rgba(100, 116, 139, 0.08);
+            color: #475569;
+            border: 1px solid rgba(100, 116, 139, 0.15);
+        }
+
+        @media (max-width: 991.98px) {
+            .main-content {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+
+</head>
+<body>
+
+    <!-- Include Sidebar Fragment -->
+    <div th:replace="~{admin/fragments :: sidebar('results')}"></div>
+
+    <main class="main-content">
+        <!-- Page Header Row -->
+        <header class="d-flex flex-wrap align-items-center justify-content-between pb-3 mb-4 border-bottom" style="border-bottom-color: var(--border-color) !important;">
+            <div>
+                <h1 class="h2 mb-1" style="color: var(--text-primary) !important;">Result Management</h1>
+                <p class="text-meta small mb-0">Generate and download evaluated student marksheets</p>
+            </div>
+            
+            <div class="d-flex align-items-center gap-3 mt-3 mt-md-0">
+                <!-- PDF Download Trigger -->
+                <a th:href="@{/admin/results/pdf(subject=${selectedSubject},semester=${selectedSemester},division=${selectedDivision},status=${selectedStatus})}" class="btn btn-outline-primary d-inline-flex align-items-center gap-2 fw-semibold">
+                    <i class="bi bi-download"></i> Download PDF
+                </a>
+                
+                <div class="profile-avatar bg-primary text-white" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-weight: 700;" th:text="${#strings.substring(adminName, 0, 1)}">S</div>
+            </div>
+        </header>
+
+        <!-- Filter Card -->
+        <div class="card border-0 p-3 mb-4">
+            <form th:action="@{/admin/results/filter}" method="post" class="row g-3 align-items-end">
+                <!-- Subject dropdown -->
+                <div class="col-md-2">
+                    <label class="label-custom small text-muted mb-2 d-block">Subject</label>
+                    <select class="form-select py-2 fw-medium" name="subject" required>
+                        <option value="">Select Subject</option>
+                        <option th:each="subj : ${distinctSubjects}" 
+                                th:value="${subj}" 
+                                th:text="${subj}"
+                                th:selected="${subj == selectedSubject}"></option>
+                    </select>
+                </div>
+                <!-- Semester dropdown -->
+                <div class="col-md-2">
+                    <label class="label-custom small text-muted mb-2 d-block">Semester</label>
+                    <select class="form-select py-2 fw-medium" name="semester" required>
+                        <option value="">Select Semester</option>
+                        <option th:each="sem : ${distinctSemesters}" 
+                                th:value="${sem}" 
+                                th:text="${'Semester ' + sem}"
+                                th:selected="${sem == selectedSemester}"></option>
+                    </select>
+                </div>
+                <!-- Division dropdown -->
+                <div class="col-md-2">
+                    <label class="label-custom small text-muted mb-2 d-block">Division</label>
+                    <select class="form-select py-2 fw-medium" name="division">
+                        <option value="">All Divisions</option>
+                        <option th:each="divisionItem : ${distinctDivisions}" 
+                                th:value="${divisionItem}" 
+                                th:text="${'Division ' + divisionItem}"
+                                th:selected="${divisionItem == selectedDivision}"></option>
+                    </select>
+                </div>
+                <!-- Status dropdown -->
+                <div class="col-md-3">
+                    <label class="label-custom small text-muted mb-2 d-block">Result Status</label>
+                    <select class="form-select py-2 fw-medium" name="status">
+                        <option value="all" th:selected="${selectedStatus == 'all' or selectedStatus == null}">All Statuses</option>
+                        <option value="PASSED" th:selected="${selectedStatus == 'PASSED'}">PASSED</option>
+                        <option value="FAILED" th:selected="${selectedStatus == 'FAILED'}">FAILED</option>
+                        <option value="TERMINATED" th:selected="${selectedStatus == 'TERMINATED'}">TERMINATED</option>
+                        <option value="DISQUALIFIED" th:selected="${selectedStatus == 'DISQUALIFIED'}">DISQUALIFIED</option>
+                        <option value="ABSENT" th:selected="${selectedStatus == 'ABSENT'}">ABSENT</option>
+                    </select>
+                </div>
+                <!-- Filter action button -->
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100 fw-semibold py-2">
+                        <i class="bi bi-funnel me-2"></i>Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Data Card & Table -->
+        <div class="card border-0 p-4">
+            <!-- Table Header Row containing search input -->
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+                <h3 class="h4 m-0" style="color: var(--text-primary) !important;">Filtered Results</h3>
+                <div class="input-group" style="width: 320px;">
+                    <span class="input-group-text border-end-0 text-secondary" style="background-color: var(--card-bg) !important; border-color: var(--border-color) !important;"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control border-start-0 text-secondary small" id="tableSearch" placeholder="Search by name or enrollment...">
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="resultsTable" style="color: var(--text-secondary) !important;">
+                    <thead class="sticky-top">
+                        <tr class="label-custom small">
+                            <th class="py-3">Roll No</th>
+                            <th class="py-3">Enrollment No</th>
+                            <th class="py-3">Student Name</th>
+                            <th class="py-3">Division</th>
+                            <th class="py-3">Subject</th>
+                            <th class="py-3 text-end">Obtained Marks</th>
+                            <th class="py-3 text-end">Total Marks</th>
+                            <th class="py-3 text-end">Result Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-secondary">
+                        <tr th:each="res, stat : ${results}" class="border-bottom">
+                            <td class="py-3 fw-semibold" th:text="${res.submission?.student?.rollNo != null ? res.submission.student.rollNo : stat.count}" style="color: var(--text-primary) !important;">1</td>
+                            <td class="py-3">
+                                <span class="fw-semibold text-primary" th:text="${res.enrollmentNo ?: 'N/A'}"></span>
+                            </td>
+                            <td class="py-3 fw-semibold" th:text="${res.studentName ?: '-'}" style="color: var(--text-primary) !important;"></td>
+                            <td class="py-3" th:text="${res.division ?: '-'}"></td>
+                            <td class="py-3" th:text="${res.subjectName ?: '-'}"></td>
+                            <td class="py-3 fw-bold text-end" th:text="${res.obtainedMarks != null ? (res.obtainedMarks % 1 == 0 ? res.obtainedMarks.intValue() : res.obtainedMarks) : '0'}" style="color: var(--text-primary) !important;">0</td>
+                            <td class="py-3 fw-bold text-secondary text-end" th:text="${res.totalMarks != null ? (res.totalMarks % 1 == 0 ? res.totalMarks.intValue() : res.totalMarks) : '100'}">100</td>
+                            <td class="py-3 text-end">
+                                <span class="badge-pill-custom"
+                                      th:classappend="${res.resultStatus == 'PASSED'} ? 'badge-evaluated' : (${res.resultStatus == 'FAILED'} ? 'badge-terminated' : (${res.resultStatus == 'TERMINATED'} ? 'badge-pending' : (${res.resultStatus == 'DISQUALIFIED'} ? 'badge-disqualified' : 'badge-absent')))">
+                                    <i class="bi" th:classappend="${res.resultStatus == 'PASSED'} ? 'bi-check-circle-fill' : (${res.resultStatus == 'FAILED'} ? 'bi-x-circle-fill' : (${res.resultStatus == 'TERMINATED'} ? 'bi-slash-circle-fill' : (${res.resultStatus == 'DISQUALIFIED'} ? 'bi-shield-slash-fill' : 'bi-person-x-fill')))"></i>
+                                    <span th:text="${res.resultStatus}">Status</span>
+                                </span>
+                            </td>
+                        </tr>
+                        
+                        <!-- Empty State Illustration -->
+                        <tr th:if="${results == null or results.isEmpty()}">
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <div class="bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%;">
+                                    <i class="bi bi-inbox fs-3 text-primary"></i>
+                                </div>
+                                <h6 class="fw-bold mb-1" style="color: var(--text-primary) !important;">No results found for selected filters</h6>
+                                <p class="small text-secondary mb-0">Try adjusting your filter criteria</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Client-side search functionality for results table
+        document.getElementById('tableSearch').addEventListener('keyup', function() {
+            let filter = this.value.toLowerCase();
+            let rows = document.querySelectorAll('#resultsTable tbody tr:not(:last-child)');
+            
+            let emptyStateRow = document.querySelector('#resultsTable tbody tr td[colspan="6"]');
+            if (emptyStateRow && rows.length === 0) return; // table is already empty
+            
+            rows.forEach(row => {
+                let text = row.textContent.toLowerCase();
+                if (text.includes(filter)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

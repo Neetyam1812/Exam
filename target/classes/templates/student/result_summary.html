@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Result Summary</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            margin: 0;
+            padding: 2rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .summary-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            max-width: 600px;
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background-color: #dcfce7;
+            color: #16a34a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 20px;
+        }
+        .summary-header h2 {
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+        .summary-header p {
+            color: #64748b;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-box {
+            background-color: #f1f5f9;
+            padding: 20px 15px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #2563eb;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        .stat-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 0.5px;
+        }
+        .stat-box.attempted {
+            background-color: #eff6ff;
+        }
+        .stat-box.attempted .stat-value {
+            color: #3b82f6;
+        }
+        .stat-box.unattempted {
+            background-color: #fff1f2;
+        }
+        .stat-box.unattempted .stat-value {
+            color: #e11d48;
+        }
+        .message-box {
+            background-color: #f0fdfa;
+            border: 1px solid #ccfbf1;
+            color: #0f766e;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        .btn-dashboard {
+            width: 100%;
+            padding: 14px;
+            font-weight: 700;
+            border-radius: 10px;
+            background-color: #3b82f6;
+            border: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+        .btn-dashboard:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="summary-card">
+        <div class="success-icon">✓</div>
+        
+        <div class="summary-header">
+            <h2>Submission Successful</h2>
+            <p>Your feedback and exam have been recorded.</p>
+        </div>
+
+        <div class="message-box" th:text="'You attempted ' + ${attemptedQuestions} + ' out of ' + ${totalQuestions} + ' questions.'">
+            You attempted 4 out of 5 questions.
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-value" th:text="${totalQuestions}">5</div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat-box attempted">
+                <div class="stat-value" th:text="${attemptedQuestions}">4</div>
+                <div class="stat-label">Attempted</div>
+            </div>
+            <div class="stat-box unattempted">
+                <div class="stat-value" th:text="${unattemptedQuestions}">1</div>
+                <div class="stat-label">Unattempted</div>
+            </div>
+       
+</body>
+</html>

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<!-- Sidebar Fragment -->
+<div th:fragment="sidebar(activeMenu)">
+    <!-- Google Fonts Outfit & Inter & Bootstrap Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- Premium Drawing Canvas & Global White/Black Theme Engine -->
+    <link href="/css/canvas.css" rel="stylesheet">
+    <script src="/js/canvas.js"></script>
+    
+    <style>
+        :root {
+            --primary: #ff6b00;
+            --primary-hover: #ea580c;
+            --primary-light: rgba(255, 107, 0, 0.06);
+            --primary-gradient: linear-gradient(135deg, #ff8a3d 0%, #ff6b00 100%);
+            --sidebar-bg: #ffffff;
+            --sidebar-hover: rgba(255, 107, 0, 0.03);
+            --sidebar-active-gradient: linear-gradient(135deg, #ff8a3d 0%, #ff6b00 100%);
+            --bg-canvas: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: rgba(0, 0, 0, 0.05);
+            --text-primary: #111827;
+            --text-secondary: #374151;
+            --text-muted: #6b7280;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --sidebar-width: 260px;
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
+            --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+        }
+
+        body.dark-theme {
+            --bg-canvas: #090d16;
+            --card-bg: #111827;
+            --border-color: rgba(255, 255, 255, 0.06);
+            --text-primary: #f9fafb;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --sidebar-bg: #111827;
+            --sidebar-hover: rgba(255, 255, 255, 0.04);
+            --sidebar-active-gradient: linear-gradient(135deg, #ff8a3d 0%, #ff6b00 100%);
+        }
+
+        body, .card, .admin-sidebar, .mobile-navbar, .table-responsive, thead th, tbody tr, td, .form-select, .form-control {
+            transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif !important;
+            background-color: var(--bg-canvas);
+            color: var(--text-secondary);
+            font-size: 14px;
+            min-height: 100vh;
+        }
+
+        /* SaaS Typography Hierarchy */
+        h1, .h1, h2, .h2 {
+            font-family: 'Outfit', sans-serif !important;
+            font-size: 28px !important;
+            font-weight: 800 !important;
+            color: var(--text-primary) !important;
+            letter-spacing: -0.5px;
+        }
+
+        h3, .h3, h4, .h4 {
+            font-family: 'Outfit', sans-serif !important;
+            font-size: 20px !important;
+            font-weight: 700 !important;
+            color: var(--text-primary) !important;
+            letter-spacing: -0.4px;
+        }
+
+        .label-custom {
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.75px;
+            color: var(--text-muted);
+        }
+
+        .text-meta {
+            font-size: 12px !important;
+            color: var(--text-muted);
+        }
+
+        /* Buttons SaaS Styling */
+        .btn {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            border-radius: 12px;
+            padding: 0.65rem 1.4rem;
+            font-size: 13px;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            border: none;
+            color: white;
+            box-shadow: 0 4px 14px rgba(255, 107, 0, 0.2);
+        }
+
+        .btn-primary:hover, .btn-primary:focus {
+            background: linear-gradient(135deg, var(--primary-hover) 0%, #ff8a3d 100%);
+            color: white;
+            transform: translateY(-1.5px);
+            box-shadow: 0 6px 20px rgba(255, 107, 0, 0.3);
+        }
+
+        .btn-outline-primary {
+            color: var(--primary);
+            border: 2px solid var(--primary-light);
+            background-color: transparent;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            transform: translateY(-1.5px);
+            box-shadow: 0 4px 14px rgba(255, 107, 0, 0.15);
+        }
+
+        /* Cards SaaS Styling */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color) !important;
+            border-radius: 20px !important;
+            box-shadow: var(--card-shadow) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: var(--transition-smooth);
+        }
+
+        /* Fixed Sidebar Shell */
+        .admin-sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1050;
+            display: flex;
+            flex-direction: column;
+            padding: 2.25rem 1.25rem;
+            transition: var(--transition-smooth);
+            box-shadow: 5px 0 25px rgba(0, 0, 0, 0.01);
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0.5rem 0.5rem 1.75rem 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 2.25rem;
+        }
+
+        .brand-logo-container {
+            width: 38px;
+            height: 38px;
+            background: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 12px rgba(255, 107, 0, 0.15);
+        }
+
+        .brand-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+        }
+
+        /* Navigation Menu Links */
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .menu-item-link {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0.85rem 1.15rem;
+            color: var(--text-secondary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 14.5px;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: var(--transition-smooth);
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item-link i {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            transition: var(--transition-smooth);
+        }
+
+        .menu-item-link:hover {
+            color: var(--text-primary);
+            background-color: var(--sidebar-hover);
+            transform: translateX(4px);
+        }
+
+        .menu-item-link:hover i {
+            color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        /* Active Navigation Link State */
+        .menu-item-link.active {
+            color: #ffffff !important;
+            background: var(--primary-gradient) !important;
+            font-weight: 700;
+            border-left-color: var(--primary) !important;
+            box-shadow: 0 4px 12px rgba(255, 107, 0, 0.15) !important;
+        }
+
+        .menu-item-link.active i {
+            color: #ffffff !important;
+            transform: scale(1.05);
+        }
+
+        /* Pinned User Profile Card */
+        .sidebar-profile {
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            margin-top: auto;
+            margin-bottom: 0;
+            transition: var(--transition-smooth);
+        }
+
+        .profile-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50% !important;
+            background: var(--primary-gradient);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 14px;
+            box-shadow: 0 4px 10px rgba(255, 107, 0, 0.15);
+        }
+
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            flex-grow: 1;
+        }
+
+        .profile-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .profile-role {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+            letter-spacing: 0.25px;
+        }
+
+        /* Mobile Navbar Styles */
+        .mobile-navbar {
+            background-color: rgba(255, 255, 255, 0.80);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 1040;
+            width: 100%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+        }
+
+        body.dark-theme .mobile-navbar {
+            background-color: rgba(17, 24, 39, 0.80);
+            border-bottom-color: var(--border-color);
+        }
+
+        body.dark-theme .mobile-navbar span {
+            color: #ffffff !important;
+        }
+
+        /* Responsiveness for Mobile Viewports */
+        @media (max-width: 991.98px) {
+            .admin-sidebar {
+                left: calc(-1 * var(--sidebar-width));
+                box-shadow: 10px 0 30px rgba(0, 0, 0, 0.12);
+            }
+
+            .admin-sidebar.show-sidebar {
+                left: 0;
+            }
+
+            body {
+                padding-top: 0;
+            }
+        }
+
+        /* Custom UI Switch styles */
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .theme-switch-label {
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-switch-input {
+            width: 36px;
+            height: 18px;
+            appearance: none;
+            -webkit-appearance: none;
+            background-color: #cbd5e1;
+            border-radius: 20px;
+            position: relative;
+            outline: none;
+            cursor: pointer;
+            transition: background-color 0.25s ease;
+        }
+
+        body.dark-theme .toggle-switch-input {
+            background-color: #374151;
+        }
+
+        .toggle-switch-input:checked {
+            background-color: var(--primary);
+        }
+
+        .toggle-switch-input::before {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background-color: #ffffff;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.25s ease;
+        }
+
+        .toggle-switch-input:checked::before {
+            transform: translateX(18px);
+        }
+    </style>
+
+    <!-- Mobile Navigation Topbar (Hidden on Laptop/Desktop) -->
+    <div class="mobile-navbar d-lg-none d-flex align-items-center justify-content-between px-3 py-3">
+        <button class="btn btn-link text-dark p-0" id="sidebar-mobile-toggle">
+            <i class="bi bi-list fs-2" style="color: var(--text-primary);"></i>
+        </button>
+        <span class="fw-bold text-dark fs-5" style="letter-spacing: -0.5px; font-family: 'Outfit', sans-serif; color: var(--text-primary);">Exam Admin</span>
+        <div class="profile-avatar bg-primary" style="width: 34px; height: 34px; font-size: 14px;" th:text="${adminName == 'superadmin' ? 'SA' : #strings.toUpperCase(#strings.substring(adminName, 0, 1))}">SA</div>
+    </div>
+
+    <!-- Collapsible Sidebar Content -->
+    <aside class="admin-sidebar">
+        <!-- Brand Header -->
+        <div class="sidebar-brand d-flex align-items-center gap-2">
+            <div class="brand-logo-container">
+                <i class="bi bi-mortarboard-fill fs-5"></i>
+            </div>
+            <div>
+                <span class="brand-name mb-0" style="font-size: 15px; font-weight: 800; display: block; line-height: 1.2;">Exam Admin</span>
+                <span class="text-muted" style="font-size: 11px; font-weight: 600; display: block; line-height: 1;">Control Center</span>
+            </div>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <ul class="sidebar-menu">
+            <li>
+                <a th:href="@{/admin/dashboard}" class="menu-item-link" th:classappend="${activeMenu == 'dashboard'} ? 'active' : ''">
+                    <i class="bi bi-grid-1x2-fill"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a th:href="@{/admin/upload-paper}" class="menu-item-link" th:classappend="${activeMenu == 'upload'} ? 'active' : ''">
+                    <i class="bi bi-cloud-arrow-up-fill"></i>
+                    <span>Upload Paper</span>
+                </a>
+            </li>
+            <li>
+                <a th:href="@{/admin/submissions}" class="menu-item-link" th:classappend="${activeMenu == 'submissions'} ? 'active' : ''">
+                    <i class="bi bi-clipboard2-check-fill"></i>
+                    <span>Submissions</span>
+                </a>
+            </li>
+            <li>
+                <a th:href="@{/admin/results}" class="menu-item-link" th:classappend="${activeMenu == 'results'} ? 'active' : ''">
+                    <i class="bi bi-bar-chart-steps"></i>
+                    <span>Results</span>
+                </a>
+            </li>
+            <li>
+                <a th:href="@{/admin/students}" class="menu-item-link" th:classappend="${activeMenu == 'students'} ? 'active' : ''">
+                    <i class="bi bi-people-fill"></i>
+                    <span>Students</span>
+                </a>
+            </li>
+            <li>
+                <a th:href="@{/admin/reports}" class="menu-item-link" th:classappend="${activeMenu == 'reports'} ? 'active' : ''">
+                    <i class="bi bi-file-earmark-bar-graph-fill"></i>
+                    <span>Reports</span>
+                </a>
+            </li>
+            <li>
+                <a th:href="@{/admin/settings}" class="menu-item-link" th:classappend="${activeMenu == 'settings'} ? 'active' : ''">
+                    <i class="bi bi-gear-fill"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+        </ul>
+
+        <!-- User Profile Section Pinned at Bottom -->
+        <div class="mt-auto">
+            <!-- Theme Toggle Component -->
+            <div class="theme-switch-wrapper d-none d-lg-flex">
+                <span class="theme-switch-label">
+                    <i class="bi bi-moon-stars text-primary"></i> Dark Mode
+                </span>
+                <input type="checkbox" id="theme-toggle-switch" class="toggle-switch-input">
+            </div>
+
+            <div class="sidebar-profile">
+                <div class="profile-avatar" th:text="${adminName == 'superadmin' ? 'SA' : #strings.toUpperCase(#strings.substring(adminName, 0, 1))}">SA</div>
+                <div class="profile-info">
+                    <span class="profile-name" th:text="${adminName}">superadmin</span>
+                    <span class="profile-role">Administrator</span>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-link p-0 dropdown-toggle text-decoration-none border-0 d-flex align-items-center justify-content-center" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: var(--text-muted); width: 24px; height: 24px;">
+                        <i class="bi bi-chevron-down fs-6" style="color: var(--text-muted); font-size: 12px !important;"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" style="font-size: 13px; background-color: var(--card-bg) !important; border: 1px solid var(--border-color) !important; border-radius: 12px;">
+                        <li><a class="dropdown-item py-2 text-danger" th:href="@{/admin-login}"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Mobile Drawer Overlay Toggle Controller JS -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const toggleBtn = document.getElementById("sidebar-mobile-toggle");
+            const sidebarShell = document.querySelector(".admin-sidebar");
+            if (toggleBtn && sidebarShell) {
+                toggleBtn.addEventListener("click", function(e) {
+                    e.stopPropagation();
+                    sidebarShell.classList.toggle("show-sidebar");
+                });
+                
+                // Close sidebar when clicking outside of it
+                document.addEventListener("click", function(e) {
+                    if (!sidebarShell.contains(e.target) && !toggleBtn.contains(e.target)) {
+                        sidebarShell.classList.remove("show-sidebar");
+                    }
+                });
+            }
+
+            // Sync and setup Theme Toggler persistence
+            const themeSwitch = document.getElementById("theme-toggle-switch");
+            const savedTheme = localStorage.getItem("theme") || "light";
+
+            if (savedTheme === "dark") {
+                document.documentElement.classList.add("dark-theme");
+                document.body.classList.add("dark-theme");
+                if (themeSwitch) themeSwitch.checked = true;
+            }
+
+            if (themeSwitch) {
+                themeSwitch.addEventListener("change", function() {
+                    if (this.checked) {
+                        document.documentElement.classList.add("dark-theme");
+                        document.body.classList.add("dark-theme");
+                        localStorage.setItem("theme", "dark");
+                    } else {
+                        document.documentElement.classList.remove("dark-theme");
+                        document.body.classList.remove("dark-theme");
+                        localStorage.setItem("theme", "light");
+                    }
+                });
+            }
+        });
+    </script>
+</div>
+
+</body>
+</html>
