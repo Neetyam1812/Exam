@@ -81,11 +81,12 @@
     const submissionId = document.getElementById('submissionId').value;
     let remainingSeconds = parseInt(document.getElementById('remainingSeconds').value);
     const textarea = document.getElementById('answerTextarea');
+    window.isNavigating = false;
     
-    window.onbeforeunload = function() { if(remainingSeconds > 0) return "Exam in progress!"; };
+    window.onbeforeunload = function() { if(remainingSeconds > 0 && !window.isNavigating) return "Exam in progress!"; };
 
     // Auto-save logic
-    setInterval(saveAnswer, 15000); 
+    setInterval(saveAnswer, 5000); 
     textarea.addEventListener('input', debounce(saveAnswer, 3000));
 
     async function saveAnswer() {
@@ -96,7 +97,13 @@
         promises.push(fetch('/api/answer/save', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ submissionId, answer: textarea.value })
+            body: JSON.stringify({ 
+                submissionId, 
+                answer: textarea.value,
+                remainingSeconds: remainingSeconds,
+                currentSection: 0,
+                currentQuestionId: null
+            })
         }));
 
         if (window.saveAllCanvasesImmediately) {
@@ -140,6 +147,7 @@
     function autoSubmitExam() { alert("Time up!"); submitExam(); }
 
     async function submitExam() {
+        window.isNavigating = true;
         textarea.disabled = true;
         await saveAnswer();
         try {
@@ -151,6 +159,20 @@
             if (response.ok) window.location.href = '/student/exam/feedback';
         } catch (error) {}
     }
+
+    window.addEventListener('unload', function() {
+        if (remainingSeconds > 0 && !window.isNavigating) {
+            const body = {
+                submissionId: submissionId,
+                answer: textarea.value,
+                remainingSeconds: remainingSeconds,
+                currentSection: 0,
+                currentQuestionId: null
+            };
+            const blob = new Blob([JSON.stringify(body)], { type: 'application/json' });
+            navigator.sendBeacon('/api/answer/save', blob);
+        }
+    });
 
     window.onload = startTimer;
 </script>

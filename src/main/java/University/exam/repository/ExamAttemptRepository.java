@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface ExamAttemptRepository extends JpaRepository<ExamAttempt, Long> {
     Optional<ExamAttempt> findByStudentEnrollmentNoAndExamId(String enrollmentNo, Long examId);
+    java.util.List<ExamAttempt> findByStudentEnrollmentNo(String enrollmentNo);
 }

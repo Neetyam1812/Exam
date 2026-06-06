@@ -12,13 +12,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Drawing Canvas Styles -->
     <link href="/css/canvas.css" rel="stylesheet">
-    <link href="/css/drawing.css?v=1.0.3" rel="stylesheet">
     <!-- TinyMCE and DOMPurify CDNs for rich text editing and secure HTML sanitization -->
     <script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js" referrerpolicy="origin"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js" referrerpolicy="origin"></script>
-    <!-- Fabric.js and dynamic whiteboard drawing scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-    <script src="/js/drawing.js?v=1.0.3"></script>
 
     <style>
         :root {
@@ -314,7 +310,7 @@
         .or-text {
             position: relative;
             z-index: 2;
-            background: #f8f9fa;
+            background: #ffffff;
             padding: 0 20px;
             font-weight: 800;
             color: var(--purple-banner);
@@ -411,50 +407,43 @@
             </div>
 
             <!-- Questions List -->
-            <div th:each="q, iterStat : ${section.questions}" 
-                 class="question-item"
-                 th:classappend="${q.pairId != null and q.pairId != '' ? 'or-choice-card' : ''}"
-                 th:attr="data-pair-id=${q.pairId}">
-                
-                <div th:if="${q.pairId != null and q.pairId != ''}" class="mb-3 d-flex align-items-center">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input choice-selector" type="radio" 
-                               th:name="'choice-' + ${q.pairId}" 
-                               th:id="'radio-' + ${q.id}"
-                               th:checked="${savedAnswers != null && savedAnswers.containsKey(q.id) && savedAnswers.get(q.id) != ''}"
-                               th:data-id="${q.id}"
-                               th:data-pair-id="${q.pairId}"
-                               onchange="toggleORChoice(this, this.getAttribute('data-id'), this.getAttribute('data-pair-id'))">
-                        <label class="form-check-label fw-bold text-primary ms-3" th:for="'radio-' + ${q.id}">Attempt This Option</label>
+            <th:block th:each="q, iterStat : ${section.questions}">
+                <div class="question-item"
+                     th:classappend="${q.pairId != null and q.pairId != '' ? 'or-choice-card' : ''}"
+                     th:attr="data-pair-id=${q.pairId}">
+
+                    <div class="q-num-badge" th:text="${iterStat.count}">1</div>
+                    <div class="question-text">
+                        <span th:text="${q.text}">Give any two examples of data structure.</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="badge-pill type-cyan">
+                            ✏️ <span th:text="${q.marks > 2 ? 'Long Answer' : 'Short Answer'}">Short Answer</span>
+                        </div>
+                        <div class="badge-pill marks-yellow">
+                            (<span th:text="${q.marks}">1.0</span> Marks)
+                        </div>
+                    </div>
+
+                    <!-- Input Area -->
+                    <textarea class="answer-textarea answer-area" 
+                              th:attr="data-qid=${q.id}" 
+                              placeholder="Type your detailed answer here. Your progress is automatically saved..." 
+                              th:text="${savedAnswers != null && savedAnswers.containsKey(q.id) ? savedAnswers.get(q.id) : ''}"></textarea>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <div class="char-helper" th:id="'char-count-' + ${q.id}">0 characters</div>
+                        <div class="char-helper text-success" th:id="'status-' + ${q.id}"></div>
                     </div>
                 </div>
 
-                <div class="q-num-badge" th:text="${iterStat.count}">1</div>
-                <div class="question-text">
-                    <span th:text="${q.text}">Give any two examples of data structure.</span>
+                <!-- OR Divider between paired questions -->
+                <div th:if="${q.pairId != null and q.pairId != '' and iterStat.index + 1 < section.questions.size() and section.questions[iterStat.index + 1].pairId == q.pairId}" 
+                     class="or-divider">
+                    <span class="or-text">OR</span>
                 </div>
-                
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="badge-pill type-cyan">
-                        ✏️ <span th:text="${q.marks > 2 ? 'Long Answer' : 'Short Answer'}">Short Answer</span>
-                    </div>
-                    <div class="badge-pill marks-yellow">
-                        (<span th:text="${q.marks}">1.0</span> Marks)
-                    </div>
-                </div>
-
-                <!-- Input Area -->
-                <textarea class="answer-textarea answer-area" 
-                          th:attr="data-qid=${q.id}" 
-                          placeholder="Type your detailed answer here. Your progress is automatically saved..." 
-                          th:text="${savedAnswers != null && savedAnswers.containsKey(q.id) ? savedAnswers.get(q.id) : ''}"
-                          th:disabled="${q.pairId != null and q.pairId != '' and (savedAnswers == null || !savedAnswers.containsKey(q.id) || savedAnswers.get(q.id) == '')}"></textarea>
-                
-                <div class="d-flex justify-content-between align-items-center mt-2">
-                    <div class="char-helper" th:id="'char-count-' + ${q.id}">0 characters</div>
-                    <div class="char-helper text-success" th:id="'status-' + ${q.id}"></div>
-                </div>
-            </div>
+            </th:block>
         </div>
     </main>
 </div>
@@ -493,23 +482,38 @@
     let remainingSeconds = parseInt(document.getElementById('remainingSeconds').value);
     const currentIndex = parseInt(document.getElementById('currentIndex').value);
     
-    function toggleORChoice(radio, qid, pairId) {
+    function selectORChoice(card) {
+        const pairId = card.getAttribute('data-pair-id');
+        if (!pairId) return;
+        const qid = card.querySelector('.answer-area').getAttribute('data-qid');
         const cards = document.querySelectorAll(`[data-pair-id="${pairId}"]`);
-        cards.forEach(card => {
-            const textarea = card.querySelector('.answer-area');
+        
+        cards.forEach(c => {
+            const textarea = c.querySelector('.answer-area');
             const cardQid = textarea.getAttribute('data-qid');
+            const editorId = 'textarea-' + cardQid;
+            
             if (cardQid == qid) {
-                card.classList.add('active-choice');
-                card.classList.remove('disabled-choice');
+                c.classList.add('active-choice');
+                c.classList.remove('disabled-choice');
                 textarea.disabled = false;
-                textarea.focus();
+                if (window.tinymce && tinymce.get(editorId)) {
+                    tinymce.get(editorId).mode.set('design');
+                }
             } else {
-                card.classList.add('disabled-choice');
-                card.classList.remove('active-choice');
+                c.classList.add('disabled-choice');
+                c.classList.remove('active-choice');
                 textarea.disabled = true;
+                if (window.tinymce && tinymce.get(editorId)) {
+                    tinymce.get(editorId).mode.set('readonly');
+                }
                 if (textarea.value !== "") {
                     textarea.value = "";
+                    if (window.tinymce && tinymce.get(editorId)) {
+                        tinymce.get(editorId).setContent("");
+                    }
                     saveAnswer(cardQid, ""); // Clear partner answer
+                    updateCharCount(textarea);
                 }
             }
         });
@@ -524,22 +528,42 @@
 
         pairs.forEach(pid => {
             const cards = document.querySelectorAll(`[data-pair-id="${pid}"]`);
-            let anySelected = false;
+            let activeCard = null;
             cards.forEach(card => {
-                const radio = card.querySelector('.choice-selector');
-                if (radio && radio.checked) {
-                    anySelected = true;
-                    toggleORChoice(radio, card.querySelector('.answer-area').getAttribute('data-qid'), pid);
+                const textarea = card.querySelector('.answer-area');
+                if (textarea && textarea.value.trim() !== "") {
+                    activeCard = card;
                 }
             });
             
-            // Insert "OR" divider
-            for (let i = 0; i < cards.length - 1; i++) {
-                const divider = document.createElement('div');
-                divider.className = 'or-divider';
-                divider.innerHTML = '<span class="or-text">OR</span>';
-                cards[i].insertAdjacentElement('afterend', divider);
+            if (activeCard) {
+                selectORChoice(activeCard);
+            } else {
+                cards.forEach(card => {
+                    card.classList.remove('active-choice', 'disabled-choice');
+                    const textarea = card.querySelector('.answer-area');
+                    if (textarea) textarea.disabled = false;
+                });
             }
+        });
+
+        // Add click listener to cards for OR question switching
+        document.querySelectorAll('.or-choice-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                const pairId = card.getAttribute('data-pair-id');
+                const activeCard = document.querySelector(`[data-pair-id="${pairId}"].active-choice`);
+                if (!activeCard || card.classList.contains('disabled-choice')) {
+                    selectORChoice(card);
+                    // Focus textarea or tinyMCE editor if available
+                    const textarea = card.querySelector('.answer-area');
+                    const editorId = 'textarea-' + textarea.getAttribute('data-qid');
+                    if (window.tinymce && tinymce.get(editorId)) {
+                        tinymce.get(editorId).focus();
+                    } else {
+                        textarea.focus();
+                    }
+                }
+            });
         });
     });
 
@@ -548,17 +572,44 @@
         if(remainingSeconds > 0 && !window.isNavigating) return "Exam in progress.";
     };
 
+    window.lastActiveQuestionId = null;
+
     // Auto-save
-    setInterval(saveAllAnswers, 15000);
+    setInterval(saveAllAnswers, 5000);
 
     document.querySelectorAll('.answer-area').forEach(textarea => {
         // Initial char count
         updateCharCount(textarea);
 
         textarea.addEventListener('input', function() {
+            window.lastActiveQuestionId = this.getAttribute('data-qid');
             updateCharCount(this);
             debouncedSave(this.getAttribute('data-qid'), this.value);
         });
+
+        textarea.addEventListener('focus', function() {
+            window.lastActiveQuestionId = this.getAttribute('data-qid');
+        });
+    });
+
+    // Handle save before browser unload using sendBeacon
+    window.addEventListener('unload', function() {
+        if (remainingSeconds > 0 && !window.isNavigating) {
+            document.querySelectorAll('.answer-area').forEach(ta => {
+                const body = {
+                    questionId: ta.getAttribute('data-qid'),
+                    answer: ta.value,
+                    remainingSeconds: remainingSeconds,
+                    currentSection: currentIndex,
+                    currentQuestionId: window.lastActiveQuestionId || ta.getAttribute('data-qid')
+                };
+                if (type === 'paper') body.submissionId = attemptId;
+                else body.attemptId = attemptId;
+
+                const blob = new Blob([JSON.stringify(body)], { type: 'application/json' });
+                navigator.sendBeacon('/api/answer/save', blob);
+            });
+        }
     });
 
     function updateCharCount(textarea) {
@@ -574,16 +625,19 @@
         const promises = Array.from(document.querySelectorAll('.answer-area')).map(ta => 
             saveAnswer(ta.getAttribute('data-qid'), ta.value)
         );
-        if (window.saveAllCanvasesImmediately) {
-            promises.push(window.saveAllCanvasesImmediately());
-        }
         return Promise.all(promises);
     }
 
     async function saveAnswer(questionId, answer) {
         const statusEl = document.getElementById(`status-${questionId}`);
         try {
-            const body = { questionId, answer };
+            const body = { 
+                questionId, 
+                answer,
+                remainingSeconds: remainingSeconds,
+                currentSection: currentIndex,
+                currentQuestionId: window.lastActiveQuestionId || questionId
+            };
             if (type === 'paper') body.submissionId = attemptId;
             else body.attemptId = attemptId;
 

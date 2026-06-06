@@ -216,11 +216,22 @@ public class StudentExamRestController {
             }
         }
 
+        // Read tracking parameters
+        Integer remainingSeconds = payload.get("remainingSeconds") != null ? Integer.valueOf(payload.get("remainingSeconds").toString()) : null;
+        Integer currentSection = payload.get("currentSection") != null ? Integer.valueOf(payload.get("currentSection").toString()) : null;
+        Long currentQuestionId = payload.get("currentQuestionId") != null ? Long.valueOf(payload.get("currentQuestionId").toString()) : null;
+
         Answer answer;
         if (attemptId != null) {
             ExamAttempt attempt = examAttemptRepository.findById(attemptId).orElse(null);
             if (attempt == null || "Submitted".equals(attempt.getStatus())) return ResponseEntity.badRequest().body("Invalid attempt");
             
+            if (remainingSeconds != null) attempt.setRemainingTimeSeconds(remainingSeconds);
+            if (currentSection != null) attempt.setLastActiveSection(currentSection);
+            if (currentQuestionId != null) attempt.setLastActiveQuestionId(currentQuestionId);
+            attempt.setLastSavedAt(LocalDateTime.now());
+            examAttemptRepository.save(attempt);
+
             Question question = questionRepository.findById(questionId).orElse(null);
             answer = answerRepository.findFirstByExamAttemptIdAndQuestionIdOrderByUpdatedAtDesc(attemptId, questionId)
                     .orElseGet(() -> {
@@ -235,6 +246,12 @@ public class StudentExamRestController {
             Submission submission = submissionRepository.findById(submissionId).orElse(null);
             if (submission == null || "Submitted".equals(submission.getStatus())) return ResponseEntity.badRequest().body("Invalid submission");
             
+            if (remainingSeconds != null) submission.setRemainingTimeSeconds(remainingSeconds);
+            if (currentSection != null) submission.setLastActiveSection(currentSection);
+            if (currentQuestionId != null) submission.setLastActiveQuestionId(currentQuestionId);
+            submission.setLastSavedAt(LocalDateTime.now());
+            submissionRepository.save(submission);
+
             Question question = questionRepository.findById(questionId).orElse(null);
             answer = answerRepository.findFirstBySubmissionIdAndQuestionIdOrderByUpdatedAtDesc(submissionId, questionId)
                     .orElseGet(() -> {

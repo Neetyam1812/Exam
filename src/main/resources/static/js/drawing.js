@@ -63,8 +63,28 @@ window.canvasStates = window.canvasStates || {};
      * @param {Long} submissionId - Active student paper submission ID
      */
     function initializeDrawingTool(attemptId, submissionId) {
-        // Disabled/Removed drawing canvas as per user request to keep shapes inside TinyMCE editor only
-        return;
+        const textareas = document.querySelectorAll('.answer-area');
+        textareas.forEach(textarea => {
+            let qid = textarea.getAttribute('data-qid');
+            if (!qid) {
+                if (textarea.id === 'answerTextarea') {
+                    qid = 'paper-full';
+                } else {
+                    return;
+                }
+            }
+            if (document.getElementById(`wb-container-${qid}`)) {
+                return;
+            }
+            const html = createWhiteboardHTML(qid);
+            const parent = textarea.parentElement;
+            if (parent) {
+                parent.appendChild(document.createRange().createContextualFragment(html));
+            } else {
+                textarea.insertAdjacentHTML('afterend', html);
+            }
+            setupFabricCanvas(qid, attemptId, submissionId);
+        });
     }
 
     /**
@@ -1471,4 +1491,40 @@ window.canvasStates = window.canvasStates || {};
     } else {
         init();
     }
+
+    window.addEventListener('unload', function() {
+        const remainingSecondsEl = document.getElementById('remainingSeconds');
+        const remainingSeconds = remainingSecondsEl ? parseInt(remainingSecondsEl.value) : 0;
+        if (remainingSeconds > 0 && !window.isNavigating) {
+            for (let qid in canvasStates) {
+                const state = canvasStates[qid];
+                if (state && state.canvas) {
+                    const json = JSON.stringify(state.canvas.toJSON(['id', 'textLinkId', 'shapeLinkId']));
+                    const image = state.canvas.toDataURL({
+                        format: 'png',
+                        quality: 1.0
+                    });
+                    const payload = {
+                        questionId: isNaN(qid) ? 999999 : parseInt(qid),
+                        canvasJson: json,
+                        canvasImage: image
+                    };
+                    const subIdEl = document.getElementById('submissionId');
+                    const attIdEl = document.getElementById('attemptId');
+                    const typeEl = document.getElementById('type');
+                    let submissionId = subIdEl ? subIdEl.value : null;
+                    let attemptId = attIdEl ? attIdEl.value : null;
+                    const type = typeEl ? typeEl.value : null;
+                    if (type === 'paper' && attemptId) {
+                        submissionId = attemptId;
+                        attemptId = null;
+                    }
+                    if (attemptId && attemptId !== 'null') payload.attemptId = parseInt(attemptId);
+                    if (submissionId && submissionId !== 'null') payload.submissionId = parseInt(submissionId);
+                    const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+                    navigator.sendBeacon('/api/drawing/save', blob);
+                }
+            }
+        }
+    });
 })();

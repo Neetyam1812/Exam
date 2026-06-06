@@ -261,6 +261,7 @@
                             <th class="py-3">Course & Sem</th>
                             <th class="py-3">Subject</th>
                             <th class="py-3">Status</th>
+                            <th class="py-3">Resume Stats</th>
                             <th class="py-3">Submitted At</th>
                             <th class="py-3 text-end">Action</th>
                         </tr>
@@ -281,6 +282,20 @@
                                     <span th:text="${sub.status}">Pending</span>
                                 </span>
                             </td>
+                            <td class="py-3">
+                                <div th:if="${sub.resumeCount != null && sub.resumeCount > 0}">
+                                    <span class="badge-pill-custom badge-pending mb-1" style="font-size: 10px;">
+                                        <i class="bi bi-arrow-repeat"></i> Resumed <span th:text="${sub.resumeCount}">0</span> Times
+                                    </span>
+                                    <div class="small text-muted" style="font-size: 11px;">
+                                        <strong>Reason:</strong> <span th:text="${sub.interruptionReason != null ? sub.interruptionReason : 'N/A'}">Reason</span><br/>
+                                        <strong>Last Saved:</strong> <span th:text="${sub.lastSavedAt != null ? #temporals.format(sub.lastSavedAt, 'yyyy-MM-dd HH:mm') : 'N/A'}">N/A</span>
+                                    </div>
+                                </div>
+                                <div th:unless="${sub.resumeCount != null && sub.resumeCount > 0}" class="text-muted small">
+                                    No interruptions
+                                </div>
+                            </td>
                             <td class="py-3 fw-semibold" style="color: var(--text-primary) !important;">
                                 <span class="d-inline-flex align-items-center gap-2">
                                     <i class="bi bi-clock text-secondary" style="font-size: 13px;"></i>
@@ -296,7 +311,7 @@
                         
                         <!-- Empty State Placeholders -->
                         <tr th:if="${submissions == null or submissions.isEmpty()}">
-                            <td colspan="7" class="text-center py-5 text-muted">
+                            <td colspan="8" class="text-center py-5 text-muted">
                                 <div class="bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%;">
                                     <i class="bi bi-inbox fs-3 text-primary"></i>
                                 </div>

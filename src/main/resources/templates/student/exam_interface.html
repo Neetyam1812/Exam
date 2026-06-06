@@ -254,10 +254,12 @@
     const type = document.getElementById('type').value;
     let remainingSeconds = parseInt(document.getElementById('remainingSeconds').value);
     const questionsContainer = document.getElementById('questionsContainer');
+    window.lastActiveQuestionId = null;
+    window.isNavigating = false;
     
     // Prevent leaving page
     window.onbeforeunload = function() {
-        if(remainingSeconds > 0) return "You have an ongoing exam. Progress will be lost.";
+        if(remainingSeconds > 0 && !window.isNavigating) return "You have an ongoing exam. Progress will be lost.";
     };
 
     // Load Questions
@@ -342,11 +344,17 @@
                 }
             });
             
-            // Auto-save every 15 seconds (as per prompt intervals)
-            setInterval(saveAllAnswers, 15000); 
+            // Auto-save every 5 seconds (as per prompt intervals)
+            setInterval(saveAllAnswers, 5000); 
 
-            // Immediate save feedback on typing (debounce)
+            // Track active question on focus and input
             document.querySelectorAll('.answer-area').forEach(textarea => {
+                textarea.addEventListener('focus', function() {
+                    window.lastActiveQuestionId = this.getAttribute('data-qid');
+                });
+                textarea.addEventListener('input', function() {
+                    window.lastActiveQuestionId = this.getAttribute('data-qid');
+                });
                 textarea.addEventListener('input', debounce(function() {
                     saveAnswer(this.getAttribute('data-qid'), this.value);
                 }, 3000));
@@ -387,7 +395,13 @@
         if(statusEl) statusEl.innerHTML = '<span class="status-saving">Saving...</span>';
         
         try {
-            const body = { questionId, answer };
+            const body = { 
+                questionId, 
+                answer,
+                remainingSeconds: remainingSeconds,
+                currentSection: 0,
+                currentQuestionId: window.lastActiveQuestionId || questionId
+            };
             if (type === 'paper') body.submissionId = attemptId;
             else body.attemptId = attemptId;
 
@@ -447,6 +461,7 @@
     }
 
     async function submitExam() {
+        window.isNavigating = true;
         document.querySelectorAll('.answer-area').forEach(ta => ta.disabled = true);
         const finalSave = Array.from(document.querySelectorAll('.answer-area')).map(ta => 
             saveAnswer(ta.getAttribute('data-qid'), ta.value)
@@ -471,6 +486,26 @@
             alert("Error submitting exam.");
         }
     }
+
+    // Handle save before browser unload using sendBeacon
+    window.addEventListener('unload', function() {
+        if (remainingSeconds > 0 && !window.isNavigating) {
+            document.querySelectorAll('.answer-area').forEach(ta => {
+                const body = {
+                    questionId: ta.getAttribute('data-qid'),
+                    answer: ta.value,
+                    remainingSeconds: remainingSeconds,
+                    currentSection: 0,
+                    currentQuestionId: window.lastActiveQuestionId || ta.getAttribute('data-qid')
+                };
+                if (type === 'paper') body.submissionId = attemptId;
+                else body.attemptId = attemptId;
+
+                const blob = new Blob([JSON.stringify(body)], { type: 'application/json' });
+                navigator.sendBeacon('/api/answer/save', blob);
+            });
+        }
+    });
 
     window.onload = loadQuestions;
 </script>

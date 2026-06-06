@@ -24,6 +24,12 @@ public class LoginController {
     @org.springframework.beans.factory.annotation.Autowired
     private University.exam.repository.QuestionRepository questionRepository;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private University.exam.repository.ExamAttemptRepository examAttemptRepository;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private University.exam.repository.SubmissionRepository submissionRepository;
+
     @GetMapping("/")
     public String login() {
         return "auth/student_login";
@@ -62,17 +68,50 @@ public class LoginController {
              
         if (activeSessionOpt.isPresent()) {
             University.exam.Entity.StudentActiveSession activeSession = activeSessionOpt.get();
-            // If there's an active session under a different session ID, check if it's stale
+            // If there's an active session under a different session ID
             if (!activeSession.getSessionId().equals(session.getId())) {
-                java.time.LocalDateTime cutoff = java.time.LocalDateTime.now().minusMinutes(3);
-                if (activeSession.getLastActivity() != null && activeSession.getLastActivity().isBefore(cutoff)) {
-                    // Stale session: delete it and flush to allow the new login
-                    studentActiveSessionRepository.delete(activeSession);
-                    studentActiveSessionRepository.flush();
-                } else {
-                    // Active session: block access
-                    return "redirect:/?error=already_logged_in";
+                java.time.LocalDateTime lastAct = activeSession.getLastActivity();
+                if (lastAct != null) {
+                    // Pause traditional ongoing attempts
+                    java.util.List<University.exam.Entity.ExamAttempt> studentAttempts = examAttemptRepository.findByStudentEnrollmentNo(trimmedEnrollment);
+                    if (studentAttempts != null) {
+                        for (University.exam.Entity.ExamAttempt attempt : studentAttempts) {
+                            if ("Ongoing".equals(attempt.getStatus())) {
+                                attempt.setIsPaused(true);
+                                attempt.setPausedAt(lastAct);
+                                attempt.setPauseCount((attempt.getPauseCount() != null ? attempt.getPauseCount() : 0) + 1);
+                                
+                                long totalSeconds = attempt.getExam().getExamDuration() != null ? attempt.getExam().getExamDuration() * 60 : 3600;
+                                long elapsed = java.time.Duration.between(attempt.getStartTime(), lastAct).getSeconds();
+                                int remaining = (int) Math.max(0, totalSeconds - elapsed);
+                                attempt.setRemainingTimeSeconds(remaining);
+                                
+                                examAttemptRepository.save(attempt);
+                            }
+                        }
+                    }
+                    // Pause PDF-based ongoing submissions
+                    java.util.List<University.exam.Entity.Submission> studentSubmissions = submissionRepository.findByStudentEnrollmentNo(trimmedEnrollment);
+                    if (studentSubmissions != null) {
+                        for (University.exam.Entity.Submission sub : studentSubmissions) {
+                            if ("Ongoing".equals(sub.getStatus())) {
+                                sub.setIsPaused(true);
+                                sub.setPausedAt(lastAct);
+                                sub.setPauseCount((sub.getPauseCount() != null ? sub.getPauseCount() : 0) + 1);
+
+                                long totalSeconds = (sub.getPaper().getExamDuration() != null ? sub.getPaper().getExamDuration() : 120) * 60;
+                                long elapsed = java.time.Duration.between(sub.getSubmittedAt(), lastAct).getSeconds();
+                                int remaining = (int) Math.max(0, totalSeconds - elapsed);
+                                sub.setRemainingTimeSeconds(remaining);
+
+                                submissionRepository.save(sub);
+                            }
+                        }
+                    }
                 }
+                // Delete the old active session to allow the new login
+                studentActiveSessionRepository.delete(activeSession);
+                studentActiveSessionRepository.flush();
             }
         }
 
@@ -125,6 +164,25 @@ public class LoginController {
         if (session.getAttribute("loggedInStudent") == null) return "redirect:/";
 
         String enrollmentNo = (String) session.getAttribute("loggedInStudent");
+        
+        // Check for ongoing attempt/submission to force resume screen
+        java.util.List<University.exam.Entity.ExamAttempt> attempts = examAttemptRepository.findByStudentEnrollmentNo(enrollmentNo);
+        if (attempts != null) {
+            for (University.exam.Entity.ExamAttempt attempt : attempts) {
+                if ("Ongoing".equals(attempt.getStatus())) {
+                    return "redirect:/student/exam/resume";
+                }
+            }
+        }
+        java.util.List<University.exam.Entity.Submission> submissions = submissionRepository.findByStudentEnrollmentNo(enrollmentNo);
+        if (submissions != null) {
+            for (University.exam.Entity.Submission sub : submissions) {
+                if ("Ongoing".equals(sub.getStatus())) {
+                    return "redirect:/student/exam/resume";
+                }
+            }
+        }
+
         University.exam.Entity.Student student = studentRepository.findByEnrollmentNo(enrollmentNo).orElse(null);
         String studentSem = student != null ? student.getSemester() : "Semester 3";
 

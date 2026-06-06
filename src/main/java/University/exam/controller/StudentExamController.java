@@ -675,4 +675,150 @@ public class StudentExamController {
         session.removeAttribute("currentAttemptId");
         return "student/terminated";
     }
+
+    @GetMapping("/resume")
+    public String resumeExam(HttpSession session, Model model) {
+        String enrollmentNo = (String) session.getAttribute("loggedInStudent");
+        if (enrollmentNo == null) return "redirect:/login";
+
+        // Check if there is an ongoing ExamAttempt
+        java.util.List<ExamAttempt> attempts = examAttemptRepository.findByStudentEnrollmentNo(enrollmentNo);
+        ExamAttempt ongoingAttempt = null;
+        if (attempts != null) {
+            for (ExamAttempt attempt : attempts) {
+                if ("Ongoing".equals(attempt.getStatus())) {
+                    ongoingAttempt = attempt;
+                    break;
+                }
+            }
+        }
+
+        // Check if there is an ongoing Submission
+        java.util.List<Submission> submissions = submissionRepository.findByStudentEnrollmentNo(enrollmentNo);
+        Submission ongoingSubmission = null;
+        if (submissions != null) {
+            for (Submission sub : submissions) {
+                if ("Ongoing".equals(sub.getStatus())) {
+                    ongoingSubmission = sub;
+                    break;
+                }
+            }
+        }
+
+        if (ongoingAttempt == null && ongoingSubmission == null) {
+            return "redirect:/student/rules";
+        }
+
+        String examName = "";
+        String lastSaved = "N/A";
+        long remainingSeconds = 0;
+        Long attemptId = null;
+        String type = "";
+
+        if (ongoingAttempt != null) {
+            examName = ongoingAttempt.getExam().getExamName() != null ? ongoingAttempt.getExam().getExamName() : ongoingAttempt.getExam().getSubject();
+            if (ongoingAttempt.getLastSavedAt() != null) {
+                lastSaved = ongoingAttempt.getLastSavedAt().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            } else {
+                lastSaved = ongoingAttempt.getStartTime().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            }
+            remainingSeconds = ongoingAttempt.getRemainingTimeSeconds() != null ? ongoingAttempt.getRemainingTimeSeconds() : (ongoingAttempt.getExam().getExamDuration() * 60);
+            attemptId = ongoingAttempt.getId();
+            type = "exam";
+            
+            // Mark attempt as paused if not already
+            if (!Boolean.TRUE.equals(ongoingAttempt.getIsPaused())) {
+                ongoingAttempt.setIsPaused(true);
+                ongoingAttempt.setPausedAt(LocalDateTime.now());
+                ongoingAttempt.setPauseCount((ongoingAttempt.getPauseCount() != null ? ongoingAttempt.getPauseCount() : 0) + 1);
+                examAttemptRepository.save(ongoingAttempt);
+            }
+        } else {
+            examName = ongoingSubmission.getPaper().getSubject();
+            if (ongoingSubmission.getLastSavedAt() != null) {
+                lastSaved = ongoingSubmission.getLastSavedAt().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            } else {
+                lastSaved = ongoingSubmission.getSubmittedAt().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            }
+            remainingSeconds = ongoingSubmission.getRemainingTimeSeconds() != null ? ongoingSubmission.getRemainingTimeSeconds() : (ongoingSubmission.getPaper().getExamDuration() * 60);
+            attemptId = ongoingSubmission.getId();
+            type = "paper";
+
+            // Mark submission as paused if not already
+            if (!Boolean.TRUE.equals(ongoingSubmission.getIsPaused())) {
+                ongoingSubmission.setIsPaused(true);
+                ongoingSubmission.setPausedAt(LocalDateTime.now());
+                ongoingSubmission.setPauseCount((ongoingSubmission.getPauseCount() != null ? ongoingSubmission.getPauseCount() : 0) + 1);
+                submissionRepository.save(ongoingSubmission);
+            }
+        }
+
+        long hrs = remainingSeconds / 3600;
+        long mins = (remainingSeconds % 3600) / 60;
+        long secs = remainingSeconds % 60;
+        String remainingTimeFormatted = String.format("%02d:%02d:%02d", hrs, mins, secs);
+
+        model.addAttribute("examName", examName);
+        model.addAttribute("lastSaved", lastSaved);
+        model.addAttribute("remainingTimeFormatted", remainingTimeFormatted);
+        model.addAttribute("attemptId", attemptId);
+        model.addAttribute("type", type);
+
+        return "student/resume";
+    }
+
+    @PostMapping("/resume")
+    public String performResume(
+            @RequestParam("attemptId") Long attemptId,
+            @RequestParam("type") String type,
+            @RequestParam("reason") String reason,
+            HttpSession session) {
+        
+        String enrollmentNo = (String) session.getAttribute("loggedInStudent");
+        if (enrollmentNo == null) return "redirect:/login";
+
+        if ("exam".equals(type)) {
+            ExamAttempt attempt = examAttemptRepository.findById(attemptId).orElse(null);
+            if (attempt != null && "Ongoing".equals(attempt.getStatus())) {
+                long totalSeconds = attempt.getExam().getExamDuration() != null ? attempt.getExam().getExamDuration() * 60 : 3600;
+                long remaining = attempt.getRemainingTimeSeconds() != null ? attempt.getRemainingTimeSeconds() : totalSeconds;
+                
+                attempt.setStartTime(LocalDateTime.now().minusSeconds(totalSeconds - remaining));
+                attempt.setIsPaused(false);
+                attempt.setResumedAt(LocalDateTime.now());
+                attempt.setResumeCount((attempt.getResumeCount() != null ? attempt.getResumeCount() : 0) + 1);
+                attempt.setInterruptionReason(reason);
+                examAttemptRepository.save(attempt);
+
+                session.setAttribute("currentExamId", attempt.getExam().getId());
+                session.setAttribute("currentExamType", "exam");
+                session.setAttribute("currentAttemptId", attempt.getId());
+
+                int lastSec = attempt.getLastActiveSection() != null ? attempt.getLastActiveSection() : 0;
+                return "redirect:/student/exam/section/" + lastSec;
+            }
+        } else {
+            Submission submission = submissionRepository.findById(attemptId).orElse(null);
+            if (submission != null && "Ongoing".equals(submission.getStatus())) {
+                long totalSeconds = (submission.getPaper().getExamDuration() != null ? submission.getPaper().getExamDuration() : 120) * 60;
+                long remaining = submission.getRemainingTimeSeconds() != null ? submission.getRemainingTimeSeconds() : totalSeconds;
+
+                submission.setSubmittedAt(LocalDateTime.now().minusSeconds(totalSeconds - remaining));
+                submission.setIsPaused(false);
+                submission.setResumedAt(LocalDateTime.now());
+                submission.setResumeCount((submission.getResumeCount() != null ? submission.getResumeCount() : 0) + 1);
+                submission.setInterruptionReason(reason);
+                submissionRepository.save(submission);
+
+                session.setAttribute("currentExamId", submission.getPaper().getId());
+                session.setAttribute("currentExamType", "paper");
+                session.setAttribute("currentAttemptId", submission.getId());
+
+                int lastSec = submission.getLastActiveSection() != null ? submission.getLastActiveSection() : 0;
+                return "redirect:/student/exam/section/" + lastSec;
+            }
+        }
+
+        return "redirect:/student/rules";
+    }
 }
