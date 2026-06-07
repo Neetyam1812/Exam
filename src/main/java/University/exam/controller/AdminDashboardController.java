@@ -60,9 +60,6 @@ public class AdminDashboardController {
     @Autowired
     private University.exam.repository.ExamRepository examRepository;
 
-    @org.springframework.beans.factory.annotation.Value("${app.upload.dir:C:/uploads/}")
-    private String uploadDir;
-
     // Helper method to simulate/retrieve a logged-in admin
     private void addAdminAttributes(HttpSession session, Model model) {
         String adminName = (String) session.getAttribute("loggedInAdmin");
@@ -421,11 +418,8 @@ public class AdminDashboardController {
 
             if (!isManual) {
                 // Save the file locally to an external directory
-                String directoryPath = uploadDir;
-                if (!directoryPath.endsWith("/") && !directoryPath.endsWith("\\")) {
-                    directoryPath += "/";
-                }
-                File dir = new File(directoryPath);
+                String uploadDir = "C:/uploads/";
+                File dir = new File(uploadDir);
                 if (!dir.exists()) {
                     dir.mkdirs();
                 }
@@ -437,7 +431,7 @@ public class AdminDashboardController {
                 }
                 
                 String safeFilename = UUID.randomUUID().toString() + originalExtension;
-                String filePath = directoryPath + safeFilename;
+                String filePath = uploadDir + safeFilename;
                 
                 File destFile = new File(filePath);
                 file.transferTo(destFile);
