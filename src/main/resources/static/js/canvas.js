@@ -89,7 +89,21 @@ window.canvasStates = window.canvasStates || {};
 
                 const actualType = type === 'square' ? 'rect' : (type === 'oval' ? 'circle' : type);
                 const shapeSvg = generateShapeSvgParams(actualType, text, fill, border, thickness, style, width, height, textSize, textColor);
-                editor.insertContent(shapeSvg);
+                const wrappedHtml = `
+                    <span class="shape-wrapper" contenteditable="false" style="display:inline-block;position:relative;vertical-align:middle;margin:5px;">
+                        ${shapeSvg}
+                        <span class="shape-resize-handle nw" data-handle="nw"></span>
+                        <span class="shape-resize-handle n" data-handle="n"></span>
+                        <span class="shape-resize-handle ne" data-handle="ne"></span>
+                        <span class="shape-resize-handle e" data-handle="e"></span>
+                        <span class="shape-resize-handle se" data-handle="se"></span>
+                        <span class="shape-resize-handle s" data-handle="s"></span>
+                        <span class="shape-resize-handle sw" data-handle="sw"></span>
+                        <span class="shape-resize-handle w" data-handle="w"></span>
+                        <span class="shape-delete-btn" title="Delete shape">&times;</span>
+                    </span>
+                `;
+                editor.insertContent(wrappedHtml);
                 editor.fire('change');
             }
         });
@@ -202,7 +216,16 @@ window.canvasStates = window.canvasStates || {};
                         const handle = e.target.closest && e.target.closest('.shape-resize-handle');
                         const wrapper = e.target.closest && e.target.closest('.shape-wrapper');
                         const delBtn  = e.target.closest && e.target.closest('.shape-delete-btn');
-                        if (delBtn) return;
+                        if (delBtn) {
+                            e.preventDefault(); e.stopPropagation();
+                            const wrap = delBtn.closest('.shape-wrapper');
+                            if (wrap) {
+                                wrap.parentNode && wrap.parentNode.removeChild(wrap);
+                                selectedWrapper = null;
+                                editor.fire('change');
+                            }
+                            return;
+                        }
                         if (handle && wrapper) {
                             e.preventDefault(); e.stopPropagation();
                             const svg = wrapper.querySelector('.inserted-shape');
@@ -520,19 +543,61 @@ window.canvasStates = window.canvasStates || {};
                 });
 
                 // ANTI-CHEAT: Disable copy/paste/cut within editor
-                editor.on('paste', function (e) {
-                    e.preventDefault();
-                    alert("Pasting is not allowed. Please type your answer manually.");
-                });
-
                 editor.on('copy', function (e) {
-                    e.preventDefault();
-                    alert("Copying content is disabled during the exam.");
+                    const selectedText = editor.selection.getContent({ format: 'text' });
+                    if (selectedText) {
+                        sessionStorage.setItem("examClipboard", selectedText);
+                        sessionStorage.setItem("examClipboardSource", "INTERNAL_EXAM");
+                        const clipboardEvent = e.clipboardData || (e.domEvent && e.domEvent.clipboardData);
+                        if (clipboardEvent) {
+                            clipboardEvent.setData('text/plain', selectedText);
+                        } else {
+                            navigator.clipboard.writeText(selectedText).catch(err => console.error(err));
+                        }
+                        e.preventDefault();
+                    }
                 });
 
                 editor.on('cut', function (e) {
-                    e.preventDefault();
-                    alert("Cutting content is disabled during the exam.");
+                    const selectedText = editor.selection.getContent({ format: 'text' });
+                    if (selectedText) {
+                        sessionStorage.setItem("examClipboard", selectedText);
+                        sessionStorage.setItem("examClipboardSource", "INTERNAL_EXAM");
+                        const clipboardEvent = e.clipboardData || (e.domEvent && e.domEvent.clipboardData);
+                        if (clipboardEvent) {
+                            clipboardEvent.setData('text/plain', selectedText);
+                        } else {
+                            navigator.clipboard.writeText(selectedText).catch(err => console.error(err));
+                        }
+                        editor.execCommand('Delete');
+                        e.preventDefault();
+                    }
+                });
+
+                editor.on('paste', function (e) {
+                    const clipboardEvent = e.clipboardData || (e.domEvent && e.domEvent.clipboardData);
+                    const pastedText = clipboardEvent ? clipboardEvent.getData('text/plain') : '';
+                    const examClipboard = sessionStorage.getItem("examClipboard");
+                    const examClipboardSource = sessionStorage.getItem("examClipboardSource");
+                    const qid = editor.id.replace('textarea-', '');
+
+                    const showWarning = window.showWarningToast || (window.parent && window.parent.showWarningToast);
+                    const logAttempt = window.logPasteAttempt || (window.parent && window.parent.logPasteAttempt);
+
+                    if (examClipboardSource === "INTERNAL_EXAM" && examClipboard && pastedText === examClipboard) {
+                        // Allow default paste, log it
+                        if (typeof logAttempt === "function") {
+                            logAttempt(qid, "Internal Paste Allowed", "INTERNAL_EXAM");
+                        }
+                    } else {
+                        e.preventDefault();
+                        if (typeof showWarning === "function") {
+                            showWarning("External content cannot be pasted during the examination.");
+                        }
+                        if (typeof logAttempt === "function") {
+                            logAttempt(qid, "External Paste Attempt blocked", "EXTERNAL");
+                        }
+                    }
                 });
             }
         });
@@ -1230,6 +1295,9 @@ window.canvasStates = window.canvasStates || {};
 
         if (isStudentPage && !currentPath.startsWith('/admin')) {
             document.addEventListener('contextmenu', event => {
+                if (event.target.closest("textarea.answer-area")) {
+                    return; // Allow context menu on answer fields for Copy/Paste
+                }
                 event.preventDefault();
                 alert("Right-click context menu is disabled during the exam.");
             });

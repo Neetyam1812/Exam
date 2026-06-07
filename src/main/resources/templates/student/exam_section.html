@@ -350,6 +350,32 @@
             transform: scale(1.5);
             cursor: pointer;
         }
+
+        /* Non-intrusive Toast Notification */
+        .exam-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #dc3545;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 9999;
+            font-weight: 600;
+            font-size: 0.95rem;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            transform: translateY(-20px);
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .exam-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -786,54 +812,104 @@
         }
     }
 
-    // ANTI-CHEAT: DISABLE COPY-PASTE & RIGHT-CLICK
-    // 1. Disable Right Click (Context Menu) globally on the exam page
+    // ── LOGGING & TOAST HELPERS ──────────────────────────────────
+    window.showWarningToast = function(message) {
+        let toast = document.getElementById("clipboard-warning-toast");
+        if (!toast) {
+            toast = document.createElement("div");
+            toast.id = "clipboard-warning-toast";
+            toast.className = "exam-toast";
+            document.body.appendChild(toast);
+        }
+        toast.innerHTML = `<i class="fas fa-exclamation-triangle"></i> <span>${message}</span>`;
+        toast.classList.add("show");
+        
+        clearTimeout(window.toastTimeout);
+        window.toastTimeout = setTimeout(() => {
+            toast.classList.remove("show");
+        }, 4000);
+    };
+
+    window.logPasteAttempt = function(questionId, pasteAttempt, sourceType) {
+        fetch('/api/exam/log-paste', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                questionId: questionId,
+                pasteAttempt: pasteAttempt,
+                sourceType: sourceType
+            })
+        }).catch(err => console.error("Logging paste failed:", err));
+    };
+
+    // ── CONTEXT MENU CONTROL ─────────────────────────────────────
+    // Disable right click globally except on answer textareas
     document.addEventListener("contextmenu", function(e) {
+        if (e.target.closest("textarea.answer-area")) {
+            return;
+        }
         e.preventDefault();
     });
 
-    // 2. Disable Paste, Copy, and Cut events on all answer textarea elements
-    document.querySelectorAll("textarea.answer-area").forEach(function(el) {
-        el.addEventListener("paste", function(e) {
+    // ── CENTRAL CLIPBOARD SYSTEM FOR STANDARD TEXTAREAS ──────────
+    document.addEventListener("copy", function(e) {
+        const activeEl = document.activeElement;
+        if (activeEl && activeEl.closest("textarea.answer-area")) {
+            const el = activeEl.closest("textarea.answer-area");
+            const selectedText = el.value.substring(el.selectionStart, el.selectionEnd);
+            if (selectedText) {
+                sessionStorage.setItem("examClipboard", selectedText);
+                sessionStorage.setItem("examClipboardSource", "INTERNAL_EXAM");
+                e.clipboardData.setData('text/plain', selectedText);
+                e.preventDefault();
+            }
+        } else {
+            // Block copying question text or anything outside answers
             e.preventDefault();
-            console.warn("Suspicious Behavior: Paste attempt detected on textarea ID: " + el.getAttribute("data-qid"));
-            alert("Pasting is not allowed. Please type your answer manually.");
-        });
-        
-        el.addEventListener("copy", function(e) {
-            e.preventDefault();
-            console.warn("Suspicious Behavior: Copy attempt detected on textarea ID: " + el.getAttribute("data-qid"));
-            alert("Copying content is disabled during the exam.");
-        });
-
-        el.addEventListener("cut", function(e) {
-            e.preventDefault();
-            console.warn("Suspicious Behavior: Cut attempt detected on textarea ID: " + el.getAttribute("data-qid"));
-            alert("Cutting content is disabled during the exam.");
-        });
+        }
     });
 
-    // 3. Disable Keyboard shortcuts (Ctrl+C, Ctrl+V, Ctrl+X, Cmd+C, Cmd+V, Cmd+X)
-    document.addEventListener("keydown", function(e) {
-        const key = e.key.toLowerCase();
-        const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+    document.addEventListener("cut", function(e) {
+        const activeEl = document.activeElement;
+        if (activeEl && activeEl.closest("textarea.answer-area")) {
+            const el = activeEl.closest("textarea.answer-area");
+            const selectedText = el.value.substring(el.selectionStart, el.selectionEnd);
+            if (selectedText) {
+                sessionStorage.setItem("examClipboard", selectedText);
+                sessionStorage.setItem("examClipboardSource", "INTERNAL_EXAM");
+                e.clipboardData.setData('text/plain', selectedText);
+                
+                const start = el.selectionStart;
+                const end = el.selectionEnd;
+                el.value = el.value.substring(0, start) + el.value.substring(end);
+                el.selectionStart = el.selectionEnd = start;
+                el.dispatchEvent(new Event('input', { bubbles: true }));
+                e.preventDefault();
+            }
+        } else {
+            e.preventDefault();
+        }
+    });
 
-        const isPaste = (isCtrlOrCmd && key === 'v') || (isCtrlOrCmd && e.shiftKey && key === 'v');
-        const isCopy = isCtrlOrCmd && key === 'c';
-        const isCut = isCtrlOrCmd && key === 'x';
+    document.addEventListener("paste", function(e) {
+        const activeEl = document.activeElement;
+        if (activeEl && activeEl.closest("textarea.answer-area")) {
+            const el = activeEl.closest("textarea.answer-area");
+            const qid = el.getAttribute("data-qid");
+            const pastedText = e.clipboardData.getData('text/plain') || e.clipboardData.getData('text');
+            const examClipboard = sessionStorage.getItem("examClipboard");
+            const examClipboardSource = sessionStorage.getItem("examClipboardSource");
 
-        if (isPaste) {
+            if (examClipboardSource === "INTERNAL_EXAM" && examClipboard && pastedText === examClipboard) {
+                // Allow default paste, log it
+                logPasteAttempt(qid, "Internal Paste Allowed", "INTERNAL_EXAM");
+            } else {
+                e.preventDefault();
+                showWarningToast("External content cannot be pasted during the examination.");
+                logPasteAttempt(qid, "External Paste Attempt blocked", "EXTERNAL");
+            }
+        } else {
             e.preventDefault();
-            console.warn("Suspicious Behavior: Paste keyboard shortcut attempt detected.");
-            alert("Pasting is not allowed. Please type your answer manually.");
-        } else if (isCopy) {
-            e.preventDefault();
-            console.warn("Suspicious Behavior: Copy keyboard shortcut attempt detected.");
-            alert("Copying content is disabled during the exam.");
-        } else if (isCut) {
-            e.preventDefault();
-            console.warn("Suspicious Behavior: Cut keyboard shortcut attempt detected.");
-            alert("Cutting content is disabled during the exam.");
         }
     });
 </script>

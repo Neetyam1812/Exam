@@ -35,6 +35,9 @@ public class StudentExamRestController {
     @Autowired
     private StudentRepository studentRepository;
 
+    @Autowired
+    private ExamPasteLogRepository examPasteLogRepository;
+
     @GetMapping("/exam/{id}/status")
     public ResponseEntity<?> getExamStatus(@PathVariable("id") Long id, @RequestParam(name = "type", required = false) String type) {
         String status = "DRAFT";
@@ -271,6 +274,21 @@ public class StudentExamRestController {
         answerRepository.save(answer);
 
         return ResponseEntity.ok(Collections.singletonMap("status", "saved"));
+    }
+
+    @PostMapping("/exam/log-paste")
+    public ResponseEntity<?> logPasteAttempt(@RequestBody Map<String, Object> payload, HttpSession session) {
+        String enrollmentNo = (String) session.getAttribute("loggedInStudent");
+        if (enrollmentNo == null) return ResponseEntity.status(401).body("Unauthorized");
+
+        Long questionId = payload.get("questionId") != null ? Long.valueOf(payload.get("questionId").toString()) : null;
+        String pasteAttempt = payload.get("pasteAttempt") != null ? payload.get("pasteAttempt").toString() : "";
+        String sourceType = payload.get("sourceType") != null ? payload.get("sourceType").toString() : "";
+
+        ExamPasteLog log = new ExamPasteLog(enrollmentNo, questionId, LocalDateTime.now(), pasteAttempt, sourceType);
+        examPasteLogRepository.save(log);
+
+        return ResponseEntity.ok(Collections.singletonMap("status", "logged"));
     }
 
     @PostMapping("/exam/submit")
