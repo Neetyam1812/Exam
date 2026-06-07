@@ -11,6 +11,7 @@ C:\Users\Neetyam Patel\Downloads\Examdb12\exam\src\main\java\University\exam\Ent
 C:\Users\Neetyam Patel\Downloads\Examdb12\exam\src\main\java\University\exam\Entity\CanvasDataEntity.java
 C:\Users\Neetyam Patel\Downloads\Examdb12\exam\src\main\java\University\exam\Entity\Exam.java
 C:\Users\Neetyam Patel\Downloads\Examdb12\exam\src\main\java\University\exam\Entity\ExamAttempt.java
+C:\Users\Neetyam Patel\Downloads\Examdb12\exam\src\main\java\University\exam\Entity\ExamPasteLog.java
 C:\Users\Neetyam Patel\Downloads\Examdb12\exam\src\main\java\University\exam\Entity\Feedback.java
 C:\Users\Neetyam Patel\Downloads\Examdb12\exam\src\main\java\University\exam\Entity\Paper.java
 C:\Users\Neetyam Patel\Downloads\Examdb12\exam\src\main\java\University\exam\Entity\Question.java
@@ -25,6 +26,7 @@ C:\Users\Neetyam Patel\Downloads\Examdb12\exam\src\main\java\University\exam\rep
 C:\Users\Neetyam Patel\Downloads\Examdb12\exam\src\main\java\University\exam\repository\AnswerRepository.java
 C:\Users\Neetyam Patel\Downloads\Examdb12\exam\src\main\java\University\exam\repository\DrawingRepository.java
 C:\Users\Neetyam Patel\Downloads\Examdb12\exam\src\main\java\University\exam\repository\ExamAttemptRepository.java
+C:\Users\Neetyam Patel\Downloads\Examdb12\exam\src\main\java\University\exam\repository\ExamPasteLogRepository.java
 C:\Users\Neetyam Patel\Downloads\Examdb12\exam\src\main\java\University\exam\repository\ExamRepository.java
 C:\Users\Neetyam Patel\Downloads\Examdb12\exam\src\main\java\University\exam\repository\FeedbackRepository.java
 C:\Users\Neetyam Patel\Downloads\Examdb12\exam\src\main\java\University\exam\repository\PaperRepository.java

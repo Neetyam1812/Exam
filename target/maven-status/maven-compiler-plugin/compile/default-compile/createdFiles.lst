@@ -13,8 +13,10 @@ University\exam\controller\StudentExamRestController.class
 University\exam\repository\AnswerRepository.class
 University\exam\listener\SessionListener.class
 University\exam\Entity\Admin.class
+University\exam\Entity\ExamPasteLog.class
 University\exam\service\ResultPdfService.class
 University\exam\interceptor\ActiveSessionInterceptor.class
+University\exam\repository\ExamPasteLogRepository.class
 University\exam\WebConfig.class
 University\exam\Entity\StudentActiveSession.class
 University\exam\service\DrawingService.class

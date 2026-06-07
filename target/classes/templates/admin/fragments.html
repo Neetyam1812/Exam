@@ -470,11 +470,13 @@
         <!-- User Profile Section Pinned at Bottom -->
         <div class="mt-auto">
             <!-- Theme Toggle Component -->
-            <div class="theme-switch-wrapper d-none d-lg-flex">
-                <span class="theme-switch-label">
-                    <i class="bi bi-moon-stars text-primary"></i> Dark Mode
-                </span>
-                <input type="checkbox" id="theme-toggle-switch" class="toggle-switch-input">
+            <div class="theme-switch-wrapper d-none d-lg-flex flex-column gap-2 align-items-stretch">
+                <div class="d-flex align-items-center justify-content-between w-100">
+                    <span class="theme-switch-label">
+                        <i class="bi bi-moon-stars text-primary"></i> Dark Mode
+                    </span>
+                    <input type="checkbox" id="theme-toggle-switch" class="toggle-switch-input">
+                </div>
             </div>
 
             <div class="sidebar-profile">
@@ -514,7 +516,7 @@
                 });
             }
 
-            // Sync and setup Theme Toggler persistence
+            // Sync and setup Theme Toggler
             const themeSwitch = document.getElementById("theme-toggle-switch");
             const savedTheme = localStorage.getItem("theme") || "light";
 
@@ -535,6 +537,7 @@
                         document.body.classList.remove("dark-theme");
                         localStorage.setItem("theme", "light");
                     }
+                    window.dispatchEvent(new Event('themeChanged'));
                 });
             }
         });

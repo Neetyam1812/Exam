@@ -1,0 +1,44 @@
+services:
+  - type: web
+    name: exam-portal
+    env: docker
+    plan: free
+    disk:
+      name: exam-uploads
+      mountPath: /var/lib/exam/uploads
+      sizeGB: 1
+    envVars:
+      - key: PORT
+        value: 8081
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: EXAMDB_HOST
+        fromDatabase:
+          name: examdb
+          property: host
+      - key: EXAMDB_PORT
+        fromDatabase:
+          name: examdb
+          property: port
+      - key: EXAMDB_DATABASE
+        fromDatabase:
+          name: examdb
+          property: databaseName
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:postgresql://${EXAMDB_HOST}:${EXAMDB_PORT}/${EXAMDB_DATABASE}
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: examdb
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: examdb
+          property: password
+      - key: APP_UPLOAD_DIR
+        value: /var/lib/exam/uploads/
+
+databases:
+  - name: examdb
+    databaseName: exam_db
+    user: postgres
+    plan: free

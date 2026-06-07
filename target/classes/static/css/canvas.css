@@ -1044,7 +1044,8 @@ body.dark-theme .student-name-box {
 }
 
 /* Legacy SVG drawings inside answers */
-body.dark-theme .inserted-shape text {
+body.dark-theme .inserted-shape[data-shape-fill="none"] text,
+body.dark-theme .inserted-shape[data-shape-fill="transparent"] text {
     fill: #ffffff !important;
 }
 
