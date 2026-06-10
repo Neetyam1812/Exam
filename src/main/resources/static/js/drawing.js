@@ -113,8 +113,260 @@ window.canvasStates = window.canvasStates || {};
                     </button>
                 </div>
                 
+                <!-- Group 2: Shapes Dropdown -->
+                <div class="toolbar-group">
+                    <div class="dropdown">
+                        <button type="button" class="drawing-btn dropdown-toggle hide-toggle-arrow" id="btn-shapes-${qid}" data-bs-toggle="dropdown" aria-expanded="false" data-tooltip="Insert Shapes">
+                            <i class="fa-solid fa-shapes"></i>
+                        </button>
+                        <div class="dropdown-menu shapes-dropdown-menu shadow-lg" aria-labelledby="btn-shapes-${qid}">
+                            <div class="shapes-dropdown-scrollable">
+                                <!-- Category: Recently Used Shapes -->
+                                <div class="shapes-dropdown-section">
+                                    <div class="shapes-dropdown-title">Recently Used Shapes</div>
+                                    <div class="shapes-dropdown-grid">
+                                        <button type="button" class="shape-dropdown-item" data-shape="textbox" data-tooltip="Text Box" onclick="window.insertShapeIntoCanvas('${qid}', 'textbox')">
+                                            <svg viewBox="0 0 16 16"><rect x="1" y="1" width="14" height="14" rx="1" stroke-dasharray="2,2"/><text x="5" y="11" font-size="9" font-family="sans-serif" fill="currentColor">A</text></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="line" data-tooltip="Line" onclick="window.insertShapeIntoCanvas('${qid}', 'line')">
+                                            <svg viewBox="0 0 16 16"><line x1="2" y1="2" x2="14" y2="14"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="arrow" data-tooltip="Arrow" onclick="window.insertShapeIntoCanvas('${qid}', 'arrow')">
+                                            <svg viewBox="0 0 16 16"><line x1="2" y1="2" x2="14" y2="14"/><polygon points="14,10 14,14 10,14" fill="currentColor"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="rect" data-tooltip="Rectangle" onclick="window.insertShapeIntoCanvas('${qid}', 'rect')">
+                                            <svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="circle" data-tooltip="Oval" onclick="window.insertShapeIntoCanvas('${qid}', 'circle')">
+                                            <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="rounded-rect" data-tooltip="Rounded Rectangle" onclick="window.insertShapeIntoCanvas('${qid}', 'rounded-rect')">
+                                            <svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="2" ry="2"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="triangle" data-tooltip="Isosceles Triangle" onclick="window.insertShapeIntoCanvas('${qid}', 'triangle')">
+                                            <svg viewBox="0 0 16 16"><polygon points="8,2 2,14 14,14"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="elbow-connector" data-tooltip="Elbow Connector" onclick="window.insertShapeIntoCanvas('${qid}', 'elbow-connector')">
+                                            <svg viewBox="0 0 16 16"><path d="M2,2 L8,2 L8,14 L14,14"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="elbow-arrow" data-tooltip="Elbow Arrow Connector" onclick="window.insertShapeIntoCanvas('${qid}', 'elbow-arrow')">
+                                            <svg viewBox="0 0 16 16"><path d="M2,2 L8,2 L8,14 L14,14"/><polygon points="12,12 14,14 12,16" fill="currentColor"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="arrow-right" data-tooltip="Right Arrow" onclick="window.insertShapeIntoCanvas('${qid}', 'arrow-right')">
+                                            <svg viewBox="0 0 16 16"><path d="M2,6 L10,6 L10,3 L14,8 L10,13 L10,10 L2,10 Z"/></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Category: Lines -->
+                                <div class="shapes-dropdown-section">
+                                    <div class="shapes-dropdown-title">Lines</div>
+                                    <div class="shapes-dropdown-grid">
+                                        <button type="button" class="shape-dropdown-item" data-shape="line" data-tooltip="Line" onclick="window.insertShapeIntoCanvas('${qid}', 'line')">
+                                            <svg viewBox="0 0 16 16"><line x1="2" y1="2" x2="14" y2="14"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="arrow" data-tooltip="Arrow" onclick="window.insertShapeIntoCanvas('${qid}', 'arrow')">
+                                            <svg viewBox="0 0 16 16"><line x1="2" y1="2" x2="14" y2="14"/><polygon points="14,10 14,14 10,14" fill="currentColor"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="doublearrow" data-tooltip="Double Arrow" onclick="window.insertShapeIntoCanvas('${qid}', 'doublearrow')">
+                                            <svg viewBox="0 0 16 16"><line x1="3" y1="13" x2="13" y2="3"/><polygon points="3,9 3,13 7,13" fill="currentColor"/><polygon points="9,3 13,3 13,7" fill="currentColor"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="elbow-connector" data-tooltip="Elbow Connector" onclick="window.insertShapeIntoCanvas('${qid}', 'elbow-connector')">
+                                            <svg viewBox="0 0 16 16"><path d="M2,2 L8,2 L8,14 L14,14"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="elbow-arrow" data-tooltip="Elbow Arrow Connector" onclick="window.insertShapeIntoCanvas('${qid}', 'elbow-arrow')">
+                                            <svg viewBox="0 0 16 16"><path d="M2,2 L8,2 L8,14 L14,14"/><polygon points="12,12 14,14 12,16" fill="currentColor"/></svg>
+                                        </button>
+                                    </div>
+                                </div>
 
-                
+                                <!-- Category: Rectangles -->
+                                <div class="shapes-dropdown-section">
+                                    <div class="shapes-dropdown-title">Rectangles</div>
+                                    <div class="shapes-dropdown-grid">
+                                        <button type="button" class="shape-dropdown-item" data-shape="rect" data-tooltip="Rectangle" onclick="window.insertShapeIntoCanvas('${qid}', 'rect')">
+                                            <svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="rounded-rect" data-tooltip="Rounded Rectangle" onclick="window.insertShapeIntoCanvas('${qid}', 'rounded-rect')">
+                                            <svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="2" ry="2"/></svg>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Category: Basic Shapes -->
+                                <div class="shapes-dropdown-section">
+                                    <div class="shapes-dropdown-title">Basic Shapes</div>
+                                    <div class="shapes-dropdown-grid">
+                                        <button type="button" class="shape-dropdown-item" data-shape="textbox" data-tooltip="Text Box" onclick="window.insertShapeIntoCanvas('${qid}', 'textbox')">
+                                            <svg viewBox="0 0 16 16"><rect x="1" y="1" width="14" height="14" rx="1" stroke-dasharray="2,2"/><text x="5" y="11" font-size="9" font-family="sans-serif" fill="currentColor">A</text></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="circle" data-tooltip="Oval" onclick="window.insertShapeIntoCanvas('${qid}', 'circle')">
+                                            <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="triangle" data-tooltip="Isosceles Triangle" onclick="window.insertShapeIntoCanvas('${qid}', 'triangle')">
+                                            <svg viewBox="0 0 16 16"><polygon points="8,2 2,14 14,14"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="right-triangle" data-tooltip="Right Triangle" onclick="window.insertShapeIntoCanvas('${qid}', 'right-triangle')">
+                                            <svg viewBox="0 0 16 16"><polygon points="2,2 2,14 14,14"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="parallelogram" data-tooltip="Parallelogram" onclick="window.insertShapeIntoCanvas('${qid}', 'parallelogram')">
+                                            <svg viewBox="0 0 16 16"><polygon points="5,3 14,3 11,13 2,13"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="trapezoid" data-tooltip="Trapezoid" onclick="window.insertShapeIntoCanvas('${qid}', 'trapezoid')">
+                                            <svg viewBox="0 0 16 16"><polygon points="5,3 11,3 14,13 2,13"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="diamond" data-tooltip="Diamond" onclick="window.insertShapeIntoCanvas('${qid}', 'diamond')">
+                                            <svg viewBox="0 0 16 16"><polygon points="8,2 14,8 8,14 2,8"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="pentagon" data-tooltip="Pentagon" onclick="window.insertShapeIntoCanvas('${qid}', 'pentagon')">
+                                            <svg viewBox="0 0 16 16"><polygon points="8,2 14,6 12,14 4,14 2,6"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="hexagon" data-tooltip="Hexagon" onclick="window.insertShapeIntoCanvas('${qid}', 'hexagon')">
+                                            <svg viewBox="0 0 16 16"><polygon points="8,2 14,5 14,11 8,14 2,11 2,5"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="octagon" data-tooltip="Octagon" onclick="window.insertShapeIntoCanvas('${qid}', 'octagon')">
+                                            <svg viewBox="0 0 16 16"><polygon points="5,2 11,2 14,5 14,11 11,14 5,14 2,11 2,5"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="l-shape" data-tooltip="L-Shape" onclick="window.insertShapeIntoCanvas('${qid}', 'l-shape')">
+                                            <svg viewBox="0 0 16 16"><polygon points="2,2 6,2 6,10 14,10 14,14 2,14"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="cross" data-tooltip="Cross" onclick="window.insertShapeIntoCanvas('${qid}', 'cross')">
+                                            <svg viewBox="0 0 16 16"><polygon points="6,2 10,2 10,6 14,6 14,10 10,10 10,14 6,14 6,10 2,10 2,6 6,6"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="cylinder" data-tooltip="Cylinder" onclick="window.insertShapeIntoCanvas('${qid}', 'cylinder')">
+                                            <svg viewBox="0 0 16 16"><ellipse cx="8" cy="4" rx="5" ry="2"/><path d="M3,4 L3,12 A5,2 0 0,0 13,12 L13,4"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="cube" data-tooltip="Cube" onclick="window.insertShapeIntoCanvas('${qid}', 'cube')">
+                                            <svg viewBox="0 0 16 16"><polygon points="8,1 15,4.5 15,11.5 8,15 1,11.5 1,4.5"/><line x1="8" y1="8" x2="8" y2="15"/><line x1="8" y1="8" x2="15" y2="4.5"/><line x1="8" y1="8" x2="1" y2="4.5"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="document" data-tooltip="Folder/Document" onclick="window.insertShapeIntoCanvas('${qid}', 'document')">
+                                            <svg viewBox="0 0 16 16"><path d="M2,2 L10,2 L14,6 L14,14 L2,14 Z M10,2 L10,6 L14,6 Z"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="smiley" data-tooltip="Smiley Face" onclick="window.insertShapeIntoCanvas('${qid}', 'smiley')">
+                                            <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M5,9.5 Q8,12.5 11,9.5"/><circle cx="6" cy="6" r="0.8" fill="currentColor"/><circle cx="10" cy="6" r="0.8" fill="currentColor"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="heart" data-tooltip="Heart" onclick="window.insertShapeIntoCanvas('${qid}', 'heart')">
+                                            <svg viewBox="0 0 16 16"><path d="M8,14 C8,14 1,10 1,5.5 C1,3 3,1 5.5,1 C7,1 8,2.5 8,2.5 C8,2.5 9,1 10.5,1 C13,1 15,3 15,5.5 C15,10 8,14 8,14 Z" fill="none"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="lightning" data-tooltip="Lightning" onclick="window.insertShapeIntoCanvas('${qid}', 'lightning')">
+                                            <svg viewBox="0 0 16 16"><polygon points="10,1 4,8 8,8 6,15 12,7 8,7"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="sun" data-tooltip="Sun" onclick="window.insertShapeIntoCanvas('${qid}', 'sun')">
+                                            <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="3"/><line x1="8" y1="1" x2="8" y2="3"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="1" y1="8" x2="3" y2="8"/><line x1="13" y1="8" x2="15" y2="8"/><line x1="3.1" y1="3.1" x2="4.5" y2="4.5"/><line x1="11.5" y1="11.5" x2="12.9" y2="12.9"/><line x1="3.1" y1="12.9" x2="4.5" y2="11.5"/><line x1="11.5" y1="4.5" x2="12.9" y2="3.1"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="moon" data-tooltip="Moon" onclick="window.insertShapeIntoCanvas('${qid}', 'moon')">
+                                            <svg viewBox="0 0 16 16"><path d="M12,2 A6,6 0 1,0 14,11 A5,5 0 1,1 12,2 Z"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="cloud" data-tooltip="Cloud" onclick="window.insertShapeIntoCanvas('${qid}', 'cloud')">
+                                            <svg viewBox="0 0 16 16"><path d="M4,12 C2,12 1,10.5 1,9 C1,7.5 2.5,6.5 4,6.5 C4.5,4.5 6.5,3.5 8.5,4 C11,4.5 12,6 12,8 C13.5,8 15,9.2 15,10.5 C15,12 13.5,12 12,12 Z"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="database" data-tooltip="Database" onclick="window.insertShapeIntoCanvas('${qid}', 'database')">
+                                            <svg viewBox="0 0 16 16"><ellipse cx="8" cy="4" rx="6" ry="2.5"/><path d="M2,4 L2,9 A6,2.5 0 0,0 14,9 L14,4"/><path d="M2,9 L2,14 A6,2.5 0 0,0 14,14 L14,9"/><path d="M2,4 A6,2.5 0 0,0 14,4"/></svg>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Category: Block Arrows -->
+                                <div class="shapes-dropdown-section">
+                                    <div class="shapes-dropdown-title">Block Arrows</div>
+                                    <div class="shapes-dropdown-grid">
+                                        <button type="button" class="shape-dropdown-item" data-shape="arrow-right" data-tooltip="Right Arrow" onclick="window.insertShapeIntoCanvas('${qid}', 'arrow-right')">
+                                            <svg viewBox="0 0 16 16"><path d="M2,6 L10,6 L10,3 L14,8 L10,13 L10,10 L2,10 Z"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="arrow-left" data-tooltip="Left Arrow" onclick="window.insertShapeIntoCanvas('${qid}', 'arrow-left')">
+                                            <svg viewBox="0 0 16 16"><path d="M14,6 L6,6 L6,3 L2,8 L6,13 L6,10 L14,10 Z"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="arrow-up" data-tooltip="Up Arrow" onclick="window.insertShapeIntoCanvas('${qid}', 'arrow-up')">
+                                            <svg viewBox="0 0 16 16"><path d="M6,14 L6,6 L3,6 L8,2 L13,6 L10,6 L10,14 Z"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="arrow-down" data-tooltip="Down Arrow" onclick="window.insertShapeIntoCanvas('${qid}', 'arrow-down')">
+                                            <svg viewBox="0 0 16 16"><path d="M6,2 L6,10 L3,10 L8,14 L13,10 L10,10 L10,2 Z"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="arrow-left-right" data-tooltip="Left-Right Arrow" onclick="window.insertShapeIntoCanvas('${qid}', 'arrow-left-right')">
+                                            <svg viewBox="0 0 16 16"><path d="M2,8 L5,5 L5,7 L11,7 L11,5 L14,8 L11,11 L11,9 L5,9 L5,11 Z"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="arrow-up-down" data-tooltip="Up-Down Arrow" onclick="window.insertShapeIntoCanvas('${qid}', 'arrow-up-down')">
+                                            <svg viewBox="0 0 16 16"><path d="M8,2 L5,5 L7,5 L7,11 L5,11 L8,14 L11,11 L9,11 L9,5 L11,5 Z"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="arrow-quad" data-tooltip="4-Way Arrow" onclick="window.insertShapeIntoCanvas('${qid}', 'arrow-quad')">
+                                            <svg viewBox="0 0 16 16"><path d="M8,1 L6,3.5 L7,3.5 L7,7 L3.5,7 L3.5,6 L1,8 L3.5,10 L3.5,9 L7,9 L7,12.5 L6,12.5 L8,15 L10,12.5 L9,12.5 L9,9 L12.5,9 L12.5,10 L15,8 L12.5,6 L12.5,7 L9,7 L9,3.5 L10,3.5 Z"/></svg>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Category: Equation Shapes -->
+                                <div class="shapes-dropdown-section">
+                                    <div class="shapes-dropdown-title">Equation Shapes</div>
+                                    <div class="shapes-dropdown-grid">
+                                        <button type="button" class="shape-dropdown-item" data-shape="equation-plus" data-tooltip="Plus" onclick="window.insertShapeIntoCanvas('${qid}', 'equation-plus')">
+                                            <svg viewBox="0 0 16 16"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="equation-minus" data-tooltip="Minus" onclick="window.insertShapeIntoCanvas('${qid}', 'equation-minus')">
+                                            <svg viewBox="0 0 16 16"><line x1="2" y1="8" x2="14" y2="8"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="equation-multiply" data-tooltip="Multiply" onclick="window.insertShapeIntoCanvas('${qid}', 'equation-multiply')">
+                                            <svg viewBox="0 0 16 16"><line x1="3" y1="3" x2="13" y2="13"/><line x1="13" y1="3" x2="3" y2="13"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="equation-divide" data-tooltip="Divide" onclick="window.insertShapeIntoCanvas('${qid}', 'equation-divide')">
+                                            <svg viewBox="0 0 16 16"><line x1="2" y1="8" x2="14" y2="8"/><circle cx="8" cy="4" r="1.5" fill="currentColor"/><circle cx="8" cy="12" r="1.5" fill="currentColor"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="equation-equal" data-tooltip="Equals" onclick="window.insertShapeIntoCanvas('${qid}', 'equation-equal')">
+                                            <svg viewBox="0 0 16 16"><line x1="2" y1="6" x2="14" y2="6"/><line x1="2" y1="10" x2="14" y2="10"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="equation-notequal" data-tooltip="Not Equal" onclick="window.insertShapeIntoCanvas('${qid}', 'equation-notequal')">
+                                            <svg viewBox="0 0 16 16"><line x1="2" y1="6" x2="14" y2="6"/><line x1="2" y1="10" x2="14" y2="10"/><line x1="3" y1="13" x2="13" y2="3"/></svg>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Category: Flowchart -->
+                                <div class="shapes-dropdown-section">
+                                    <div class="shapes-dropdown-title">Flowchart</div>
+                                    <div class="shapes-dropdown-grid">
+                                        <button type="button" class="shape-dropdown-item" data-shape="flowprocess" data-tooltip="Process" onclick="window.insertShapeIntoCanvas('${qid}', 'flowprocess')">
+                                            <svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="flowdecision" data-tooltip="Decision" onclick="window.insertShapeIntoCanvas('${qid}', 'flowdecision')">
+                                            <svg viewBox="0 0 16 16"><polygon points="8,2 14,8 8,14 2,8"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="flowstartend" data-tooltip="Terminator" onclick="window.insertShapeIntoCanvas('${qid}', 'flowstartend')">
+                                            <svg viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="8" rx="4" ry="4"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="document" data-tooltip="Document" onclick="window.insertShapeIntoCanvas('${qid}', 'document')">
+                                            <svg viewBox="0 0 16 16"><path d="M2,2 L10,2 L14,6 L14,14 L2,14 Z M10,2 L10,6 L14,6 Z"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="parallelogram" data-tooltip="Data (Input/Output)" onclick="window.insertShapeIntoCanvas('${qid}', 'parallelogram')">
+                                            <svg viewBox="0 0 16 16"><polygon points="5,3 14,3 11,13 2,13"/></svg>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Category: Stars and Banners -->
+                                <div class="shapes-dropdown-section">
+                                    <div class="shapes-dropdown-title">Stars and Banners</div>
+                                    <div class="shapes-dropdown-grid">
+                                        <button type="button" class="shape-dropdown-item" data-shape="star-4" data-tooltip="4-Point Star" onclick="window.insertShapeIntoCanvas('${qid}', 'star-4')">
+                                            <svg viewBox="0 0 16 16"><polygon points="8,2 10,6.5 14,8 10,9.5 8,14 6,9.5 2,8 6,6.5"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="star-5" data-tooltip="5-Point Star" onclick="window.insertShapeIntoCanvas('${qid}', 'star-5')">
+                                            <svg viewBox="0 0 16 16"><polygon points="8,1 10,6 15,6.5 11,10 12.5,15 8,12 3.5,15 5,10 1,6.5 6,6"/></svg>
+                                        </button>
+                                        <button type="button" class="shape-dropdown-item" data-shape="star-6" data-tooltip="6-Point Star" onclick="window.insertShapeIntoCanvas('${qid}', 'star-6')">
+                                            <svg viewBox="0 0 16 16"><polygon points="8,1 11,4.5 14,4.5 12.5,8 14,11.5 11,11.5 8,15 5,11.5 2,11.5 3.5,8 2,4.5 5,4.5"/></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Footer Reset Action -->
+                            <div class="shapes-dropdown-footer">
+                                <button type="button" class="shapes-dropdown-footer-btn" onclick="document.getElementById('btn-clear-${qid}').click()">
+                                    <i class="fa-solid fa-square-plus"></i> New Drawing Canvas
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Group 3: Word Colors and Sliders -->
                 <div class="toolbar-group">
                     <div class="tool-setting-wrapper">
@@ -1258,12 +1510,44 @@ window.canvasStates = window.canvasStates || {};
                     ry: 40
                 });
                 break;
+            case 'rounded-rect':
+                shape = new fabric.Rect({
+                    ...defaultProps,
+                    width: 120,
+                    height: 80,
+                    rx: 15,
+                    ry: 15
+                });
+                break;
             case 'triangle':
                 shape = new fabric.Triangle({
                     ...defaultProps,
                     width: 100,
                     height: 90
                 });
+                break;
+            case 'right-triangle':
+                shape = new fabric.Polygon([
+                    { x: 0, y: 0 },
+                    { x: 0, y: 80 },
+                    { x: 100, y: 80 }
+                ], defaultProps);
+                break;
+            case 'parallelogram':
+                shape = new fabric.Polygon([
+                    { x: 25, y: 0 },
+                    { x: 125, y: 0 },
+                    { x: 100, y: 80 },
+                    { x: 0, y: 80 }
+                ], defaultProps);
+                break;
+            case 'trapezoid':
+                shape = new fabric.Polygon([
+                    { x: 25, y: 0 },
+                    { x: 95, y: 0 },
+                    { x: 120, y: 80 },
+                    { x: 0, y: 80 }
+                ], defaultProps);
                 break;
             case 'diamond':
                 shape = new fabric.Polygon([
@@ -1291,6 +1575,74 @@ window.canvasStates = window.canvasStates || {};
                     {x: 0, y: 75},
                     {x: 0, y: 25}
                 ], defaultProps);
+                break;
+            case 'octagon':
+                shape = new fabric.Polygon([
+                    { x: 29, y: 0 },
+                    { x: 71, y: 0 },
+                    { x: 100, y: 29 },
+                    { x: 100, y: 71 },
+                    { x: 71, y: 100 },
+                    { x: 29, y: 100 },
+                    { x: 0, y: 71 },
+                    { x: 0, y: 29 }
+                ], defaultProps);
+                break;
+            case 'l-shape':
+                shape = new fabric.Polygon([
+                    { x: 0, y: 0 },
+                    { x: 35, y: 0 },
+                    { x: 35, y: 65 },
+                    { x: 100, y: 65 },
+                    { x: 100, y: 100 },
+                    { x: 0, y: 100 }
+                ], defaultProps);
+                break;
+            case 'cross':
+                shape = new fabric.Polygon([
+                    { x: 35, y: 0 },
+                    { x: 65, y: 0 },
+                    { x: 65, y: 35 },
+                    { x: 100, y: 35 },
+                    { x: 100, y: 65 },
+                    { x: 65, y: 65 },
+                    { x: 65, y: 100 },
+                    { x: 35, y: 100 },
+                    { x: 35, y: 65 },
+                    { x: 0, y: 65 },
+                    { x: 0, y: 35 },
+                    { x: 35, y: 35 }
+                ], defaultProps);
+                break;
+            case 'cylinder':
+                shape = new fabric.Path('M 0 10 A 50 10 0 1 0 100 10 A 50 10 0 1 0 0 10 Z M 0 10 L 0 90 A 50 10 0 0 0 100 90 L 100 10', defaultProps);
+                break;
+            case 'cube':
+                shape = new fabric.Path('M 50 0 L 100 25 L 100 75 L 50 100 L 0 75 L 0 25 Z M 50 0 L 50 50 M 50 50 L 100 25 M 50 50 L 0 25 M 50 50 L 50 100', defaultProps);
+                break;
+            case 'document':
+                shape = new fabric.Path('M 0 0 L 75 0 L 100 25 L 100 100 L 0 100 Z M 75 0 L 75 25 L 100 25 Z', defaultProps);
+                break;
+            case 'smiley':
+                shape = new fabric.Path('M 50 0 A 50 50 0 1 0 50 100 A 50 50 0 1 0 50 0 Z M 30 35 A 5 5 0 1 1 30 35.1 Z M 70 35 A 5 5 0 1 1 70 35.1 Z M 30 60 Q 50 85 70 60', defaultProps);
+                break;
+            case 'heart':
+                shape = new fabric.Path('M 50 15 C 35 -5, 0 -5, 0 35 C 0 65, 30 85, 50 95 C 70 85, 100 65, 100 35 C 100 -5, 65 -5, 50 15 Z', defaultProps);
+                break;
+            case 'lightning':
+                shape = new fabric.Path('M 60 0 L 20 55 L 50 55 L 35 100 L 80 40 L 50 40 Z', defaultProps);
+                break;
+            case 'sun':
+                shape = new fabric.Path('M 50 30 A 20 20 0 1 0 50 70 A 20 20 0 1 0 50 30 Z M 50 5 L 50 15 M 50 85 L 50 95 M 5 50 L 15 50 M 85 50 L 95 50 M 18 18 L 25 25 M 75 75 L 82 82 M 18 82 L 25 75 M 75 18 L 82 25', defaultProps);
+                break;
+            case 'moon':
+                shape = new fabric.Path('M 50 10 A 40 40 0 1 0 90 50 A 32 32 0 1 1 50 10 Z', defaultProps);
+                break;
+            case 'cloud':
+                shape = new fabric.Path('M 25 80 C 10 80, 0 70, 0 55 C 0 40, 15 30, 30 30 C 35 15, 50 10, 65 10 C 85 10, 100 25, 100 45 C 100 65, 85 80, 65 80 Z', defaultProps);
+                break;
+            case 'database':
+                shape = new fabric.Path('M 0 15 L 0 85 C 0 95, 100 95, 100 85 L 100 15 Z M 0 15 C 0 25, 100 25, 100 15 C 100 5, 0 5, 0 15 M 0 45 C 0 55, 100 55, 100 45 M 0 70 C 0 80, 100 80, 100 70', defaultProps);
                 break;
             case 'line':
                 shape = new fabric.Line([10, 10, 110, 10], {
@@ -1339,6 +1691,74 @@ window.canvasStates = window.canvasStates || {};
                     originY: 'center'
                 });
                 break;
+            case 'elbow-connector':
+                shape = new fabric.Path('M 0 0 L 50 0 L 50 50', {
+                    ...defaultProps,
+                    fill: 'transparent'
+                });
+                break;
+            case 'elbow-arrow':
+                shape = new fabric.Path('M 0 0 L 50 0 L 50 50 M 45 45 L 50 50 L 55 45', {
+                    ...defaultProps,
+                    fill: 'transparent'
+                });
+                break;
+            case 'arrow-right':
+                shape = new fabric.Path('M 0 35 L 60 35 L 60 15 L 100 50 L 60 85 L 60 65 L 0 65 Z', defaultProps);
+                break;
+            case 'arrow-left':
+                shape = new fabric.Path('M 100 35 L 40 35 L 40 15 L 0 50 L 40 85 L 40 65 L 100 65 Z', defaultProps);
+                break;
+            case 'arrow-up':
+                shape = new fabric.Path('M 35 100 L 35 40 L 15 40 L 50 0 L 85 40 L 65 40 L 65 100 Z', defaultProps);
+                break;
+            case 'arrow-down':
+                shape = new fabric.Path('M 35 0 L 35 60 L 15 60 L 50 100 L 85 60 L 65 60 L 65 0 Z', defaultProps);
+                break;
+            case 'arrow-left-right':
+                shape = new fabric.Path('M 40 15 L 40 35 L 60 35 L 60 15 L 100 50 L 60 85 L 60 65 L 40 65 L 40 85 L 0 50 Z', defaultProps);
+                break;
+            case 'arrow-up-down':
+                shape = new fabric.Path('M 15 40 L 35 40 L 35 60 L 15 60 L 50 100 L 85 60 L 65 60 L 65 40 L 85 40 L 50 0 Z', defaultProps);
+                break;
+            case 'arrow-quad':
+                shape = new fabric.Path('M 35 35 L 35 15 L 20 15 L 50 0 L 80 15 L 65 15 L 65 35 L 85 35 L 85 20 L 100 50 L 85 80 L 85 65 L 65 65 L 65 85 L 80 85 L 50 100 L 20 85 L 35 85 L 35 65 L 15 65 L 15 80 L 0 50 L 15 20 L 15 35 Z', defaultProps);
+                break;
+            case 'equation-plus':
+                shape = new fabric.Polygon([
+                    { x: 35, y: 0 },
+                    { x: 65, y: 0 },
+                    { x: 65, y: 35 },
+                    { x: 100, y: 35 },
+                    { x: 100, y: 65 },
+                    { x: 65, y: 65 },
+                    { x: 65, y: 100 },
+                    { x: 35, y: 100 },
+                    { x: 35, y: 65 },
+                    { x: 0, y: 65 },
+                    { x: 0, y: 35 },
+                    { x: 35, y: 35 }
+                ], defaultProps);
+                break;
+            case 'equation-minus':
+                shape = new fabric.Rect({
+                    ...defaultProps,
+                    width: 100,
+                    height: 30
+                });
+                break;
+            case 'equation-multiply':
+                shape = new fabric.Path('M 25 0 L 50 25 L 75 0 L 100 25 L 75 50 L 100 75 L 75 100 L 50 75 L 25 100 L 0 75 L 25 50 L 0 25 Z', defaultProps);
+                break;
+            case 'equation-divide':
+                shape = new fabric.Path('M 0 40 L 100 40 L 100 60 L 0 60 Z M 50 10 A 10 10 0 1 1 50 30 A 10 10 0 1 1 50 10 Z M 50 70 A 10 10 0 1 1 50 90 A 10 10 0 1 1 50 70 Z', defaultProps);
+                break;
+            case 'equation-equal':
+                shape = new fabric.Path('M 0 25 L 100 25 L 100 45 L 0 45 Z M 0 55 L 100 55 L 100 75 L 0 75 Z', defaultProps);
+                break;
+            case 'equation-notequal':
+                shape = new fabric.Path('M 0 25 L 100 25 L 100 45 L 0 45 Z M 0 55 L 100 55 L 100 75 L 0 75 Z M 20 90 L 80 10 L 90 20 L 30 100 Z', defaultProps);
+                break;
             case 'flowprocess':
                 shape = new fabric.Rect({
                     ...defaultProps,
@@ -1362,6 +1782,15 @@ window.canvasStates = window.canvasStates || {};
                     rx: 30,
                     ry: 30
                 });
+                break;
+            case 'star-4':
+                shape = new fabric.Path('M 50 0 L 62 38 L 100 50 L 62 62 L 50 100 L 38 62 L 0 50 L 38 38 Z', defaultProps);
+                break;
+            case 'star-5':
+                shape = new fabric.Path('M 50 0 L 65 35 L 100 35 L 72 57 L 83 95 L 50 75 L 17 95 L 28 57 L 0 35 L 35 35 Z', defaultProps);
+                break;
+            case 'star-6':
+                shape = new fabric.Path('M 50 0 L 65 25 L 95 25 L 80 50 L 95 75 L 65 75 L 50 100 L 35 75 L 5 75 L 20 50 L 5 25 L 35 25 Z', defaultProps);
                 break;
             case 'textbox':
                 const activeFontFamily = document.getElementById(`font-family-${qid}`)?.value || '"Aptos (Body)", sans-serif';

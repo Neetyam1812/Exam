@@ -351,3 +351,161 @@ body.dark-theme .context-divider {
     display: none !important;
 }
 
+/* Custom shapes dropdown menu (Office style) */
+.shapes-dropdown-menu {
+    width: 330px !important;
+    max-height: 420px;
+    background-color: #252526 !important;
+    border: 1px solid #3c3c3c !important;
+    border-radius: 6px;
+    padding: 0 !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    z-index: 2000 !important;
+}
+
+.shapes-dropdown-scrollable {
+    overflow-y: auto;
+    flex: 1;
+    padding: 8px 0;
+}
+
+.shapes-dropdown-scrollable::-webkit-scrollbar {
+    width: 8px;
+}
+.shapes-dropdown-scrollable::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+.shapes-dropdown-scrollable::-webkit-scrollbar-thumb {
+    background: #474747;
+    border-radius: 4px;
+}
+.shapes-dropdown-scrollable::-webkit-scrollbar-thumb:hover {
+    background: #5a5a5a;
+}
+
+.shapes-dropdown-section {
+    padding: 6px 14px;
+    border-bottom: 1px solid #2d2d2d;
+}
+
+.shapes-dropdown-section:last-of-type {
+    border-bottom: none;
+}
+
+.shapes-dropdown-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #a6a6a6;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    user-select: none;
+}
+
+.shapes-dropdown-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 6px;
+}
+
+.shape-dropdown-item {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1.5px solid transparent;
+    border-radius: 4px;
+    color: #cccccc;
+    cursor: pointer;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0;
+    position: relative;
+}
+
+.shape-dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    transform: scale(1.05);
+}
+
+.shape-dropdown-item svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    fill: none;
+    transition: transform 0.15s ease;
+}
+
+.shape-dropdown-item:active svg {
+    transform: scale(0.9);
+}
+
+/* Tooltips inside dropdown */
+.shape-dropdown-item::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-4px);
+    background-color: #111111;
+    color: #ffffff;
+    font-size: 0.65rem;
+    padding: 4px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.15s ease;
+    z-index: 2100;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.shape-dropdown-item:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Hide Bootstrap dropdown default caret arrow */
+.hide-toggle-arrow::after {
+    display: none !important;
+}
+
+/* Dropdown Footer Reset Action styling */
+.shapes-dropdown-footer {
+    border-top: 1px solid #3c3c3c !important;
+    padding: 10px 14px;
+    background-color: #1e1e1e !important;
+}
+
+.shapes-dropdown-footer-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    color: #b3b3b3;
+    font-size: 0.8rem;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    padding: 4px 0;
+    font-weight: 600;
+    transition: color 0.15s ease;
+}
+
+.shapes-dropdown-footer-btn:hover {
+    color: #ffffff;
+}
+
+.shapes-dropdown-footer-btn i {
+    font-size: 0.9rem;
+    color: #6366f1;
+}
+
+

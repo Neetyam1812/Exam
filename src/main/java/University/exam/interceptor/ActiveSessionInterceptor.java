@@ -38,6 +38,14 @@ public class ActiveSessionInterceptor implements HandlerInterceptor {
 
         String uri = request.getRequestURI();
         if (uri.contains("/student/exam/resume") || uri.contains("/student/logout") || uri.contains("/logout") || uri.contains("/api/drawing/save")) {
+            if (uri.contains("/student/exam/resume") || uri.contains("/api/drawing/save")) {
+                studentActiveSessionRepository.findByStudentIdAndIsActiveTrue(enrollmentNo).ifPresent(activeSession -> {
+                    if (activeSession.getSessionId().equals(session.getId())) {
+                        activeSession.setLastActivity(LocalDateTime.now());
+                        studentActiveSessionRepository.save(activeSession);
+                    }
+                });
+            }
             return true;
         }
 

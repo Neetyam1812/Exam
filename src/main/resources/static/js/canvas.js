@@ -73,12 +73,25 @@ window.canvasStates = window.canvasStates || {};
                 api.close();
 
                 let width = 150, height = 80;
-                if (type === 'square' || type === 'circle') { width = 100; height = 100; }
-                else if (type === 'oval') { width = 150; height = 90; }
-                else if (type === 'triangle' || type === 'diamond' || type === 'pentagon') { width = 120; height = 100; }
-                else if (type === 'hexagon') { width = 140; height = 100; }
-                else if (type === 'line') { width = 150; height = 30; }
-                else if (type === 'arrow' || type === 'arrow-double-horizontal') { width = 150; height = 50; }
+                if (type === 'square' || type === 'circle' || type === 'star-4' || type === 'star-5' || type === 'star-6') { 
+                    width = 100; height = 100; 
+                } else if (type === 'oval') { 
+                    width = 150; height = 90; 
+                } else if (type === 'triangle' || type === 'right-triangle' || type === 'diamond' || type === 'pentagon' || type === 'octagon' || type === 'l-shape' || type === 'cross' || type === 'cube' || type === 'document' || type === 'smiley' || type === 'heart' || type === 'lightning' || type === 'sun' || type === 'moon' || type === 'cloud' || type === 'database') { 
+                    width = 120; height = 100; 
+                } else if (type === 'hexagon') { 
+                    width = 140; height = 100; 
+                } else if (type === 'line') { 
+                    width = 150; height = 30; 
+                } else if (type === 'arrow' || type === 'arrow-right' || type === 'arrow-left' || type === 'arrow-double-horizontal' || type === 'arrow-left-right') { 
+                    width = 150; height = 50; 
+                } else if (type === 'arrow-up' || type === 'arrow-down' || type === 'arrow-up-down' || type === 'arrow-quad') { 
+                    width = 100; height = 100; 
+                } else if (type === 'elbow-connector' || type === 'elbow-arrow') { 
+                    width = 100; height = 100; 
+                } else if (type === 'equation-plus' || type === 'equation-minus' || type === 'equation-multiply' || type === 'equation-divide' || type === 'equation-equal' || type === 'equation-notequal') { 
+                    width = 80; height = 80; 
+                }
 
                 const fill = '#ffffff';
                 const border = '#000000';
@@ -87,7 +100,17 @@ window.canvasStates = window.canvasStates || {};
                 const textSize = '14px';
                 const textColor = '#000000';
 
-                const actualType = type === 'square' ? 'rect' : (type === 'oval' ? 'circle' : type);
+                let actualType = type;
+                if (type === 'square') actualType = 'rect';
+                else if (type === 'oval') actualType = 'circle';
+                else if (type === 'star-5') actualType = 'star';
+                else if (type === 'equation-plus') actualType = 'plus';
+                else if (type === 'equation-minus') actualType = 'minus';
+                else if (type === 'equation-multiply') actualType = 'multiply';
+                else if (type === 'equation-divide') actualType = 'divide';
+                else if (type === 'arrow-left-right') actualType = 'arrow-double-horizontal';
+                else if (type === 'arrow-up-down') actualType = 'arrow-double-vertical';
+                else if (type === 'doublearrow') actualType = 'arrow-double-horizontal';
                 const shapeSvg = generateShapeSvgParams(actualType, text, fill, border, thickness, style, width, height, textSize, textColor);
                 const wrappedHtml = `
                     <span class="shape-wrapper" contenteditable="false" style="display:inline-block;position:relative;vertical-align:middle;margin:5px;">
@@ -394,21 +417,97 @@ window.canvasStates = window.canvasStates || {};
                     tooltip: 'Insert Shape',
                     fetch: function (callback) {
                         var items = [
-                            { type: 'menuitem', text: 'Rectangle', onAction: function () { insertShapeIntoEditor(editor, 'rect'); } },
-                            { type: 'menuitem', text: 'Square', onAction: function () { insertShapeIntoEditor(editor, 'square'); } },
-                            { type: 'menuitem', text: 'Circle', onAction: function () { insertShapeIntoEditor(editor, 'circle'); } },
-                            { type: 'menuitem', text: 'Oval', onAction: function () { insertShapeIntoEditor(editor, 'oval'); } },
-                            { type: 'menuitem', text: 'Triangle', onAction: function () { insertShapeIntoEditor(editor, 'triangle'); } },
-                            { type: 'menuitem', text: 'Diamond', onAction: function () { insertShapeIntoEditor(editor, 'diamond'); } },
-                            { type: 'menuitem', text: 'Pentagon', onAction: function () { insertShapeIntoEditor(editor, 'pentagon'); } },
-                            { type: 'menuitem', text: 'Hexagon', onAction: function () { insertShapeIntoEditor(editor, 'hexagon'); } },
-                            { type: 'menuitem', text: 'Line', onAction: function () { insertShapeIntoEditor(editor, 'line'); } },
-                            { type: 'menuitem', text: 'Arrow', onAction: function () { insertShapeIntoEditor(editor, 'arrow'); } },
-                            { type: 'menuitem', text: 'Double Arrow', onAction: function () { insertShapeIntoEditor(editor, 'arrow-double-horizontal'); } },
-                            { type: 'menuitem', text: 'Flowchart Process', onAction: function () { insertShapeIntoEditor(editor, 'rect'); } },
-                            { type: 'menuitem', text: 'Flowchart Decision', onAction: function () { insertShapeIntoEditor(editor, 'diamond'); } },
-                            { type: 'menuitem', text: 'Flowchart Start/End', onAction: function () { insertShapeIntoEditor(editor, 'capsule'); } },
-                            { type: 'menuitem', text: 'Text Box', onAction: function () { insertShapeIntoEditor(editor, 'rect'); } }
+                            {
+                                type: 'nestedmenuitem',
+                                text: 'Lines',
+                                getSubmenuItems: function () {
+                                    return [
+                                        { type: 'menuitem', text: 'Line', onAction: function () { insertShapeIntoEditor(editor, 'line'); } },
+                                        { type: 'menuitem', text: 'Arrow', onAction: function () { insertShapeIntoEditor(editor, 'arrow'); } },
+                                        { type: 'menuitem', text: 'Double Arrow', onAction: function () { insertShapeIntoEditor(editor, 'arrow-double-horizontal'); } },
+                                        { type: 'menuitem', text: 'Elbow Connector', onAction: function () { insertShapeIntoEditor(editor, 'elbow-connector'); } },
+                                        { type: 'menuitem', text: 'Elbow Arrow', onAction: function () { insertShapeIntoEditor(editor, 'elbow-arrow'); } }
+                                    ];
+                                }
+                            },
+                            {
+                                type: 'nestedmenuitem',
+                                text: 'Rectangles',
+                                getSubmenuItems: function () {
+                                    return [
+                                        { type: 'menuitem', text: 'Rectangle', onAction: function () { insertShapeIntoEditor(editor, 'rect'); } },
+                                        { type: 'menuitem', text: 'Rounded Rectangle', onAction: function () { insertShapeIntoEditor(editor, 'rounded-rect'); } }
+                                    ];
+                                }
+                            },
+                            {
+                                type: 'nestedmenuitem',
+                                text: 'Basic Shapes',
+                                getSubmenuItems: function () {
+                                    return [
+                                        { type: 'menuitem', text: 'Oval / Circle', onAction: function () { insertShapeIntoEditor(editor, 'oval'); } },
+                                        { type: 'menuitem', text: 'Isosceles Triangle', onAction: function () { insertShapeIntoEditor(editor, 'triangle'); } },
+                                        { type: 'menuitem', text: 'Right Triangle', onAction: function () { insertShapeIntoEditor(editor, 'right-triangle'); } },
+                                        { type: 'menuitem', text: 'Parallelogram', onAction: function () { insertShapeIntoEditor(editor, 'parallelogram'); } },
+                                        { type: 'menuitem', text: 'Trapezoid', onAction: function () { insertShapeIntoEditor(editor, 'trapezoid'); } },
+                                        { type: 'menuitem', text: 'Diamond', onAction: function () { insertShapeIntoEditor(editor, 'diamond'); } },
+                                        { type: 'menuitem', text: 'Pentagon', onAction: function () { insertShapeIntoEditor(editor, 'pentagon'); } },
+                                        { type: 'menuitem', text: 'Hexagon', onAction: function () { insertShapeIntoEditor(editor, 'hexagon'); } },
+                                        { type: 'menuitem', text: 'Octagon', onAction: function () { insertShapeIntoEditor(editor, 'octagon'); } },
+                                        { type: 'menuitem', text: 'L-Shape', onAction: function () { insertShapeIntoEditor(editor, 'l-shape'); } },
+                                        { type: 'menuitem', text: 'Cross', onAction: function () { insertShapeIntoEditor(editor, 'cross'); } },
+                                        { type: 'menuitem', text: 'Cylinder / Database', onAction: function () { insertShapeIntoEditor(editor, 'database'); } },
+                                        { type: 'menuitem', text: 'Cube', onAction: function () { insertShapeIntoEditor(editor, 'cube'); } },
+                                        { type: 'menuitem', text: 'Document', onAction: function () { insertShapeIntoEditor(editor, 'document'); } },
+                                        { type: 'menuitem', text: 'Smiley', onAction: function () { insertShapeIntoEditor(editor, 'smiley'); } },
+                                        { type: 'menuitem', text: 'Heart', onAction: function () { insertShapeIntoEditor(editor, 'heart'); } },
+                                        { type: 'menuitem', text: 'Lightning', onAction: function () { insertShapeIntoEditor(editor, 'lightning'); } },
+                                        { type: 'menuitem', text: 'Sun', onAction: function () { insertShapeIntoEditor(editor, 'sun'); } },
+                                        { type: 'menuitem', text: 'Moon', onAction: function () { insertShapeIntoEditor(editor, 'moon'); } },
+                                        { type: 'menuitem', text: 'Cloud', onAction: function () { insertShapeIntoEditor(editor, 'cloud'); } }
+                                    ];
+                                }
+                            },
+                            {
+                                type: 'nestedmenuitem',
+                                text: 'Block Arrows',
+                                getSubmenuItems: function () {
+                                    return [
+                                        { type: 'menuitem', text: 'Right Arrow', onAction: function () { insertShapeIntoEditor(editor, 'arrow-right'); } },
+                                        { type: 'menuitem', text: 'Left Arrow', onAction: function () { insertShapeIntoEditor(editor, 'arrow-left'); } },
+                                        { type: 'menuitem', text: 'Up Arrow', onAction: function () { insertShapeIntoEditor(editor, 'arrow-up'); } },
+                                        { type: 'menuitem', text: 'Down Arrow', onAction: function () { insertShapeIntoEditor(editor, 'arrow-down'); } },
+                                        { type: 'menuitem', text: 'Left-Right Arrow', onAction: function () { insertShapeIntoEditor(editor, 'arrow-left-right'); } },
+                                        { type: 'menuitem', text: 'Up-Down Arrow', onAction: function () { insertShapeIntoEditor(editor, 'arrow-up-down'); } },
+                                        { type: 'menuitem', text: '4-Way Arrow', onAction: function () { insertShapeIntoEditor(editor, 'arrow-quad'); } }
+                                    ];
+                                }
+                            },
+                            {
+                                type: 'nestedmenuitem',
+                                text: 'Equation Shapes',
+                                getSubmenuItems: function () {
+                                    return [
+                                        { type: 'menuitem', text: 'Plus Sign', onAction: function () { insertShapeIntoEditor(editor, 'equation-plus'); } },
+                                        { type: 'menuitem', text: 'Minus Sign', onAction: function () { insertShapeIntoEditor(editor, 'equation-minus'); } },
+                                        { type: 'menuitem', text: 'Multiply Sign', onAction: function () { insertShapeIntoEditor(editor, 'equation-multiply'); } },
+                                        { type: 'menuitem', text: 'Divide Sign', onAction: function () { insertShapeIntoEditor(editor, 'equation-divide'); } },
+                                        { type: 'menuitem', text: 'Equal Sign', onAction: function () { insertShapeIntoEditor(editor, 'equation-equal'); } },
+                                        { type: 'menuitem', text: 'Not Equal Sign', onAction: function () { insertShapeIntoEditor(editor, 'equation-notequal'); } }
+                                    ];
+                                }
+                            },
+                            {
+                                type: 'nestedmenuitem',
+                                text: 'Stars & Banners',
+                                getSubmenuItems: function () {
+                                    return [
+                                        { type: 'menuitem', text: '4-Point Star', onAction: function () { insertShapeIntoEditor(editor, 'star-4'); } },
+                                        { type: 'menuitem', text: '5-Point Star', onAction: function () { insertShapeIntoEditor(editor, 'star-5'); } },
+                                        { type: 'menuitem', text: '6-Point Star', onAction: function () { insertShapeIntoEditor(editor, 'star-6'); } }
+                                    ];
+                                }
+                            }
                         ];
                         callback(items);
                     }
@@ -800,9 +899,10 @@ window.canvasStates = window.canvasStates || {};
         const fillUrl = hasFill ? `url(#${gradId})` : 'transparent';
         const filterAttr = `filter="url(#${shadowId})"`;
 
-        if (type === 'rect') {
+        if (type === 'rect' || type === 'rounded-rect') {
+            const rx = type === 'rounded-rect' ? 16 : 8;
             svgContent = `
-                <rect x="${thickness/2}" y="${thickness/2}" width="${width - thickness}" height="${height - thickness}" rx="8" ry="8" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
+                <rect x="${thickness/2}" y="${thickness/2}" width="${width - thickness}" height="${height - thickness}" rx="${rx}" ry="${rx}" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
                 <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
             `;
         } else if (type === 'capsule') {
@@ -824,6 +924,11 @@ window.canvasStates = window.canvasStates || {};
             svgContent = `
                 <polygon points="${width/2},${thickness/2} ${width - thickness/2},${height - thickness/2} ${thickness/2},${height - thickness/2}" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
                 <text x="50%" y="${height * 0.62}" dominant-baseline="middle" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
+            `;
+        } else if (type === 'right-triangle') {
+            svgContent = `
+                <polygon points="${thickness/2},${thickness/2} ${thickness/2},${height - thickness/2} ${width - thickness/2},${height - thickness/2}" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
+                <text x="${width * 0.35}" y="${height * 0.65}" dominant-baseline="middle" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
             `;
         } else if (type === 'diamond') {
             svgContent = `
@@ -876,10 +981,69 @@ window.canvasStates = window.canvasStates || {};
                 <polygon points="${width * 0.25},${thickness/2} ${width * 0.75},${thickness/2} ${width - thickness/2},${height/2} ${width * 0.75},${height - thickness/2} ${width * 0.25},${height - thickness/2} ${thickness/2},${height/2}" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
                 <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
             `;
+        } else if (type === 'octagon') {
+            svgContent = `
+                <polygon points="${width*0.29},${thickness/2} ${width*0.71},${thickness/2} ${width - thickness/2},${height*0.29} ${width - thickness/2},${height*0.71} ${width*0.71},${height - thickness/2} ${width*0.29},${height - thickness/2} ${thickness/2},${height*0.71} ${thickness/2},${height*0.29}" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
+                <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
+            `;
+        } else if (type === 'l-shape') {
+            svgContent = `
+                <polygon points="${thickness/2},${thickness/2} ${width*0.35},${thickness/2} ${width*0.35},${height*0.65} ${width - thickness/2},${height*0.65} ${width - thickness/2},${height - thickness/2} ${thickness/2},${height - thickness/2}" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
+                <text x="${width * 0.25}" y="${height * 0.5}" dominant-baseline="middle" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
+            `;
+        } else if (type === 'cross') {
+            svgContent = `
+                <polygon points="${width*0.35},${thickness/2} ${width*0.65},${thickness/2} ${width*0.65},${height*0.35} ${width - thickness/2},${height*0.35} ${width - thickness/2},${height*0.65} ${width*0.65},${height*0.65} ${width*0.65},${height - thickness/2} ${width*0.35},${height - thickness/2} ${width*0.35},${height*0.65} ${thickness/2},${height*0.65} ${thickness/2},${height*0.35} ${width*0.35},${height*0.35}" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
+                <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
+            `;
+        } else if (type === 'cube') {
+            svgContent = `
+                <path d="M ${width*0.5} ${thickness/2} L ${width-thickness/2} ${height*0.25} L ${width-thickness/2} ${height*0.75} L ${width*0.5} ${height-thickness/2} L ${thickness/2} ${height*0.75} L ${thickness/2} ${height*0.25} Z M ${width*0.5} ${thickness/2} L ${width*0.5} ${height*0.5} M ${width*0.5} ${height*0.5} L ${width-thickness/2} ${height*0.25} M ${width*0.5} ${height*0.5} L ${thickness/2} ${height*0.25} M ${width*0.5} ${height*0.5} L ${width*0.5} ${height-thickness/2}" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
+                <text x="50%" y="65%" dominant-baseline="middle" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
+            `;
+        } else if (type === 'smiley') {
+            svgContent = `
+                <ellipse cx="${width/2}" cy="${height/2}" rx="${width/2 - thickness/2}" ry="${height/2 - thickness/2}" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
+                <circle cx="${width*0.35}" cy="${height*0.35}" r="${Math.min(width, height)*0.05}" fill="${border}" />
+                <circle cx="${width*0.65}" cy="${height*0.35}" r="${Math.min(width, height)*0.05}" fill="${border}" />
+                <path d="M ${width*0.3} ${height*0.6} Q ${width/2} ${height*0.85} ${width*0.7} ${height*0.6}" fill="none" stroke="${border}" stroke-width="${thickness}" stroke-linecap="round" />
+                <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
+            `;
+        } else if (type === 'heart') {
+            svgContent = `
+                <path d="M ${width*0.5} ${height*0.15} C ${width*0.35} ${-height*0.05}, ${thickness/2} ${-height*0.05}, ${thickness/2} ${height*0.35} C ${thickness/2} ${height*0.65}, ${width*0.3} ${height*0.85}, ${width*0.5} ${height-thickness/2} C ${width*0.7} ${height*0.85}, ${width-thickness/2} ${height*0.65}, ${width-thickness/2} ${height*0.35} C ${width-thickness/2} ${-height*0.05}, ${width*0.65} ${-height*0.05}, ${width*0.5} ${height*0.15} Z" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
+                <text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
+            `;
+        } else if (type === 'lightning') {
+            svgContent = `
+                <polygon points="${width*0.6},${thickness/2} ${width*0.2},${height*0.55} ${width*0.5},${height*0.55} ${width*0.35},${height-thickness/2} ${width*0.8},${height*0.4} ${width*0.5},${height*0.4}" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
+                <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
+            `;
+        } else if (type === 'sun') {
+            svgContent = `
+                <circle cx="${width/2}" cy="${height/2}" r="${width*0.2}" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" ${filterAttr} />
+                <path d="M ${width*0.5} ${height*0.05} L ${width*0.5} ${height*0.18} M ${width*0.5} ${height*0.82} L ${width*0.5} ${height*0.95} M ${width*0.05} ${height*0.5} L ${width*0.18} ${height*0.5} M ${width*0.82} ${height*0.5} L ${width*0.95} ${height*0.5} M ${width*0.18} ${height*0.18} L ${width*0.28} ${height*0.28} M ${width*0.72} ${height*0.72} L ${width*0.82} ${height*0.82} M ${width*0.18} ${height*0.82} L ${width*0.28} ${height*0.72} M ${width*0.72} ${height*0.18} L ${width*0.82} ${height*0.28}" stroke="${border}" stroke-width="${thickness}" stroke-linecap="round" />
+                <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
+            `;
+        } else if (type === 'moon') {
+            svgContent = `
+                <path d="M ${width*0.5} ${height*0.1} A ${width*0.4} ${height*0.4} 0 1 0 ${width*0.9} ${height*0.5} A ${width*0.32} ${height*0.32} 0 1 1 ${width*0.5} ${height*0.1} Z" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
+                <text x="45%" y="55%" dominant-baseline="middle" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
+            `;
+        } else if (type === 'star-4') {
+            svgContent = `
+                <polygon points="${width*0.5},${thickness/2} ${width*0.62},${height*0.38} ${width-thickness/2},${height*0.5} ${width*0.62},${height*0.62} ${width*0.5},${height-thickness/2} ${width*0.38},${height*0.62} ${thickness/2},${height*0.5} ${width*0.38},${height*0.38}" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
+                <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
+            `;
         } else if (type === 'star') {
             svgContent = `
                 <polygon points="${width*0.5},0 ${width*0.62},${height*0.35} ${width*0.98},${height*0.35} ${width*0.69},${height*0.57} ${width*0.80},${height*0.91} ${width*0.5},${height*0.72} ${width*0.20},${height*0.91} ${width*0.31},${height*0.57} ${width*0.02},${height*0.35} ${width*0.38},${height*0.35}" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
                 <text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
+            `;
+        } else if (type === 'star-6') {
+            svgContent = `
+                <polygon points="${width*0.5},${thickness/2} ${width*0.65},${height*0.25} ${width*0.95},${height*0.25} ${width*0.8} ${height*0.5} ${width*0.95},${height*0.75} ${width*0.65},${height*0.75} ${width*0.5},${height-thickness/2} ${width*0.35},${height*0.75} ${width*0.05},${height*0.75} ${width*0.2} ${height*0.5} ${width*0.05},${height*0.25} ${width*0.35},${height*0.25}" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
+                <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
             `;
         } else if (type === 'arrow-right' || type === 'arrow') {
             svgContent = `
@@ -911,6 +1075,22 @@ window.canvasStates = window.canvasStates || {};
                 <polygon points="${width/2},${thickness/2} ${width-thickness/2},${height*0.25} ${width*0.75},${height*0.25} ${width*0.75},${height*0.75} ${width-thickness/2},${height*0.75} ${width/2},${height-thickness/2} ${thickness/2},${height*0.75} ${width*0.25},${height*0.75} ${width*0.25},${height*0.25} ${thickness/2},${height*0.25}" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
                 <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
             `;
+        } else if (type === 'arrow-quad') {
+            svgContent = `
+                <polygon points="${width*0.35},${height*0.35} ${width*0.35},${height*0.15} ${width*0.2},${height*0.15} ${width*0.5},${thickness/2} ${width*0.8},${height*0.15} ${width*0.65},${height*0.15} ${width*0.65},${height*0.35} ${width*0.8},${height*0.35} ${width*0.8},${height*0.2} ${width-thickness/2} ${height*0.5} ${width*0.8},${height*0.8} ${width*0.8},${height*0.65} ${width*0.65},${height*0.65} ${width*0.65},${height*0.85} ${width*0.8},${height*0.85} ${width*0.5},${height-thickness/2} ${width*0.2},${height*0.85} ${width*0.35},${height*0.85} ${width*0.35},${height*0.65} ${width*0.15},${height*0.65} ${width*0.15},${height*0.8} ${thickness/2} ${height*0.5} ${width*0.15},${height*0.2} ${width*0.15},${height*0.35} Z" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
+                <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
+            `;
+        } else if (type === 'elbow-connector') {
+            svgContent = `
+                <path d="M 10 ${height*0.2} L ${width*0.5} ${height*0.2} L ${width*0.5} ${height - 10}" fill="none" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
+                <text x="${width * 0.5}" y="${height * 0.2 - 10}" dominant-baseline="auto" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
+            `;
+        } else if (type === 'elbow-arrow') {
+            svgContent = `
+                <path d="M 10 ${height*0.2} L ${width*0.5} ${height*0.2} L ${width*0.5} ${height - 10}" fill="none" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
+                <path d="M ${width*0.5 - 6} ${height - 16} L ${width*0.5} ${height - 10} L ${width*0.5 + 6} ${height - 16}" fill="${border}" stroke="${border}" stroke-width="1" />
+                <text x="${width * 0.5}" y="${height * 0.2 - 10}" dominant-baseline="auto" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
+            `;
         } else if (type === 'plus') {
             svgContent = `
                 <path d="M ${width*0.38} ${thickness/2} L ${width*0.62} ${thickness/2} L ${width*0.62} ${height*0.35} L ${width-thickness/2} ${height*0.35} L ${width-thickness/2} ${height*0.65} L ${width*0.62} ${height*0.65} L ${width*0.62} ${height-thickness/2} L ${width*0.38} ${height-thickness/2} L ${width*0.38} ${height*0.65} L ${thickness/2} ${height*0.65} L ${thickness/2} ${height*0.35} L ${width*0.38} ${height*0.35} Z" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
@@ -931,6 +1111,16 @@ window.canvasStates = window.canvasStates || {};
                 <rect x="${thickness/2}" y="${height*0.4}" width="${width - thickness}" height="${height*0.2}" rx="3" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
                 <circle cx="${width/2}" cy="${height*0.2}" r="${height*0.08}" fill="${border}" />
                 <circle cx="${width/2}" cy="${height*0.8}" r="${height*0.08}" fill="${border}" />
+                <text x="25%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
+            `;
+        } else if (type === 'equation-equal') {
+            svgContent = `
+                <path d="M ${thickness/2} ${height*0.25} L ${width-thickness/2} ${height*0.25} L ${width-thickness/2} ${height*0.4} L ${thickness/2} ${height*0.4} Z M ${thickness/2} ${height*0.6} L ${width-thickness/2} ${height*0.6} L ${width-thickness/2} ${height*0.75} L ${thickness/2} ${height*0.75} Z" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
+                <text x="25%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
+            `;
+        } else if (type === 'equation-notequal') {
+            svgContent = `
+                <path d="M ${thickness/2} ${height*0.25} L ${width-thickness/2} ${height*0.25} L ${width-thickness/2} ${height*0.4} L ${thickness/2} ${height*0.4} Z M ${thickness/2} ${height*0.6} L ${width-thickness/2} ${height*0.6} L ${width-thickness/2} ${height*0.75} L ${thickness/2} ${height*0.75} Z M ${width*0.2} ${height*0.9} L ${width*0.8} ${height*0.1} L ${width*0.9} ${height*0.2} L ${width*0.3} ${height*0.95} Z" fill="${fillUrl}" stroke="${border}" stroke-width="${thickness}" stroke-dasharray="${dashArray}" ${filterAttr} />
                 <text x="25%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="${textSize}" fill="${textColor}" font-family="'Inter', sans-serif" font-weight="600">${text}</text>
             `;
         } else if (type === 'line') {
