@@ -411,13 +411,113 @@
             0% { opacity: 0; transform: translateY(-15px); }
             100% { opacity: 1; transform: translateY(0); }
         }
+
+        /* Custom Exam Status Box and smooth transition styling */
+        .exam-status-box {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 0.95rem;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 4px solid #cbd5e1;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        .exam-status-box.waiting {
+            background: #f8fafc;
+            border-left-color: #f59e0b;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .exam-status-box.ready {
+            background: var(--success-light);
+            border-left-color: var(--success);
+            color: #065f46;
+            font-weight: 700;
+        }
+
+        /* Custom transitioning status icon */
+        .status-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            flex-shrink: 0;
+        }
+        .status-icon.waiting {
+            border: 2px solid #cbd5e1;
+            border-top-color: #f59e0b;
+            animation: spin 1s linear infinite;
+        }
+        .status-icon.ready {
+            background-color: var(--success);
+            border: 2px solid var(--success);
+            transform: scale(1.1);
+        }
+        .status-icon::after {
+            content: '✓';
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 800;
+            display: inline-block;
+            line-height: 1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .status-icon.ready::after {
+            opacity: 1;
+        }
+
+        /* Dynamic premium toast notification */
+        .custom-toast {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 10000;
+            background: #ffffff;
+            border-left: 5px solid var(--success);
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+            border-radius: 12px;
+            padding: 1.25rem 1.75rem;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: #065f46;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            animation: toastSlideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            border-top: 1px solid rgba(16, 185, 129, 0.1);
+            border-right: 1px solid rgba(16, 185, 129, 0.1);
+            border-bottom: 1px solid rgba(16, 185, 129, 0.1);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes toastSlideIn {
+            0% { transform: translateX(120%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes toastSlideOut {
+            0% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(120%); opacity: 0; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container d-flex flex-column align-items-center gap-4">
     <!-- Error Alert -->
-    <div th:if="${error != null}" class="error-alert alert alert-dismissible fade show" role="alert">
+    <div th:if="${error != null && !error.contains('terminated')}" class="error-alert alert alert-dismissible fade show" role="alert">
         <i class="bi bi-exclamation-triangle-fill fs-5 text-danger"></i>
         <div class="flex-grow-1">
             <strong>Hold On!</strong> <span th:text="${error}"></span>
@@ -518,9 +618,9 @@
 
             <!-- Start Button -->
             <div class="start-btn-container">
-                <div id="waitingMessage" class="waiting-alert shadow-sm" style="display: flex;">
-                    <div id="waitingSpinner" class="spinner-border spinner-border-sm text-warning" role="status"></div>
-                    <span id="statusMessageText">Waiting for admin to upload/start the exam</span>
+                <div id="waitingMessage" class="exam-status-box waiting shadow-sm" style="display: flex;">
+                    <span id="statusIcon" class="status-icon waiting"></span>
+                    <span id="statusMessageText">Waiting for admin to upload the exam paper...</span>
                 </div>
                 <a th:href="${exam != null && exam.id != 0 ? '/student/exam/start/' + exam.id : '/student/rules/start'}" id="startExamBtn" class="btn btn-start-premium disabled" style="pointer-events: none;">
                     START EXAM <i class="bi bi-play-circle-fill"></i>
@@ -582,8 +682,7 @@
     }
 
     function checkConditions() {
-        const isExamTypeSelected = document.querySelector('input[name="examType"]:checked') !== null;
-        if (termsCheckbox.checked && isExamTypeSelected && isExamActive) {
+        if (isExamActive) {
             startExamBtn.classList.remove('disabled');
             startExamBtn.style.pointerEvents = 'auto';
         } else {
@@ -592,17 +691,68 @@
         }
     }
 
+    function showToastNotification(message) {
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = 'custom-toast';
+        toast.innerHTML = `
+            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+            <span>${message}</span>
+        `;
+        document.body.appendChild(toast);
+        
+        // Auto-remove toast after 3 seconds
+        setTimeout(() => {
+            toast.style.animation = 'toastSlideOut 0.3s ease forwards';
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 3000);
+    }
+
+    // Intercept click on Start Button to show toast first
+    startExamBtn.addEventListener('click', function(e) {
+        if (startExamBtn.classList.contains('disabled')) {
+            e.preventDefault();
+            return;
+        }
+        
+        e.preventDefault(); // Prevent immediate navigation
+        
+        showToastNotification("Now you can start the exam");
+        
+        setTimeout(() => {
+            window.location.href = startExamBtn.getAttribute('href');
+        }, 1500);
+    });
+
     async function checkExamStatus() {
-        // If fallback rules page with ID 0, skip check and auto-allow
+        const waitingMsg = document.getElementById('waitingMessage');
+        const statusIcon = document.getElementById('statusIcon');
+        const statusText = document.getElementById('statusMessageText');
+
+        // If fallback rules page with ID 0, poll /student/rules to check for new exam/paper
         if (paperId === "0") {
-            isExamActive = true;
-            const waitingMsg = document.getElementById('waitingMessage');
+            isExamActive = false;
             if (waitingMsg) {
-                waitingMsg.className = "active-alert shadow-sm";
-                waitingMsg.style.display = "flex";
-                waitingMsg.innerHTML = '<i class="bi bi-check-circle-fill text-success fs-5"></i> <span>Exam is now available</span>';
+                waitingMsg.className = "exam-status-box waiting shadow-sm";
+            }
+            if (statusIcon) {
+                statusIcon.className = "status-icon waiting";
+            }
+            if (statusText) {
+                statusText.textContent = "Waiting for admin to upload the exam paper...";
             }
             checkConditions();
+
+            try {
+                const response = await fetch('/student/rules');
+                if (response.ok && response.redirected) {
+                    window.location.href = response.url;
+                }
+            } catch (err) {
+                console.error("Error polling fallback rules status:", err);
+            }
             return;
         }
 
@@ -610,15 +760,26 @@
             const response = await fetch(`/api/exam/${paperId}/status?type=${examTypeCheck}`);
             if (response.ok) {
                 const data = await response.json();
-                const waitingMsg = document.getElementById('waitingMessage');
-                if (data.status === "ACTIVE" || data.status === "PUBLISHED") {
+                if (data.status === "ACTIVE") {
                     isExamActive = true;
                     
-                    // Show "Exam is now available" in green active-alert style
                     if (waitingMsg) {
-                        waitingMsg.className = "active-alert shadow-sm";
-                        waitingMsg.style.display = "flex";
-                        waitingMsg.innerHTML = '<i class="bi bi-check-circle-fill text-success fs-5"></i> <span>Exam is now available</span>';
+                        waitingMsg.className = "exam-status-box ready shadow-sm";
+                    }
+                    if (statusIcon) {
+                        statusIcon.className = "status-icon ready";
+                    }
+                    if (statusText) {
+                        statusText.textContent = "Exam is now available";
+                    }
+                    
+                    // Auto-select Online mode and check terms agreement for visual completeness
+                    const onlineRadio = document.getElementById('typeOnline');
+                    if (onlineRadio) {
+                        onlineRadio.checked = true;
+                    }
+                    if (termsCheckbox) {
+                        termsCheckbox.checked = true;
                     }
                     
                     checkConditions();
@@ -637,11 +798,14 @@
                 } else {
                     isExamActive = false;
                     
-                    // Show "Waiting for admin..." in warning-alert style
                     if (waitingMsg) {
-                        waitingMsg.className = "waiting-alert shadow-sm";
-                        waitingMsg.style.display = "flex";
-                        waitingMsg.innerHTML = '<div class="spinner-border spinner-border-sm text-warning" role="status"></div> <span>Waiting for admin to upload/start the exam</span>';
+                        waitingMsg.className = "exam-status-box waiting shadow-sm";
+                    }
+                    if (statusIcon) {
+                        statusIcon.className = "status-icon waiting";
+                    }
+                    if (statusText) {
+                        statusText.textContent = "Waiting for admin to upload the exam paper...";
                     }
                     
                     checkConditions();
