@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar & Scheduler - Admin Dashboard</title>
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FullCalendar v6 -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <style>
+        /* Custom calendar styling matching SaaS theme */
+        .calendar-card {
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .filter-section {
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.25rem;
+        }
+
+        /* Color legend badges */
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        .bg-legend-exam { background-color: #1a73e8; }
+        .bg-legend-shared { background-color: #8b5cf6; }
+        .bg-legend-completed { background-color: #10b981; }
+        .bg-legend-urgent { background-color: #ef4444; }
+        .bg-legend-pending { background-color: #f97316; }
+
+        /* FullCalendar Customization to replicate Google Calendar Web UI */
+        body.dark-theme {
+            --fc-border-color: #2f3032;
+            --fc-bg-color: #131314;
+            --fc-today-bg: rgba(138, 180, 248, 0.05);
+            --fc-page-bg-color: #131314;
+        }
+        body:not(.dark-theme) {
+            --fc-border-color: #dadce0;
+            --fc-bg-color: #ffffff;
+            --fc-today-bg: rgba(26, 115, 232, 0.04);
+            --fc-page-bg-color: #ffffff;
+        }
+
+        .fc {
+            font-family: 'Outfit', 'Inter', sans-serif;
+            color: var(--text-primary);
+        }
+
+        .fc-theme-standard td, .fc-theme-standard th {
+            background-color: var(--fc-bg-color) !important;
+            border-color: var(--fc-border-color) !important;
+            transition: background-color 0.25s ease, border-color 0.25s ease;
+        }
+
+        .fc .fc-scrollgrid {
+            border: 1px solid var(--fc-border-color) !important;
+            border-radius: 12px !important;
+            overflow: hidden !important;
+        }
+
+        /* Day Headers (SUN, MON...) formatted to hold weekday & day number */
+        .fc .fc-col-header-cell-cushion {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            padding: 8px 0 !important;
+            text-decoration: none !important;
+            width: 100%;
+        }
+
+        .fc-header-weekday {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 2px;
+        }
+
+        .fc-header-dayno {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            width: 26px;
+            height: 26px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-top: 2px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .fc-header-dayno-today {
+            background-color: #1a73e8 !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+        }
+
+        /* Reset default FullCalendar day number wrapper styling */
+        .fc .fc-daygrid-day-number {
+            font-size: inherit;
+            font-weight: inherit;
+            color: inherit;
+            text-decoration: none;
+            padding: 0 !important;
+            width: auto !important;
+            height: auto !important;
+            display: block !important;
+            border-radius: 0 !important;
+            background-color: transparent !important;
+        }
+
+        /* Centering cell day number */
+        .fc .fc-daygrid-day-top {
+            display: flex !important;
+            justify-content: center !important;
+            padding-top: 6px !important;
+        }
+
+        /* Custom cell day number layout */
+        .fc-day-number-normal {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 12px;
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fc-day-number-today-badge {
+            background-color: #1a73e8 !important;
+            color: #ffffff !important;
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 12px;
+        }
+
+        /* Subtle today cell background tint */
+        .fc .fc-day-today {
+            background-color: var(--fc-today-bg) !important;
+        }
+
+        /* Timed Events (Dot events) styled like Google Calendar */
+        .fc-daygrid-dot-event {
+            background-color: transparent !important;
+            border: none !important;
+            color: var(--text-primary) !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 12px !important;
+            font-weight: 500 !important;
+            padding: 2px 6px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 4px !important;
+            margin: 1px 4px !important;
+            transition: background-color 0.2s !important;
+        }
+        .fc-daygrid-dot-event:hover {
+            background-color: rgba(255, 255, 255, 0.08) !important;
+        }
+        body:not(.dark-theme) .fc-daygrid-dot-event:hover {
+            background-color: rgba(0, 0, 0, 0.04) !important;
+        }
+        .fc-daygrid-event-dot {
+            border-width: 4px !important;
+            border-radius: 50% !important;
+            margin-right: 2px !important;
+        }
+        .fc-event-time {
+            font-weight: 600 !important;
+            text-transform: lowercase !important;
+            margin-right: 2px !important;
+        }
+        .fc-event-title {
+            font-weight: 400 !important;
+            color: var(--text-primary) !important;
+        }
+        body.dark-theme .fc-event-title {
+            color: #e3e3e3 !important;
+        }
+
+        /* Block Events (Full-Day / Holidays) styled like Google Calendar */
+        .fc-daygrid-block-event {
+            border-radius: 4px !important;
+            padding: 3px 8px !important;
+            font-size: 12px !important;
+            font-weight: 500 !important;
+            margin: 2px 6px !important;
+            border: none !important;
+            box-shadow: none !important;
+            display: block !important;
+            text-align: left !important;
+        }
+        .fc-event-holiday .fc-event-title {
+            color: inherit !important;
+            font-weight: inherit !important;
+        }
+
+        /* Light Theme Holiday Pill */
+        body:not(.dark-theme) .fc-event-holiday {
+            background-color: #e6f4ea !important;
+            color: #137333 !important;
+            border: none !important;
+        }
+        body:not(.dark-theme) .fc-event-holiday * {
+            color: #137333 !important;
+        }
+
+        /* Dark Theme Holiday Pill */
+        body.dark-theme .fc-event-holiday {
+            background-color: #2d5337 !important;
+            color: #a7f3d0 !important;
+            border: none !important;
+        }
+        body.dark-theme .fc-event-holiday * {
+            color: #a7f3d0 !important;
+        }
+
+        /* Toolbar Customization */
+        .fc-toolbar {
+            margin-bottom: 1.5rem !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+        }
+        .fc .fc-toolbar-title {
+            font-size: 22px !important;
+            font-weight: 400 !important;
+            font-family: 'Outfit', sans-serif !important;
+            color: var(--text-primary) !important;
+            margin-left: 12px !important;
+        }
+        
+        /* View Selector Buttons Group Styling */
+        .fc .fc-button-group {
+            border: 1px solid var(--border-color) !important;
+            border-radius: 6px !important;
+            overflow: hidden !important;
+            box-shadow: none !important;
+        }
+        .fc .fc-button-group .fc-button {
+            border: none !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+            border-right: 1px solid var(--border-color) !important;
+            background-color: transparent !important;
+            color: var(--text-secondary) !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            padding: 6px 14px !important;
+            box-shadow: none !important;
+            text-transform: capitalize !important;
+            transition: background-color 0.2s;
+        }
+        .fc .fc-button-group .fc-button:last-child {
+            border-right: none !important;
+        }
+        .fc .fc-button-group .fc-button:hover {
+            background-color: var(--sidebar-hover) !important;
+        }
+        .fc .fc-button-group .fc-button-active {
+            background-color: var(--sidebar-hover) !important;
+            color: var(--primary) !important;
+            font-weight: 600 !important;
+        }
+        
+        /* Today Button */
+        .fc .fc-today-button {
+            background-color: transparent !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-primary) !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            border-radius: 6px !important;
+            padding: 6px 14px !important;
+            box-shadow: none !important;
+            text-transform: capitalize !important;
+            margin-right: 8px !important;
+            transition: background-color 0.2s;
+        }
+        .fc .fc-today-button:hover {
+            background-color: var(--sidebar-hover) !important;
+        }
+        .fc .fc-today-button:disabled {
+            opacity: 0.5 !important;
+            background-color: transparent !important;
+        }
+
+        /* Prev / Next circular buttons */
+        .fc .fc-prev-button, .fc .fc-next-button {
+            background-color: transparent !important;
+            border: none !important;
+            color: var(--text-primary) !important;
+            border-radius: 50% !important;
+            width: 36px !important;
+            height: 36px !important;
+            padding: 0 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin: 0 2px !important;
+            box-shadow: none !important;
+            transition: background-color 0.2s;
+        }
+        .fc .fc-prev-button:hover, .fc .fc-next-button:hover {
+            background-color: var(--sidebar-hover) !important;
+        }
+
+        body.dark-theme .modal-content {
+            background-color: #111827;
+            border-color: rgba(255,255,255,0.08);
+            color: #f9fafb;
+        }
+
+        body.dark-theme .modal-header, 
+        body.dark-theme .modal-footer {
+            border-color: rgba(255,255,255,0.08);
+        }
+
+        body.dark-theme .form-control, 
+        body.dark-theme .form-select {
+            background-color: #1f2937;
+            border-color: rgba(255,255,255,0.08);
+            color: #f9fafb;
+        }
+
+        body.dark-theme .form-control:focus, 
+        body.dark-theme .form-select:focus {
+            background-color: #1f2937;
+            border-color: var(--primary);
+            color: #f9fafb;
+        }
+
+        /* GOOGLE CALENDAR LAYOUT EXTENSIONS */
+        .gcal-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: var(--fc-bg-color);
+        }
+
+        .gcal-header {
+            height: 64px;
+            border-bottom: 1px solid var(--fc-border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            background-color: var(--fc-bg-color);
+            z-index: 10;
+        }
+
+        .gcal-body {
+            display: flex;
+            flex-grow: 1;
+            height: calc(100vh - 64px);
+            overflow: hidden;
+        }
+
+        .gcal-sidebar {
+            width: 270px;
+            border-right: 1px solid var(--fc-border-color);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            background-color: var(--fc-bg-color);
+            transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1), padding 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .gcal-sidebar.collapsed {
+            width: 0;
+            padding: 0 !important;
+            border-right: none;
+            margin-left: 0;
+        }
+
+        .gcal-main {
+            flex-grow: 1;
+            padding: 16px;
+            overflow: hidden;
+            background-color: var(--fc-bg-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* GCal Logo & Icons styling */
+        .gcal-logo-box {
+            background-color: #1a73e8;
+            color: #ffffff;
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            font-family: 'Outfit', sans-serif;
+            box-shadow: 0 2px 4px rgba(26,115,232,0.2);
+        }
+
+        .btn-gcal-icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+            outline: none;
+        }
+        .btn-gcal-icon-btn:hover {
+            background-color: var(--sidebar-hover);
+            color: var(--text-primary);
+        }
+
+        .btn-gcal-icon-btn-sm {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+            outline: none;
+        }
+        .btn-gcal-icon-btn-sm:hover {
+            background-color: var(--sidebar-hover);
+            color: var(--text-primary);
+        }
+
+        .btn-gcal-header-action {
+            background-color: transparent;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-primary) !important;
+            font-size: 13.5px !important;
+            font-weight: 500 !important;
+            border-radius: 4px !important;
+            padding: 6px 14px !important;
+            box-shadow: none !important;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+        .btn-gcal-header-action:hover {
+            background-color: var(--sidebar-hover);
+        }
+
+        /* GCal Search styling */
+        .gcal-search-container {
+            background-color: rgba(0, 0, 0, 0.04);
+            border-radius: 8px;
+            padding: 6px 12px;
+            width: 450px;
+            max-width: 100%;
+            margin-left: 20px;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            border: 1px solid transparent;
+        }
+        body.dark-theme .gcal-search-container {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .gcal-search-container:focus-within {
+            background-color: var(--card-bg) !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            border-color: var(--border-color);
+        }
+        .search-icon-gcal {
+            color: var(--text-muted);
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .gcal-search-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 14px;
+            width: 100%;
+        }
+
+        /* GCal Create Button styling */
+        .btn-gcal-create {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 24px 10px 16px !important;
+            border-radius: 24px !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            font-family: 'Outfit', 'Inter', sans-serif !important;
+            border: none !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24) !important;
+            transition: box-shadow 0.2s, background-color 0.2s !important;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        body:not(.dark-theme) .btn-gcal-create {
+            background-color: #ffffff !important;
+            color: #3c4043 !important;
+        }
+        body:not(.dark-theme) .btn-gcal-create:hover {
+            background-color: #f8fafc !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06) !important;
+        }
+        body.dark-theme .btn-gcal-create {
+            background-color: #303134 !important;
+            color: #e3e3e3 !important;
+        }
+        body.dark-theme .btn-gcal-create:hover {
+            background-color: #3c4043 !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.1) !important;
+        }
+
+        /* Colored Google Plus icon in Create button */
+        .gcal-plus-icon {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            position: relative;
+        }
+        .gcal-plus-icon::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 8px;
+            width: 4px;
+            height: 16px;
+            background: linear-gradient(to bottom, #4285f4 50%, #34a853 50%);
+            border-radius: 2px;
+        }
+        .gcal-plus-icon::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 2px;
+            width: 16px;
+            height: 4px;
+            background: linear-gradient(to right, #ea4335 50%, #fbbc05 50%);
+            border-radius: 2px;
+        }
+
+        /* GCal Profile Avatar */
+        .gcal-profile-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 13.5px;
+            user-select: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }
+
+        /* Mini Calendar styling */
+        .mini-calendar-container {
+            padding: 0 4px;
+        }
+        .btn-icon-mini {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            outline: none;
+        }
+        .btn-icon-mini:hover {
+            background-color: var(--sidebar-hover);
+            color: var(--text-primary);
+        }
+        .mini-calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            row-gap: 2px;
+            column-gap: 2px;
+            text-align: center;
+        }
+        .mini-grid-header {
+            font-size: 10.5px;
+            font-weight: 600;
+            color: var(--text-muted);
+            padding: 4px 0;
+        }
+        .mini-grid-days {
+            display: contents;
+        }
+        .mini-day-cell {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.15s, color 0.15s;
+        }
+        .mini-day-cell:hover {
+            background-color: var(--sidebar-hover);
+        }
+        .mini-day-cell.other-month {
+            color: var(--text-muted);
+            opacity: 0.4;
+        }
+        .mini-day-cell.selected {
+            background-color: #1a73e8 !important;
+            color: #ffffff !important;
+            font-weight: 700;
+        }
+        .mini-day-cell.today {
+            border: 1px solid #1a73e8;
+            color: #1a73e8;
+            font-weight: 700;
+        }
+        .mini-day-cell.today.selected {
+            background-color: #1a73e8 !important;
+            color: #ffffff !important;
+        }
+
+        /* GCal Checkbox styling */
+        .gcal-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13.5px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 5px 0;
+            user-select: none;
+        }
+        .gcal-checkbox-label:hover {
+            color: var(--text-primary);
+        }
+        .gcal-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--text-muted);
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: background-color 0.15s, border-color 0.15s;
+        }
+        .gcal-checkbox:checked {
+            border-color: transparent;
+        }
+        .gcal-checkbox::after {
+            content: "\F26E"; /* Bootstrap check icon code */
+            font-family: "bootstrap-icons";
+            font-size: 10px;
+            color: #ffffff;
+            display: none;
+            font-weight: 900;
+        }
+        .gcal-checkbox:checked::after {
+            display: block;
+        }
+
+        .gcal-checkbox-user { border-color: #1a73e8; }
+        .gcal-checkbox-user:checked { background-color: #1a73e8; }
+
+        .gcal-checkbox-exams { border-color: #8b5cf6; }
+        .gcal-checkbox-exams:checked { background-color: #8b5cf6; }
+
+        .gcal-checkbox-tasks { border-color: #f97316; }
+        .gcal-checkbox-tasks:checked { background-color: #f97316; }
+
+        .gcal-checkbox-holidays { border-color: #137333; }
+        .gcal-checkbox-holidays:checked { background-color: #137333; }
+
+        .gcal-checkbox-text {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* Dynamic Theme Input & Placeholder overrides */
+        .gcal-sidebar input::placeholder {
+            color: var(--text-muted) !important;
+        }
+        .gcal-sidebar input {
+            color: var(--text-primary) !important;
+        }
+        #quick-date-jump {
+            color: var(--text-primary) !important;
+            font-weight: 500 !important;
+        }
+
+        /* Event text colors */
+        .fc-event-time {
+            color: var(--text-primary) !important;
+        }
+        body.dark-theme .fc-event-time {
+            color: #cbd5e1 !important;
+        }
+        body.dark-theme .fc-event-title {
+            color: #cbd5e1 !important;
+        }
+
+        /* FullCalendar Popover Custom Theme Overrides */
+        .fc-popover {
+            border-radius: 8px !important;
+            overflow: hidden !important;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06) !important;
+            border: 1px solid var(--border-color) !important;
+        }
+        .fc-popover-header {
+            background-color: #f8fafc !important;
+            font-weight: 600 !important;
+            padding: 6px 10px !important;
+            color: var(--text-primary) !important;
+            border-bottom: 1px solid var(--border-color) !important;
+        }
+        .fc-popover-body {
+            background-color: var(--fc-bg-color) !important;
+            color: var(--text-primary) !important;
+        }
+        body.dark-theme .fc-popover-header {
+            background-color: #1f2937 !important;
+            color: var(--text-primary) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        }
+        body.dark-theme .fc-popover-body {
+            background-color: #111827 !important;
+            color: var(--text-primary) !important;
+        }
+        body.dark-theme .fc-popover {
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        /* FullCalendar Dark Theme Text Color Overrides */
+        body.dark-theme .fc {
+            color: var(--text-primary) !important;
+        }
+        body.dark-theme .fc-list-day-text,
+        body.dark-theme .fc-list-day-side-text {
+            color: var(--text-primary) !important;
+        }
+        body.dark-theme .fc-list-event-title,
+        body.dark-theme .fc-list-event-time {
+            color: var(--text-primary) !important;
+        }
+        body.dark-theme .fc-list-empty {
+            color: var(--text-muted) !important;
+        }
+        body.dark-theme .fc-timegrid-slot-label-cushion,
+        body.dark-theme .fc-timegrid-axis-cushion {
+            color: var(--text-secondary) !important;
+        }
+        body.dark-theme .fc-daygrid-more-link {
+            color: var(--primary) !important;
+            font-weight: 600 !important;
+        }
+        .fc-daygrid-more-link {
+            color: var(--primary) !important;
+            font-weight: 600 !important;
+            font-size: 11.5px !important;
+            padding: 2px 4px !important;
+            border-radius: 4px !important;
+            transition: background-color 0.2s;
+            text-decoration: none !important;
+        }
+        .fc-daygrid-more-link:hover {
+            background-color: var(--sidebar-hover) !important;
+            text-decoration: none !important;
+        }
+
+        /* Dropdown Menu Item overrides */
+        .dropdown-menu .dropdown-item {
+            color: var(--text-secondary) !important;
+            transition: background-color 0.15s, color 0.15s;
+        }
+        .dropdown-menu .dropdown-item:hover {
+            background-color: var(--sidebar-hover) !important;
+            color: var(--text-primary) !important;
+        }
+        body.dark-theme .dropdown-menu .dropdown-item {
+            color: #cbd5e1 !important;
+        }
+        body.dark-theme .dropdown-menu .dropdown-item:hover {
+            background-color: rgba(255, 255, 255, 0.08) !important;
+            color: #ffffff !important;
+        }
+    </style>
+</head>
+<body>
+
+<div class="d-flex">
+    <!-- Sidebar Fragment -->
+    <div th:replace="~{admin/fragments :: sidebar('calendar')}"></div>
+
+    <!-- Main Workspace -->
+    <main class="flex-grow-1 p-0" style="margin-left: var(--sidebar-width); height: 100vh; overflow: hidden;">
+        <div class="gcal-container d-flex flex-column h-100">
+            <!-- Google Calendar Styled Header -->
+            <header class="gcal-header">
+                <!-- Left: Logo & Nav -->
+                <div class="d-flex align-items-center">
+                    <button id="gcal-hamburger" class="btn-gcal-icon-btn me-2"><i class="bi bi-list fs-5"></i></button>
+                    <div class="d-flex align-items-center me-4">
+                        <span class="brand-name font-outfit" style="font-size: 19px; font-weight: 500; color: var(--text-primary);">Calendar</span>
+                    </div>
+                    
+                    <button id="gcal-today-btn" class="btn btn-gcal-header-action me-2">Today</button>
+                    <button id="gcal-prev-btn" class="btn-gcal-icon-btn-sm me-1"><i class="bi bi-chevron-left"></i></button>
+                    <button id="gcal-next-btn" class="btn-gcal-icon-btn-sm me-2"><i class="bi bi-chevron-right"></i></button>
+                    
+                    <span id="gcal-title" class="font-outfit fs-5 text-nowrap ms-2" style="color: var(--text-primary); font-weight: 400;">May 2026</span>
+                </div>
+
+                <!-- Center: Search -->
+                <div class="gcal-search-container d-none d-md-flex align-items-center">
+                    <i class="bi bi-search search-icon-gcal"></i>
+                    <input type="text" id="search-input" placeholder="Search tasks, exams..." class="gcal-search-input">
+                </div>
+
+                <!-- Right: Action Buttons -->
+                <div class="d-flex align-items-center gap-1">
+                    <!-- Quick Date Jump -->
+                    <div class="d-flex align-items-center gap-2 bg-transparent border-0 px-2" style="margin-right: 10px;">
+                        <label class="label-custom mb-0 text-nowrap" style="font-size: 9px;"><i class="bi bi-calendar-event"></i> Jump:</label>
+                        <input type="date" id="quick-date-jump" class="form-control form-control-sm border-0 bg-transparent text-secondary p-0" style="width: auto; outline: none; box-shadow: none; font-size: 12px; cursor: pointer;">
+                    </div>
+                    
+                    <button class="btn-gcal-icon-btn d-md-none"><i class="bi bi-search"></i></button>
+                    <button class="btn-gcal-icon-btn"><i class="bi bi-question-circle"></i></button>
+                    <a href="/admin/settings" class="btn-gcal-icon-btn text-decoration-none"><i class="bi bi-gear"></i></a>
+                    
+                    <!-- View Dropdown -->
+                    <div class="dropdown ms-1 me-2">
+                        <button class="btn btn-gcal-header-action dropdown-toggle" type="button" id="viewDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span id="current-view-label">Month</span>
+                        </button>
+                        <ul class="dropdown-menu border-0 shadow-lg dropdown-menu-end" aria-labelledby="viewDropdown" style="border-radius: 12px; background-color: var(--card-bg);">
+                            <li><a class="dropdown-item py-2" href="#" id="view-month">Month</a></li>
+                            <li><a class="dropdown-item py-2" href="#" id="view-week">Week</a></li>
+                            <li><a class="dropdown-item py-2" href="#" id="view-day">Day</a></li>
+                            <li><a class="dropdown-item py-2" href="#" id="view-list">Schedule</a></li>
+                        </ul>
+                    </div>
+
+                    <button class="btn-gcal-icon-btn ms-1"><i class="bi bi-calendar-check"></i></button>
+                    <button class="btn-gcal-icon-btn"><i class="bi bi-check2-circle"></i></button>
+                </div>
+            </header>
+
+            <!-- Google Calendar Styled Body -->
+            <div class="gcal-body d-flex flex-grow-1">
+                <!-- Google Calendar Left Sidebar -->
+                <aside class="gcal-sidebar">
+                    <!-- Create Button -->
+                    <div class="dropdown mb-4">
+                        <button class="btn btn-gcal-create dropdown-toggle" type="button" id="createDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="gcal-plus-icon"></span>
+                            Create
+                        </button>
+                        <ul class="dropdown-menu border-0 shadow-lg" aria-labelledby="createDropdown" style="border-radius: 12px; background-color: var(--card-bg);">
+                            <li><a class="dropdown-item py-2" href="#" id="menu-create-task"><i class="bi bi-check-square me-2 text-primary"></i> Create Task</a></li>
+                            <li><a class="dropdown-item py-2" href="#" id="menu-schedule-exam"><i class="bi bi-mortarboard me-2 text-primary"></i> Schedule Exam</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Mini Calendar Widget -->
+                    <div class="mini-calendar-container mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+                            <span id="mini-month-year" class="fw-bold font-outfit" style="font-size: 13.5px; color: var(--text-primary);">May 2026</span>
+                            <div class="d-flex gap-1">
+                                <button type="button" id="mini-prev-btn" class="btn-icon-mini"><i class="bi bi-chevron-left"></i></button>
+                                <button type="button" id="mini-next-btn" class="btn-icon-mini"><i class="bi bi-chevron-right"></i></button>
+                            </div>
+                        </div>
+                        <div class="mini-calendar-grid">
+                            <div class="mini-grid-header">S</div>
+                            <div class="mini-grid-header">M</div>
+                            <div class="mini-grid-header">T</div>
+                            <div class="mini-grid-header">W</div>
+                            <div class="mini-grid-header">T</div>
+                            <div class="mini-grid-header">F</div>
+                            <div class="mini-grid-header">S</div>
+                            <div id="mini-calendar-days" class="mini-grid-days"></div>
+                        </div>
+                    </div>
+
+                    <!-- Search People (Standard decoration to match UI) -->
+                    <div class="mb-4 px-1">
+                        <div class="input-group input-group-sm" style="border-bottom: 1px solid var(--border-color);">
+                            <span class="input-group-text bg-transparent border-0 text-muted p-0 pe-2"><i class="bi bi-people"></i></span>
+                            <input type="text" placeholder="Search for people" class="form-control border-0 bg-transparent p-0 text-secondary" style="font-size: 13px; box-shadow: none;">
+                        </div>
+                    </div>
+
+                    <!-- Checkbox Filters (My Calendars) -->
+                    <div class="mt-4 px-1">
+                        <h5 class="label-custom mb-3" style="font-size: 10px; letter-spacing: 0.8px;">My Calendars</h5>
+                        <div class="d-flex flex-column gap-2">
+                            <label class="gcal-checkbox-label">
+                                <input type="checkbox" id="gcal-filter-user-events" checked class="gcal-checkbox gcal-checkbox-user">
+                                <span class="gcal-checkbox-text" th:text="${adminName}">Neetyam Patel</span>
+                            </label>
+                            <label class="gcal-checkbox-label">
+                                <input type="checkbox" id="gcal-filter-exams" checked class="gcal-checkbox gcal-checkbox-exams">
+                                <span class="gcal-checkbox-text">Exams</span>
+                            </label>
+                            <label class="gcal-checkbox-label">
+                                <input type="checkbox" id="gcal-filter-tasks" checked class="gcal-checkbox gcal-checkbox-tasks">
+                                <span class="gcal-checkbox-text">Tasks</span>
+                            </label>
+                            <label class="gcal-checkbox-label">
+                                <input type="checkbox" id="gcal-filter-holidays" checked class="gcal-checkbox gcal-checkbox-holidays">
+                                <span class="gcal-checkbox-text">Holidays</span>
+                            </label>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Google Calendar Main Grid -->
+                <main class="gcal-main flex-grow-1">
+                    <div id="calendar" style="height: 100%;"></div>
+                </main>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Modal: Add Event / Schedule Exam -->
+<div class="modal fade" id="addEventModal" tabindex="-1" aria-labelledby="addEventModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header">
+                <h5 class="modal-title font-outfit fw-bold" id="addEventModalLabel">Create Scheduled Entry</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Toggle Entry Type -->
+                <div class="d-flex justify-content-center mb-4">
+                    <div class="btn-group w-100" role="group">
+                        <input type="radio" class="btn-check" name="entry-type" id="type-task" checked>
+                        <label class="btn btn-outline-primary py-2 font-outfit" for="type-task"><i class="bi bi-check-square"></i> Create Task</label>
+                        <input type="radio" class="btn-check" name="entry-type" id="type-exam">
+                        <label class="btn btn-outline-primary py-2 font-outfit" for="type-exam"><i class="bi bi-mortarboard"></i> Schedule Exam</label>
+                    </div>
+                </div>
+
+                <form id="event-form">
+                    <!-- Global/Implicit fields -->
+                    <input type="hidden" name="eventType" id="form-eventType" value="TASK">
+                    <input type="hidden" name="startDatetime" id="form-startDatetime">
+                    <input type="hidden" name="endDatetime" id="form-endDatetime">
+
+                    <!-- Date & Time Row (Populated dynamically) -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="label-custom">Date</label>
+                            <input type="date" name="date" id="form-date" class="form-control" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="label-custom">Start Time</label>
+                            <input type="time" name="startTime" id="form-startTime" class="form-control" value="09:00" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="label-custom">End Time</label>
+                            <input type="time" name="endTime" id="form-endTime" class="form-control" value="11:00" required>
+                        </div>
+                    </div>
+
+                    <!-- Task Specific Fields -->
+                    <div id="task-fields">
+                        <div class="mb-3">
+                            <label class="label-custom">Task Title</label>
+                            <input type="text" name="title" id="form-title" class="form-control" placeholder="e.g. Publish OOP Grades">
+                        </div>
+                        <div class="mb-3">
+                            <label class="label-custom">Description</label>
+                            <textarea name="description" id="form-description" class="form-control" rows="3" placeholder="Enter task guidelines..."></textarea>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label class="label-custom">Priority</label>
+                                <select name="priority" id="form-priority" class="form-select">
+                                    <option value="LOW">🟢 Low</option>
+                                    <option value="MEDIUM" selected>🟠 Medium</option>
+                                    <option value="HIGH">🔴 High</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="label-custom">Category</label>
+                                <select name="category" id="form-category" class="form-select">
+                                    <option value="Exam Preparation">Exam Preparation</option>
+                                    <option value="Paper Upload">Paper Upload</option>
+                                    <option value="Evaluation">Evaluation</option>
+                                    <option value="Result Processing">Result Processing</option>
+                                    <option value="Student Management">Student Management</option>
+                                    <option value="Meeting">Meeting</option>
+                                    <option value="Personal">Personal</option>
+                                    <option value="Other" selected>Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label class="label-custom">Assign To</label>
+                                <select name="assignedTo" id="form-assignedTo" class="form-select">
+                                    <option value="" th:text="${adminName}"></option>
+                                    <option th:each="adminName : ${allAdmins}" th:value="${adminName}" th:text="${adminName}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="label-custom">Visibility</label>
+                                <select name="visibility" id="form-visibility" class="form-select">
+                                    <option value="SHARED" selected>Shared (All Admins)</option>
+                                    <option value="PRIVATE">Private (Only Me)</option>
+                                    <option value="ASSIGNED">Assigned (Me & Assignee)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Exam Specific Fields -->
+                    <div id="exam-fields" class="d-none">
+                        <div class="mb-3">
+                            <label class="label-custom">Subject / Paper</label>
+                            <input type="text" id="exam-subject" class="form-control" placeholder="e.g. Data Structures">
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label class="label-custom">Semester</label>
+                                <input type="text" id="exam-semester" class="form-control" placeholder="Semester 3">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="label-custom">Division</label>
+                                <input type="text" id="exam-division" class="form-control" placeholder="Div A">
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label class="label-custom">Duration (Mins)</label>
+                                <input type="number" id="exam-duration" class="form-control" value="120">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="label-custom">Exam Type</label>
+                                <select id="exam-type" class="form-select">
+                                    <option value="Online">Online</option>
+                                    <option value="Offline">Offline</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="save-event-btn" class="btn btn-primary">Save Entry</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Event Details -->
+<div class="modal fade" id="eventDetailModal" tabindex="-1" aria-labelledby="eventDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header">
+                <h5 class="modal-title font-outfit fw-bold" id="detail-title">Event Title</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <span id="detail-type-badge" class="badge bg-primary">Type</span>
+                    <span id="detail-priority-badge" class="badge bg-danger">Priority</span>
+                    <span id="detail-status-badge" class="badge bg-secondary">Status</span>
+                </div>
+                
+                <p id="detail-description" class="text-secondary" style="white-space: pre-line;">No description provided.</p>
+
+                <hr class="my-3" style="border-color: var(--border-color);">
+
+                <div class="row text-meta g-2">
+                    <div class="col-6">
+                        <strong>Category:</strong> <span id="detail-category">Other</span>
+                    </div>
+                    <div class="col-6">
+                        <strong>Visibility:</strong> <span id="detail-visibility">Shared</span>
+                    </div>
+                    <div class="col-6">
+                        <strong>Created By:</strong> <span id="detail-created">Admin</span>
+                    </div>
+                    <div class="col-6">
+                        <strong>Assigned To:</strong> <span id="detail-assigned">Admin</span>
+                    </div>
+                    <div class="col-12 mt-2">
+                        <strong>Schedule:</strong> <i class="bi bi-clock"></i> <span id="detail-schedule">Date / Time</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <div>
+                    <!-- Actions visible depending on roles -->
+                    <button type="button" id="complete-task-btn" class="btn btn-success d-none"><i class="bi bi-check-circle"></i> Mark Completed</button>
+                </div>
+                <div>
+                    <button type="button" id="delete-event-btn" class="btn btn-outline-danger d-none"><i class="bi bi-trash"></i> Delete</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap 5 Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Calendar Engine script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const calendarEl = document.getElementById('calendar');
+        let selectedEventId = null;
+
+        // Initialize modals
+        const addEventModal = new bootstrap.Modal(document.getElementById('addEventModal'));
+        const eventDetailModal = new bootstrap.Modal(document.getElementById('eventDetailModal'));
+
+        // Left sidebar hamburger toggle
+        document.getElementById('gcal-hamburger').addEventListener('click', function() {
+            const sidebar = document.querySelector('.gcal-sidebar');
+            sidebar.classList.toggle('collapsed');
+            // Recalculate main calendar grid size after transition
+            setTimeout(() => {
+                calendar.updateSize();
+            }, 300);
+        });
+
+        // Mini Calendar State & rendering
+        let miniCurrentDate = new Date();
+        let selectedDate = new Date();
+
+        function renderMiniCalendar() {
+            const daysContainer = document.getElementById('mini-calendar-days');
+            const monthYearLabel = document.getElementById('mini-month-year');
+            
+            if (!daysContainer || !monthYearLabel) return;
+            
+            daysContainer.innerHTML = '';
+            
+            const year = miniCurrentDate.getFullYear();
+            const month = miniCurrentDate.getMonth();
+            
+            monthYearLabel.innerText = miniCurrentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+            
+            const firstDay = new Date(year, month, 1);
+            const startDayOfWeek = firstDay.getDay();
+            const totalDays = new Date(year, month + 1, 0).getDate();
+            const prevTotalDays = new Date(year, month, 0).getDate();
+            
+            // Previous month trailing days
+            for (let i = startDayOfWeek - 1; i >= 0; i--) {
+                const d = prevTotalDays - i;
+                const cell = document.createElement('div');
+                cell.className = 'mini-day-cell other-month';
+                cell.innerText = d;
+                
+                const cellDate = new Date(year, month - 1, d);
+                cell.addEventListener('click', () => selectMiniDate(cellDate));
+                daysContainer.appendChild(cell);
+            }
+            
+            // Current month days
+            const today = new Date();
+            for (let d = 1; d <= totalDays; d++) {
+                const cell = document.createElement('div');
+                cell.className = 'mini-day-cell';
+                cell.innerText = d;
+                
+                const cellDate = new Date(year, month, d);
+                
+                if (cellDate.getDate() === today.getDate() && 
+                    cellDate.getMonth() === today.getMonth() && 
+                    cellDate.getFullYear() === today.getFullYear()) {
+                    cell.classList.add('today');
+                }
+                
+                if (cellDate.getDate() === selectedDate.getDate() && 
+                    cellDate.getMonth() === selectedDate.getMonth() && 
+                    cellDate.getFullYear() === selectedDate.getFullYear()) {
+                    cell.classList.add('selected');
+                }
+                
+                cell.addEventListener('click', () => selectMiniDate(cellDate));
+                daysContainer.appendChild(cell);
+            }
+            
+            // Next month leading days (fill to 6 rows / 42 cells)
+            const currentCellsCount = startDayOfWeek + totalDays;
+            const remainingCells = 42 - currentCellsCount;
+            for (let d = 1; d <= remainingCells; d++) {
+                const cell = document.createElement('div');
+                cell.className = 'mini-day-cell other-month';
+                cell.innerText = d;
+                
+                const cellDate = new Date(year, month + 1, d);
+                cell.addEventListener('click', () => selectMiniDate(cellDate));
+                daysContainer.appendChild(cell);
+            }
+        }
+
+        function selectMiniDate(date) {
+            selectedDate = new Date(date);
+            miniCurrentDate = new Date(date);
+            renderMiniCalendar();
+            calendar.gotoDate(date);
+        }
+
+        document.getElementById('mini-prev-btn').addEventListener('click', () => {
+            miniCurrentDate.setMonth(miniCurrentDate.getMonth() - 1);
+            renderMiniCalendar();
+        });
+
+        document.getElementById('mini-next-btn').addEventListener('click', () => {
+            miniCurrentDate.setMonth(miniCurrentDate.getMonth() + 1);
+            renderMiniCalendar();
+        });
+
+        // Initialize main FullCalendar
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: false, // Hide default FullCalendar toolbar entirely
+            eventTimeFormat: {
+                hour: 'numeric',
+                minute: '2-digit',
+                meridiem: 'short',
+                omitZeroMinute: true
+            },
+            dayHeaderContent: function(arg) {
+                const weekday = arg.date.toLocaleString('default', { weekday: 'short' }).toUpperCase();
+                return {
+                    html: `<div class="fc-header-weekday">${weekday}</div>`
+                };
+            },
+            dayCellContent: function(arg) {
+                const day = arg.date.getDate();
+                let dayText = `${day}`;
+                if (day === 1) {
+                    const monthName = arg.date.toLocaleString('default', { month: 'short' });
+                    dayText = `${day} ${monthName}`;
+                }
+                
+                // Check if it's today
+                const today = new Date();
+                const isToday = arg.date.getDate() === today.getDate() &&
+                                arg.date.getMonth() === today.getMonth() &&
+                                arg.date.getFullYear() === today.getFullYear();
+                                
+                if (isToday) {
+                    return {
+                        html: `<div class="fc-day-number-today-badge">${dayText}</div>`
+                    };
+                }
+                
+                return {
+                    html: `<div class="fc-day-number-normal">${dayText}</div>`
+                };
+            },
+            navLinks: true,
+            editable: false,
+            dayMaxEvents: true,
+            events: function(info, successCallback, failureCallback) {
+                fetch('/admin/calendar/events')
+                    .then(response => response.json())
+                    .then(events => {
+                        const query = document.getElementById('search-input').value.toLowerCase();
+                        
+                        // Checkbox filters
+                        const showUserEvents = document.getElementById('gcal-filter-user-events').checked;
+                        const showExams = document.getElementById('gcal-filter-exams').checked;
+                        const showTasks = document.getElementById('gcal-filter-tasks').checked;
+                        const showHolidays = document.getElementById('gcal-filter-holidays').checked;
+
+                        let filtered = events.filter(e => {
+                            // Exclude birthdays from displaying
+                            const isBirthday = (e.title && e.title.toLowerCase().includes('birthday')) || 
+                                               (e.title && e.title.toLowerCase().includes('birth')) ||
+                                               (e.category && e.category.toLowerCase().includes('birthday')) ||
+                                               (e.category && e.category.toLowerCase().includes('birth'));
+                            if (isBirthday) return false;
+
+                            // Filter by Search Query
+                            const titleMatch = !query || e.title.toLowerCase().includes(query) || (e.description && e.description.toLowerCase().includes(query));
+                            if (!titleMatch) return false;
+
+                            // Filter by My Calendars Checkboxes
+                            if (e.eventType === 'HOLIDAY') {
+                                if (!showHolidays) return false;
+                            } else if (e.eventType === 'EXAM') {
+                                if (!showExams) return false;
+                            } else if (e.eventType === 'TASK') {
+                                if (!showTasks) return false;
+                                
+                                const currentAdmin = '[[${adminName}]]'.toLowerCase();
+                                const isUserEvent = (e.createdBy && e.createdBy.toLowerCase() === currentAdmin) || 
+                                                    (e.assignedTo && e.assignedTo.toLowerCase() === currentAdmin);
+                                if (isUserEvent && !showUserEvents) {
+                                    return false;
+                                }
+                            }
+
+                            return true;
+                        });
+
+                        let mapped = filtered.map(e => {
+                            let color = '#64748b'; // default Slate
+                            if (e.eventType === 'HOLIDAY') {
+                                color = '#137333'; // Google Calendar green for holidays
+                            } else if (e.eventType === 'EXAM') {
+                                color = '#1a73e8'; // Blue (Google Calendar blue)
+                            } else if (e.status === 'Completed') {
+                                color = '#10b981'; // Green
+                            } else if (e.priority === 'HIGH') {
+                                color = '#ef4444'; // Red
+                            } else if (e.priority === 'MEDIUM') {
+                                color = '#f97316'; // Orange
+                            } else if (e.visibility === 'SHARED') {
+                                color = '#8b5cf6'; // Purple
+                            }
+
+                            let isAllDay = (e.eventType === 'HOLIDAY');
+                            let classNames = [];
+                            if (isAllDay) {
+                                classNames.push('fc-event-holiday');
+                            } else {
+                                classNames.push('fc-event-timed');
+                                if (e.eventType === 'EXAM') classNames.push('fc-event-exam-timed');
+                                else if (e.status === 'Completed') classNames.push('fc-event-completed-timed');
+                                else if (e.priority === 'HIGH') classNames.push('fc-event-high-timed');
+                                else if (e.priority === 'MEDIUM') classNames.push('fc-event-medium-timed');
+                                else if (e.visibility === 'SHARED') classNames.push('fc-event-shared-timed');
+                            }
+
+                            return {
+                                id: e.id,
+                                title: e.title,
+                                start: e.startDatetime,
+                                end: e.endDatetime,
+                                allDay: isAllDay,
+                                backgroundColor: isAllDay ? color : 'transparent',
+                                borderColor: color,
+                                textColor: isAllDay ? '#ffffff' : 'var(--text-primary)',
+                                classNames: classNames,
+                                extendedProps: e
+                            };
+                        });
+                        successCallback(mapped);
+                    })
+                    .catch(err => {
+                        console.error("Error loading events", err);
+                        failureCallback(err);
+                    });
+            },
+            dateClick: function(info) {
+                document.getElementById('form-date').value = info.dateStr;
+                addEventModal.show();
+            },
+            eventClick: function(info) {
+                const e = info.event.extendedProps;
+                selectedEventId = e.id;
+
+                document.getElementById('detail-title').innerText = e.title;
+                document.getElementById('detail-description').innerText = e.description || "No description provided.";
+                document.getElementById('detail-category').innerText = e.category || "Other";
+                document.getElementById('detail-visibility').innerText = e.visibility;
+                document.getElementById('detail-created').innerText = e.createdBy;
+                document.getElementById('detail-assigned').innerText = e.assignedTo || "None";
+                
+                const start = new Date(e.startDatetime);
+                const end = new Date(e.endDatetime);
+                const formatOptions = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+                document.getElementById('detail-schedule').innerText = start.toLocaleString([], formatOptions) + " - " + end.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+                const typeB = document.getElementById('detail-type-badge');
+                typeB.innerText = e.eventType;
+                typeB.className = "badge " + (e.eventType === 'EXAM' ? 'bg-primary' : (e.eventType === 'HOLIDAY' ? 'bg-warning text-dark' : 'bg-secondary'));
+
+                const prioB = document.getElementById('detail-priority-badge');
+                prioB.innerText = e.priority + " Priority";
+                prioB.className = "badge " + (e.priority === 'HIGH' ? 'bg-danger' : (e.priority === 'MEDIUM' ? 'bg-warning text-dark' : 'bg-success'));
+
+                const statB = document.getElementById('detail-status-badge');
+                statB.innerText = e.status;
+                statB.className = "badge " + (e.status === 'Completed' ? 'bg-success' : (e.status === 'Overdue' ? 'bg-danger' : 'bg-secondary'));
+
+                const completeBtn = document.getElementById('complete-task-btn');
+                const deleteBtn = document.getElementById('delete-event-btn');
+
+                if (e.eventType === 'TASK') {
+                    completeBtn.classList.remove('d-none');
+                    completeBtn.innerText = e.status === 'Completed' ? 'Mark Pending' : 'Mark Completed';
+                } else {
+                    completeBtn.classList.add('d-none');
+                }
+
+                const currentAdminName = '[[${adminName}]]';
+                if (e.createdBy.toLowerCase() === currentAdminName.toLowerCase() && e.eventType !== 'HOLIDAY') {
+                    deleteBtn.classList.remove('d-none');
+                } else {
+                    deleteBtn.classList.add('d-none');
+                }
+
+                eventDetailModal.show();
+            },
+            datesSet: function(info) {
+                // Update header month-year title from FullCalendar's view title
+                document.getElementById('gcal-title').innerText = info.view.title;
+                
+                // Sync mini-calendar center date
+                const currentMainDate = calendar.getDate();
+                miniCurrentDate = new Date(currentMainDate);
+                selectedDate = new Date(currentMainDate);
+                renderMiniCalendar();
+            }
+        });
+
+        calendar.render();
+
+        // Sync dark theme changes dynamically
+        window.addEventListener('themeChanged', function() {
+            calendar.render();
+        });
+
+        // Trigger filters refetch
+        const refetch = () => calendar.refetchEvents();
+        document.getElementById('search-input').addEventListener('input', refetch);
+        
+        // My Calendars Checkboxes refetch
+        document.getElementById('gcal-filter-user-events').addEventListener('change', refetch);
+        document.getElementById('gcal-filter-exams').addEventListener('change', refetch);
+        document.getElementById('gcal-filter-tasks').addEventListener('change', refetch);
+        document.getElementById('gcal-filter-holidays').addEventListener('change', refetch);
+
+        // Header Navigation wiring
+        document.getElementById('gcal-today-btn').addEventListener('click', () => {
+            calendar.today();
+        });
+        document.getElementById('gcal-prev-btn').addEventListener('click', () => {
+            calendar.prev();
+        });
+        document.getElementById('gcal-next-btn').addEventListener('click', () => {
+            calendar.next();
+        });
+
+        // Header view selector dropdown wiring
+        document.getElementById('view-month').addEventListener('click', function(e) {
+            e.preventDefault();
+            calendar.changeView('dayGridMonth');
+            document.getElementById('current-view-label').innerText = 'Month';
+        });
+        document.getElementById('view-week').addEventListener('click', function(e) {
+            e.preventDefault();
+            calendar.changeView('timeGridWeek');
+            document.getElementById('current-view-label').innerText = 'Week';
+        });
+        document.getElementById('view-day').addEventListener('click', function(e) {
+            e.preventDefault();
+            calendar.changeView('timeGridDay');
+            document.getElementById('current-view-label').innerText = 'Day';
+        });
+        document.getElementById('view-list').addEventListener('click', function(e) {
+            e.preventDefault();
+            calendar.changeView('listWeek');
+            document.getElementById('current-view-label').innerText = 'Schedule';
+        });
+
+        // Set current date in quick date jump input
+        const todayVal = new Date();
+        const yyyyVal = todayVal.getFullYear();
+        const mmVal = String(todayVal.getMonth() + 1).padStart(2, '0');
+        const ddVal = String(todayVal.getDate()).padStart(2, '0');
+        document.getElementById('quick-date-jump').value = `${yyyyVal}-${mmVal}-${ddVal}`;
+
+        // Date jump sync
+        document.getElementById('quick-date-jump').addEventListener('change', function() {
+            if (this.value) {
+                calendar.gotoDate(this.value);
+            }
+        });
+
+        // Create Dropdown item clicks (AddTask & ScheduleExam modals opening)
+        document.getElementById('menu-create-task').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('type-task').checked = true;
+            document.getElementById('form-eventType').value = 'TASK';
+            document.getElementById('task-fields').classList.remove('d-none');
+            document.getElementById('exam-fields').classList.add('d-none');
+            
+            const today = new Date();
+            const dateStr = today.toISOString().split('T')[0];
+            document.getElementById('form-date').value = dateStr;
+            addEventModal.show();
+        });
+
+        document.getElementById('menu-schedule-exam').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('type-exam').checked = true;
+            document.getElementById('form-eventType').value = 'EXAM';
+            document.getElementById('task-fields').classList.add('d-none');
+            document.getElementById('exam-fields').classList.remove('d-none');
+            
+            const today = new Date();
+            const dateStr = today.toISOString().split('T')[0];
+            document.getElementById('form-date').value = dateStr;
+            addEventModal.show();
+        });
+
+        // Form Type toggling inside modal
+        document.getElementById('type-task').addEventListener('change', function() {
+            document.getElementById('form-eventType').value = 'TASK';
+            document.getElementById('task-fields').classList.remove('d-none');
+            document.getElementById('exam-fields').classList.add('d-none');
+        });
+        document.getElementById('type-exam').addEventListener('change', function() {
+            document.getElementById('form-eventType').value = 'EXAM';
+            document.getElementById('task-fields').classList.add('d-none');
+            document.getElementById('exam-fields').classList.remove('d-none');
+        });
+
+        // Save entry
+        document.getElementById('save-event-btn').addEventListener('click', function() {
+            const form = document.getElementById('event-form');
+            const eventType = document.getElementById('form-eventType').value;
+            
+            const formData = new FormData(form);
+
+            if (eventType === 'EXAM') {
+                const subject = document.getElementById('exam-subject').value;
+                const semester = document.getElementById('exam-semester').value;
+                const division = document.getElementById('exam-division').value;
+                const duration = document.getElementById('exam-duration').value;
+                const examType = document.getElementById('exam-type').value;
+
+                if (!subject) {
+                    alert('Subject is required for Exam Events');
+                    return;
+                }
+
+                formData.set('title', '📘 ' + subject + ' Examination');
+                formData.set('description', 'Semester: ' + semester + '\nDivision: ' + division + '\nDuration: ' + duration + ' mins\nExam Type: ' + examType);
+                formData.set('category', 'Exam Preparation');
+                formData.set('priority', 'HIGH');
+                formData.set('visibility', 'SHARED');
+            } else {
+                const title = document.getElementById('form-title').value;
+                if (!title) {
+                    alert('Task Title is required');
+                    return;
+                }
+            }
+
+            fetch('/admin/calendar/event/add', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    addEventModal.hide();
+                    form.reset();
+                    calendar.refetchEvents();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('An error occurred while saving.');
+            });
+        });
+
+        // Toggle Task Complete action
+        document.getElementById('complete-task-btn').addEventListener('click', function() {
+            if (!selectedEventId) return;
+            const params = new URLSearchParams();
+            params.append('id', selectedEventId);
+
+            fetch('/admin/calendar/event/toggle-complete', {
+                method: 'POST',
+                body: params
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    eventDetailModal.hide();
+                    calendar.refetchEvents();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(err => console.error(err));
+        });
+
+        // Delete Event action
+        document.getElementById('delete-event-btn').addEventListener('click', function() {
+            if (!selectedEventId) return;
+            if (!confirm('Are you sure you want to delete this event?')) return;
+            
+            const params = new URLSearchParams();
+            params.append('id', selectedEventId);
+
+            fetch('/admin/calendar/event/delete', {
+                method: 'POST',
+                body: params
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    eventDetailModal.hide();
+                    calendar.refetchEvents();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(err => console.error(err));
+        });
+    });
+</script>
+</body>
+</html>

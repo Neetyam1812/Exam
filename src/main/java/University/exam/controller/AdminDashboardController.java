@@ -7,8 +7,10 @@ import University.exam.Entity.Submission;
 import University.exam.Entity.Answer;
 import University.exam.Entity.Result;
 import University.exam.Entity.Student;
+import University.exam.Entity.CalendarEvent;
 import University.exam.repository.AdminRepository;
 import University.exam.repository.PaperRepository;
+import University.exam.repository.CalendarEventRepository;
 import University.exam.repository.SubmissionRepository;
 import University.exam.repository.AnswerRepository;
 import University.exam.repository.ResultRepository;
@@ -26,7 +28,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.stream.Collectors;
 import java.util.*;
 
 @Controller
@@ -59,6 +64,10 @@ public class AdminDashboardController {
 
     @Autowired
     private University.exam.repository.ExamRepository examRepository;
+
+    @Autowired
+    private CalendarEventRepository calendarEventRepository;
+
 
     // Helper method to simulate/retrieve a logged-in admin
     private void addAdminAttributes(HttpSession session, Model model) {
@@ -172,9 +181,224 @@ public class AdminDashboardController {
         model.addAttribute("terminatedCount", terminatedCount);
         model.addAttribute("disqualifiedCount", disqualifiedCount);
         model.addAttribute("absentCount", absentCount);
+
+        // Fetch Collaborative Calendar & Tasks details
+        List<CalendarEvent> allVisibleEvents = calendarEventRepository.findVisibleEvents(admin.getAdminName());
+        
+        // Auto-check overdue tasks on page load
+        LocalDateTime nowLimit = LocalDateTime.now();
+        boolean eventsModified = false;
+        for (CalendarEvent event : allVisibleEvents) {
+            if ("TASK".equals(event.getEventType()) && 
+                !"Completed".equals(event.getStatus()) && 
+                !"Overdue".equals(event.getStatus()) && 
+                event.getEndDatetime() != null && 
+                nowLimit.isAfter(event.getEndDatetime())) {
+                event.setStatus("Overdue");
+                calendarEventRepository.save(event);
+                eventsModified = true;
+            }
+        }
+        if (eventsModified) {
+            allVisibleEvents = calendarEventRepository.findVisibleEvents(admin.getAdminName());
+        }
+
+        LocalDate todayDate = LocalDate.now();
+
+        // 1. Today's Tasks
+        List<CalendarEvent> todayTasks = allVisibleEvents.stream()
+                .filter(e -> "TASK".equals(e.getEventType()) && e.getStartDatetime() != null && e.getStartDatetime().toLocalDate().equals(todayDate))
+                .collect(Collectors.toList());
+
+        // 2. Today's Exams
+        List<CalendarEvent> todayExams = allVisibleEvents.stream()
+                .filter(e -> "EXAM".equals(e.getEventType()) && e.getStartDatetime() != null && e.getStartDatetime().toLocalDate().equals(todayDate))
+                .collect(Collectors.toList());
+
+        // 3. Upcoming Exams (excluding today)
+        List<CalendarEvent> upcomingExams = allVisibleEvents.stream()
+                .filter(e -> "EXAM".equals(e.getEventType()) && e.getStartDatetime() != null && e.getStartDatetime().toLocalDate().isAfter(todayDate))
+                .sorted((e1, e2) -> e1.getStartDatetime().compareTo(e2.getStartDatetime()))
+                .collect(Collectors.toList());
+
+        // 4. Pending Tasks
+        List<CalendarEvent> pendingTasks = allVisibleEvents.stream()
+                .filter(e -> "TASK".equals(e.getEventType()) && ("Pending".equals(e.getStatus()) || "In Progress".equals(e.getStatus())))
+                .collect(Collectors.toList());
+
+        // 5. Overdue Tasks
+        List<CalendarEvent> overdueTasks = allVisibleEvents.stream()
+                .filter(e -> "TASK".equals(e.getEventType()) && "Overdue".equals(e.getStatus()))
+                .collect(Collectors.toList());
+
+        model.addAttribute("todayTasks", todayTasks);
+        model.addAttribute("todayExams", todayExams);
+        model.addAttribute("upcomingExams", upcomingExams);
+        model.addAttribute("pendingTasks", pendingTasks);
+        model.addAttribute("overdueTasks", overdueTasks);
+
+        // Build unified Activity Timeline feed
+        List<Paper> allPapers = paperRepository.findAll();
+        List<Result> allResults = resultRepository.findAll();
+        List<Map<String, Object>> activities = new ArrayList<>();
+
+        // Add paper uploads
+        for (Paper p : allPapers) {
+            if (p.getUploadedAt() != null) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("type", "UPLOAD");
+                item.put("timestamp", p.getUploadedAt());
+                String uploader = p.getAdmin() != null ? p.getAdmin().getAdminName() : "Admin";
+                item.put("message", uploader + " uploaded " + p.getSubject() + " Paper");
+                item.put("icon", "bi-cloud-arrow-up-fill");
+                item.put("badgeClass", "bg-primary-subtle text-primary");
+                activities.add(item);
+            }
+        }
+        // Add evaluations
+        for (Result r : allResults) {
+            if (r.getEvaluatedAt() != null) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("type", "EVALUATION");
+                item.put("timestamp", r.getEvaluatedAt());
+                String evaluator = (r.getSubmission() != null && r.getSubmission().getPaper() != null && r.getSubmission().getPaper().getAdmin() != null)
+                        ? r.getSubmission().getPaper().getAdmin().getAdminName() : "Admin";
+                item.put("message", evaluator + " completed Evaluation for " + (r.getStudentName() != null ? r.getStudentName() : "Student") + " in " + (r.getSubjectName() != null ? r.getSubjectName() : "Subject"));
+                item.put("icon", "bi-clipboard2-check-fill");
+                item.put("badgeClass", "bg-success-subtle text-success");
+                activities.add(item);
+            }
+        }
+        // Add scheduled exams and tasks from CalendarEvent
+        for (CalendarEvent e : allVisibleEvents) {
+            if (e.getCreatedAt() != null) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("timestamp", e.getCreatedAt());
+                if ("EXAM".equals(e.getEventType())) {
+                    item.put("type", "EXAM");
+                    item.put("message", e.getCreatedBy() + " scheduled " + e.getTitle());
+                    item.put("icon", "bi-calendar-event-fill");
+                    item.put("badgeClass", "bg-info-subtle text-info");
+                } else {
+                    item.put("type", "TASK");
+                    if ("Completed".equals(e.getStatus())) {
+                        item.put("message", (e.getAssignedTo() != null ? e.getAssignedTo() : e.getCreatedBy()) + " completed Task: " + e.getTitle());
+                        item.put("icon", "bi-check-circle-fill");
+                        item.put("badgeClass", "bg-success-subtle text-success");
+                    } else {
+                        item.put("message", e.getCreatedBy() + " created Task: " + e.getTitle() + " (Assigned to: " + (e.getAssignedTo() != null ? e.getAssignedTo() : "None") + ")");
+                        item.put("icon", "bi-clipboard-plus-fill");
+                        item.put("badgeClass", "bg-warning-subtle text-warning");
+                    }
+                }
+                activities.add(item);
+            }
+        }
+
+        // Sort by timestamp desc, limit to 8
+        activities.sort((a1, a2) -> ((LocalDateTime) a2.get("timestamp")).compareTo((LocalDateTime) a1.get("timestamp")));
+        List<Map<String, Object>> recentActivities = activities.stream().limit(8).map(act -> {
+            act.put("timeAgo", formatTimeAgo((LocalDateTime) act.get("timestamp")));
+            return act;
+        }).collect(Collectors.toList());
+
+        model.addAttribute("recentActivities", recentActivities);
+
+        // Build notifications list
+        List<Map<String, Object>> notifications = new ArrayList<>();
+        // 1. New task assigned to logged-in admin (Pending, created by someone else)
+        for (CalendarEvent e : allVisibleEvents) {
+            if ("TASK".equals(e.getEventType()) && 
+                admin.getAdminName().equalsIgnoreCase(e.getAssignedTo()) && 
+                !"Completed".equals(e.getStatus()) &&
+                !admin.getAdminName().equalsIgnoreCase(e.getCreatedBy())) {
+                
+                Map<String, Object> notif = new HashMap<>();
+                notif.put("message", "New Task Assigned by " + e.getCreatedBy());
+                notif.put("details", e.getTitle());
+                notif.put("icon", "bi-bell-fill");
+                notif.put("timestamp", e.getCreatedAt() != null ? e.getCreatedAt() : LocalDateTime.now());
+                notif.put("timeAgo", formatTimeAgo(e.getCreatedAt() != null ? e.getCreatedAt() : LocalDateTime.now()));
+                notifications.add(notif);
+            }
+        }
+
+        // 2. Exam Scheduled (starting in future, created recently or starting in next 7 days)
+        for (CalendarEvent e : allVisibleEvents) {
+            if ("EXAM".equals(e.getEventType()) && 
+                e.getStartDatetime() != null && 
+                e.getStartDatetime().isAfter(LocalDateTime.now()) &&
+                e.getStartDatetime().isBefore(LocalDateTime.now().plusDays(7))) {
+                
+                Map<String, Object> notif = new HashMap<>();
+                notif.put("message", e.getTitle() + " Scheduled");
+                notif.put("details", "Scheduled for " + e.getStartDatetime().format(DateTimeFormatter.ofPattern("MMM dd, hh:mm a")));
+                notif.put("icon", "bi-calendar-check-fill");
+                notif.put("timestamp", e.getCreatedAt() != null ? e.getCreatedAt() : LocalDateTime.now());
+                notif.put("timeAgo", formatTimeAgo(e.getCreatedAt() != null ? e.getCreatedAt() : LocalDateTime.now()));
+                notifications.add(notif);
+            }
+        }
+
+        // 3. Task Completed (created by me, assigned to someone else, completed)
+        for (CalendarEvent e : allVisibleEvents) {
+            if ("TASK".equals(e.getEventType()) && 
+                admin.getAdminName().equalsIgnoreCase(e.getCreatedBy()) && 
+                "Completed".equals(e.getStatus()) &&
+                !admin.getAdminName().equalsIgnoreCase(e.getAssignedTo())) {
+                
+                Map<String, Object> notif = new HashMap<>();
+                notif.put("message", "Task Completed by " + e.getAssignedTo());
+                notif.put("details", e.getTitle());
+                notif.put("icon", "bi-check-circle-fill");
+                notif.put("timestamp", e.getUpdatedAt() != null ? e.getUpdatedAt() : LocalDateTime.now());
+                notif.put("timeAgo", formatTimeAgo(e.getUpdatedAt() != null ? e.getUpdatedAt() : LocalDateTime.now()));
+                notifications.add(notif);
+            }
+        }
+
+        // 4. Task due in next 24 hours (Result publication or preparation due tomorrow)
+        for (CalendarEvent e : allVisibleEvents) {
+            if ("TASK".equals(e.getEventType()) && 
+                !"Completed".equals(e.getStatus()) && 
+                e.getEndDatetime() != null && 
+                e.getEndDatetime().isAfter(LocalDateTime.now()) && 
+                e.getEndDatetime().isBefore(LocalDateTime.now().plusDays(2))) {
+                
+                Map<String, Object> notif = new HashMap<>();
+                notif.put("message", e.getTitle() + " Due Tomorrow");
+                notif.put("details", "Deadline: " + e.getEndDatetime().format(DateTimeFormatter.ofPattern("hh:mm a")));
+                notif.put("icon", "bi-exclamation-triangle-fill");
+                notif.put("timestamp", e.getEndDatetime());
+                notif.put("timeAgo", "Due soon");
+                notifications.add(notif);
+            }
+        }
+
+        // Sort notifications by timestamp desc
+        notifications.sort((n1, n2) -> ((LocalDateTime) n2.get("timestamp")).compareTo((LocalDateTime) n1.get("timestamp")));
+        List<Map<String, Object>> recentNotifications = notifications.stream().limit(6).collect(Collectors.toList());
+        model.addAttribute("notifications", recentNotifications);
         
         return "admin/dashboard";
     }
+
+    private static String formatTimeAgo(LocalDateTime dt) {
+        if (dt == null) return "";
+        LocalDateTime now = LocalDateTime.now();
+        java.time.Duration duration = java.time.Duration.between(dt, now);
+        long seconds = duration.getSeconds();
+        if (seconds < 0) return "just now";
+        if (seconds < 60) return seconds + "s ago";
+        long minutes = duration.toMinutes();
+        if (minutes < 60) return minutes + "m ago";
+        long hours = duration.toHours();
+        if (hours < 24) return hours + "h ago";
+        long days = duration.toDays();
+        if (days < 30) return days + "d ago";
+        return dt.format(DateTimeFormatter.ofPattern("MMM dd"));
+    }
+
 
     @GetMapping("/paper/{id}/activate")
     public String activatePaper(@PathVariable("id") Long id, HttpSession session) {
@@ -545,6 +769,31 @@ public class AdminDashboardController {
         paper.setActivatedTime(null);
         paper.setActivationTime(null);
         paperRepository.save(paper);
+
+        try {
+            CalendarEvent examEvent = new CalendarEvent();
+            examEvent.setTitle("📘 " + paper.getSubject() + " Examination");
+            examEvent.setDescription("Course: " + paper.getCourse() + "\nSemester: " + paper.getSemester() + "\nTotal Marks: " + paper.getTotalMarks() + "\nDuration: " + paper.getExamDuration() + " mins");
+            examEvent.setCategory("Exam Preparation");
+            examEvent.setEventType("EXAM");
+            examEvent.setPriority("HIGH");
+            
+            // Default scheduled time: Tomorrow at 9:00 AM
+            LocalDateTime defaultStart = LocalDateTime.now().plusDays(1).withHour(9).withMinute(0).withSecond(0).withNano(0);
+            examEvent.setStartDatetime(defaultStart);
+            
+            int durationMins = paper.getExamDuration() != null ? paper.getExamDuration() : 120;
+            examEvent.setEndDatetime(defaultStart.plusMinutes(durationMins));
+            
+            examEvent.setStatus("Pending");
+            examEvent.setCreatedBy(admin.getAdminName());
+            examEvent.setAssignedTo(admin.getAdminName());
+            examEvent.setVisibility("SHARED");
+            calendarEventRepository.save(examEvent);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
         session.removeAttribute("previewQuestions_" + id);
 
         return "redirect:/admin/dashboard";

@@ -16,28 +16,30 @@
             --primary: #ff6b00;
             --primary-hover: #ea580c;
             --primary-light: rgba(255, 107, 0, 0.05);
+            --primary-gradient: linear-gradient(135deg, #ff8a3d 0%, #ff6b00 100%);
             --bg-canvas: #f8fafc;
             --card-bg: #ffffff;
             --border-color: rgba(0, 0, 0, 0.05);
-            --text-primary: #111827;
-            --text-secondary: #4b5563;
-            --text-muted: #9ca3af;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
+            --purple: #8b5cf6;
             --sidebar-width: 260px;
             --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
-            --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+            --card-shadow-hover: 0 12px 20px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
         }
 
         body.dark-theme {
             --bg-canvas: #090d16;
-            --card-bg: #111827;
+            --card-bg: rgba(17, 24, 39, 0.85);
             --border-color: rgba(255, 255, 255, 0.06);
-            --text-primary: #f9fafb;
+            --text-primary: #f8fafc;
             --text-secondary: #cbd5e1;
-            --text-muted: #94a3b8;
+            --text-muted: #64748b;
             --card-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.1);
             --card-shadow-hover: 0 20px 40px -12px rgba(0, 0, 0, 0.4), 0 1px 10px rgba(0, 0, 0, 0.2);
         }
@@ -50,7 +52,7 @@
             min-height: 100vh;
         }
 
-        h1, h2, h3, h4, h5, h6, .brand-name, .profile-name, .btn, .saas-table thead th, .status-badge-saas, .timer-badge-premium {
+        h1, h2, h3, h4, h5, h6, .brand-name, .profile-name, .btn, .saas-table thead th, .status-badge-premium, .timer-badge-premium {
             font-family: 'Outfit', sans-serif !important;
         }
 
@@ -64,7 +66,7 @@
         /* Metric Stats Card */
         .stat-card {
             border: 1px solid var(--border-color) !important;
-            border-radius: 16px !important;
+            border-radius: 20px !important;
             box-shadow: var(--card-shadow) !important;
             transition: var(--transition-smooth);
             background: var(--card-bg);
@@ -75,39 +77,99 @@
         }
 
         .stat-card:hover {
-            transform: translateY(-4px);
+            transform: translateY(-5px);
             box-shadow: var(--card-shadow-hover) !important;
             border-color: rgba(255, 107, 0, 0.2) !important;
         }
 
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: transparent;
+            transition: var(--transition-smooth);
+        }
+        
+        .stat-card.stat-orange:hover::after { background: var(--primary); }
+        .stat-card.stat-green:hover::after { background: var(--success); }
+        .stat-card.stat-amber:hover::after { background: var(--warning); }
+        .stat-card.stat-purple:hover::after { background: var(--purple); }
+
         .icon-box-saas {
-            width: 44px;
-            height: 44px;
-            border-radius: 10px;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: var(--transition-smooth);
         }
 
+        .stat-card:hover .icon-box-saas {
+            transform: scale(1.1) rotate(5deg);
+        }
+
         /* Hover Action Card Styling */
+        .hover-action {
+            transition: var(--transition-smooth);
+            position: relative;
+            padding-right: 2.25rem !important;
+            border-left: 3px solid transparent !important;
+        }
         .hover-action:hover {
-            transform: translateY(-2px);
+            transform: translateY(-3px);
             border-color: rgba(255, 107, 0, 0.25) !important;
-            box-shadow: 0 4px 10px rgba(255, 107, 0, 0.05);
+            border-left-color: var(--primary) !important;
+            box-shadow: 0 8px 16px rgba(255, 107, 0, 0.08) !important;
+        }
+        .hover-action::after {
+            content: '\f285';
+            font-family: 'bootstrap-icons' !important;
+            position: absolute;
+            right: 0.85rem;
+            top: 50%;
+            transform: translateY(-50%) translateX(5px);
+            font-size: 13px;
+            color: var(--primary);
+            opacity: 0;
+            transition: var(--transition-smooth);
+        }
+        .hover-action:hover::after {
+            opacity: 1;
+            transform: translateY(-50%) translateX(0);
+        }
+
+
+        /* Table Filter Controls */
+        .filter-tab-btn {
+            border: none !important;
+            background: transparent !important;
+            color: var(--text-muted) !important;
+            transition: var(--transition-smooth);
+        }
+        .filter-tab-btn.active {
+            background: var(--primary-gradient) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 10px rgba(255, 107, 0, 0.2);
+        }
+        .filter-tab-btn:hover:not(.active) {
+            color: var(--primary) !important;
         }
 
         /* SaaS Table */
         .saas-table-card {
             border: 1px solid var(--border-color) !important;
-            border-radius: 16px !important;
+            border-radius: 20px !important;
             overflow: hidden;
             box-shadow: var(--card-shadow) !important;
             background: var(--card-bg);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             transition: var(--transition-smooth);
-            padding: 6px;
+            padding: 8px;
         }
 
         .saas-table {
@@ -145,47 +207,83 @@
         }
 
         /* Status badges */
-        .status-badge-saas {
+        .status-badge-premium {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            padding: 0.4rem 0.85rem;
-            font-size: 10.5px;
+            gap: 6px;
+            padding: 0.45rem 0.95rem;
+            font-size: 11px;
             font-weight: 700;
             border-radius: 50px;
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
 
-        .status-badge-draft {
-            background-color: rgba(100, 116, 139, 0.08) !important;
-            color: #475569 !important;
-            border: 1px solid rgba(100, 116, 139, 0.15) !important;
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
         }
 
-        .status-badge-published {
+        .status-pulse-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+            animation: statusDotPulse 1.5s infinite;
+        }
+
+        @keyframes statusDotPulse {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+            }
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+
+        .status-active {
+            background-color: rgba(16, 185, 129, 0.08) !important;
+            color: #10b981 !important;
+            border: 1px solid rgba(16, 185, 129, 0.15) !important;
+        }
+        .status-active .status-pulse-dot {
+            background-color: #10b981;
+        }
+
+        .status-published {
             background-color: rgba(245, 158, 11, 0.08) !important;
             color: #d97706 !important;
             border: 1px solid rgba(245, 158, 11, 0.15) !important;
         }
-
-        .status-badge-active {
-            background-color: rgba(16, 185, 129, 0.08) !important;
-            color: #059669 !important;
-            border: 1px solid rgba(16, 185, 129, 0.15) !important;
-            box-shadow: 0 0 10px rgba(16, 185, 129, 0.05);
-            animation: activePulse 2s infinite ease-in-out;
+        .status-published .status-dot {
+            background-color: #d97706;
         }
 
-        .status-badge-ended {
+        .status-draft {
+            background-color: rgba(100, 116, 139, 0.08) !important;
+            color: #64748b !important;
+            border: 1px solid rgba(100, 116, 139, 0.15) !important;
+        }
+        .status-draft .status-dot {
+            background-color: #64748b;
+        }
+
+        .status-ended {
             background-color: rgba(239, 68, 68, 0.08) !important;
             color: #dc2626 !important;
             border: 1px solid rgba(239, 68, 68, 0.15) !important;
         }
-
-        @keyframes activePulse {
-            0%, 100% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.05); }
-            50% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
+        .status-ended .status-dot {
+            background-color: #dc2626;
         }
 
         .btn-activate-premium {
@@ -231,6 +329,15 @@
             display: inline-block;
         }
 
+        /* Layout Tuning */
+        .activity-card {
+            transition: var(--transition-smooth);
+        }
+        .activity-card:hover {
+            transform: translateX(4px);
+            border-color: rgba(255, 107, 0, 0.15) !important;
+        }
+
         @media (max-width: 991.98px) {
             .main-content {
                 margin-left: 0;
@@ -256,7 +363,7 @@
         <!-- Top Sticky Header Area -->
         <header class="d-flex flex-wrap align-items-center justify-content-between pb-4 mb-4 border-bottom" style="border-bottom-color: var(--border-color) !important;">
             <div>
-                <h1 class="h2 mb-1" style="color: var(--text-primary) !important; font-weight: 800; font-size: 26px; letter-spacing: -0.5px;">Welcome back, superadmin! 👋</h1>
+                <h1 class="h2 mb-1" style="color: var(--text-primary) !important; font-weight: 800; font-size: 26px; letter-spacing: -0.5px;" th:text="'Welcome back, ' + ${adminName} + '! 👋'">Welcome back, superadmin! 👋</h1>
                 <p class="text-secondary small mb-0" style="font-weight: 500;">
                     Here's what's happening with your exam system today.
                 </p>
@@ -264,32 +371,94 @@
             
             <div class="d-flex align-items-center gap-3 mt-3 mt-md-0">
                 <!-- Date Widget -->
-                <div class="d-flex align-items-center gap-2 px-3 py-2 border rounded-3 text-secondary" style="font-size: 13px; font-weight: 600; border-color: var(--border-color) !important; background-color: var(--card-bg) !important;">
+                <div class="d-flex align-items-center gap-2 px-3 py-2 border rounded-3 text-secondary shadow-sm" style="font-size: 13px; font-weight: 600; border-color: var(--border-color) !important; background-color: var(--card-bg) !important;">
                     <i class="bi bi-calendar3 text-muted"></i>
                     <span id="current-date">Friday, June 5, 2026</span>
                 </div>
                 
-                <!-- Notification Bell Badge -->
-                <button class="btn btn-light bg-white border rounded-circle d-flex align-items-center justify-content-center position-relative" style="width: 40px; height: 40px; border-color: var(--border-color) !important; background-color: var(--card-bg) !important; color: var(--text-secondary);">
-                    <i class="bi bi-bell-fill"></i>
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-danger" style="width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 10px; padding: 0;">3</span>
-                </button>
+                <!-- Notification Bell Badge Dropdown -->
+                <div class="dropdown">
+                    <button class="btn btn-light bg-white border rounded-circle d-flex align-items-center justify-content-center position-relative shadow-sm dropdown-toggle border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 40px; height: 40px; border-color: var(--border-color) !important; background-color: var(--card-bg) !important; color: var(--text-secondary); padding: 0; outline: none; box-shadow: none;">
+                        <i class="bi bi-bell-fill"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-danger" style="width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 10px; padding: 0;" th:text="${#lists.size(notifications)}">0</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-3 mt-2" style="width: 320px; font-size: 13px; background-color: var(--card-bg) !important; border: 1px solid var(--border-color) !important; border-radius: 16px; z-index: 1100;">
+                        <h6 class="dropdown-header font-outfit fw-bold ps-0 mb-2 text-primary" style="font-size: 14px; color: var(--text-primary) !important;">🔔 Recent System Alerts</h6>
+                        <div class="d-flex flex-column gap-2" style="max-height: 280px; overflow-y: auto;">
+                            <li th:if="${#lists.isEmpty(notifications)}" class="text-center py-3 text-muted">No new alerts</li>
+                            <li th:each="notif : ${notifications}" class="p-2.5 rounded-3 border-bottom d-flex align-items-start gap-2.5" style="border-color: var(--border-color) !important; background-color: var(--bg-canvas);">
+                                <i class="bi fs-5 text-primary" th:classappend="${notif.icon}"></i>
+                                <div>
+                                    <span class="fw-bold d-block" style="font-size: 12px; color: var(--text-primary);" th:text="${notif.message}">Alert title</span>
+                                    <span class="d-block text-secondary small" style="font-size: 11px;" th:text="${notif.details}">Alert details</span>
+                                    <span class="text-meta small" style="font-size: 9.5px;" th:text="${notif.timeAgo}">2h ago</span>
+                                </div>
+                            </li>
+                        </div>
+                    </ul>
+                </div>
                 
                 <!-- Export Report Button -->
-                <a th:href="@{/admin/results}" class="btn btn-primary d-flex align-items-center gap-2" style="background-color: #ff6b00; border-color: #ff6b00; padding: 0.6rem 1.25rem;">
+                <a th:href="@{/admin/results}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm" style="padding: 0.6rem 1.25rem;">
                     <i class="bi bi-box-arrow-up-right"></i>
                     <span>Export Report</span>
                 </a>
             </div>
         </header>
 
+        <!-- Live Exam HUD (Heads-Up Display) -->
+        <div id="live-exam-hud" class="card border-0 p-4 mb-4 transition-smooth" style="border-radius: 20px !important; display: none;">
+            <!-- Active State -->
+            <div id="hud-active-state" class="d-none">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+                    <div class="d-flex align-items-center gap-2.5 flex-wrap">
+                        <span class="status-badge-premium status-active" style="padding: 0.35rem 0.75rem; font-size: 10px;"><span class="status-pulse-dot" style="width: 5px; height: 5px; background-color: #10b981;"></span> LIVE EXAM MONITORING</span>
+                        <span class="text-primary fw-bold" style="font-size: 15px;" id="hud-subject-name">Subject</span>
+                        <span class="badge rounded-pill bg-light text-secondary border px-2.5 py-1.5 dark-bg-adjust" style="font-size: 10px; border-color: var(--border-color) !important; background-color: var(--bg-canvas) !important;" id="hud-course-sem">Course - Sem</span>
+                    </div>
+                    <!-- Digital Clock Count-down -->
+                    <div class="d-flex align-items-center gap-2 px-3 py-1.5 rounded-pill border text-danger bg-danger bg-opacity-10 border-danger border-opacity-20" style="font-size: 13.5px; font-weight: 850; font-family: monospace;">
+                        <i class="bi bi-clock-history animate-pulse"></i>
+                        <span id="hud-timer-text">--:--:--</span>
+                    </div>
+                </div>
+                
+                <!-- Progress Bar & Count -->
+                <div class="row align-items-center g-3">
+                    <div class="col-sm-3">
+                        <span class="small text-muted fw-bold d-block mb-1" style="font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase;">Submission Progress</span>
+                        <h4 class="fw-extrabold mb-0" style="font-size: 18px; color: var(--text-primary);" id="hud-submission-ratio">0 / 0 Students</h4>
+                    </div>
+                    <div class="col-sm-9">
+                        <div class="progress rounded-pill shadow-inner" style="height: 10px; background-color: var(--bg-canvas); overflow: hidden; border: 1px solid var(--border-color);">
+                            <div id="hud-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-success rounded-pill" role="progressbar" style="width: 0%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Standby State (Default) -->
+            <div id="hud-standby-state" class="d-flex align-items-center justify-content-between flex-wrap gap-2 py-1">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div class="icon-box-saas bg-opacity-10" style="width: 34px; height: 34px; background-color: rgba(100, 116, 139, 0.08) !important; color: #64748b !important;">
+                        <i class="bi bi-activity fs-5"></i>
+                    </div>
+                    <div>
+                        <span class="fw-bold d-block" style="font-size: 13.5px; color: var(--text-primary);">System Standby</span>
+                        <span class="text-muted small" style="font-size: 11px;">No active exams currently running. Proctoring services standby.</span>
+                    </div>
+                </div>
+                <span class="badge rounded-pill bg-light text-secondary border px-3 py-1.5 fw-semibold dark-bg-adjust" style="font-size: 11px; border-color: var(--border-color) !important; background-color: var(--card-bg) !important;"><i class="bi bi-shield-check text-success me-1"></i> Proctor Ready</span>
+            </div>
+        </div>
+
         <!-- Stats Grid (Orange, Green, Amber, Purple) -->
         <div class="row g-4 mb-4">
             <!-- Total Papers -->
             <div class="col-md-3">
-                <div class="card h-100 border-0 p-4 stat-card" style="border-radius: 16px !important;">
+                <div class="card h-100 border-0 p-4 stat-card stat-orange" style="border-radius: 16px !important;">
                     <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="icon-box-saas bg-opacity-10 text-primary" style="width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background-color: rgba(255, 107, 0, 0.08) !important; color: #ff6b00 !important;">
+                        <div class="icon-box-saas bg-opacity-10" style="background-color: rgba(255, 107, 0, 0.08) !important; color: #ff6b00 !important;">
                             <i class="bi bi-file-earmark-text-fill fs-5"></i>
                         </div>
                         <div class="text-end">
@@ -308,9 +477,9 @@
             
             <!-- Total Submissions -->
             <div class="col-md-3">
-                <div class="card h-100 border-0 p-4 stat-card" style="border-radius: 16px !important;">
+                <div class="card h-100 border-0 p-4 stat-card stat-green" style="border-radius: 16px !important;">
                     <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="icon-box-saas bg-opacity-10 text-success" style="width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background-color: rgba(16, 185, 129, 0.08) !important; color: #10b981 !important;">
+                        <div class="icon-box-saas bg-opacity-10" style="background-color: rgba(16, 185, 129, 0.08) !important; color: #10b981 !important;">
                             <i class="bi bi-clipboard2-check-fill fs-5"></i>
                         </div>
                         <div class="text-end">
@@ -329,9 +498,9 @@
             
             <!-- Pending Evaluation -->
             <div class="col-md-3">
-                <div class="card h-100 border-0 p-4 stat-card" style="border-radius: 16px !important;">
+                <div class="card h-100 border-0 p-4 stat-card stat-amber" style="border-radius: 16px !important;">
                     <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="icon-box-saas bg-opacity-10 text-warning" style="width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background-color: rgba(245, 158, 11, 0.08) !important; color: #f59e0b !important;">
+                        <div class="icon-box-saas bg-opacity-10" style="background-color: rgba(245, 158, 11, 0.08) !important; color: #f59e0b !important;">
                             <i class="bi bi-clock-fill fs-5"></i>
                         </div>
                         <div class="text-end">
@@ -350,9 +519,9 @@
             
             <!-- Total Students -->
             <div class="col-md-3">
-                <div class="card h-100 border-0 p-4 stat-card" style="border-radius: 16px !important;">
+                <div class="card h-100 border-0 p-4 stat-card stat-purple" style="border-radius: 16px !important;">
                     <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="icon-box-saas bg-opacity-10 text-purple" style="width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background-color: rgba(139, 92, 246, 0.08) !important; color: #8b5cf6 !important;">
+                        <div class="icon-box-saas bg-opacity-10" style="background-color: rgba(139, 92, 246, 0.08) !important; color: #8b5cf6 !important;">
                             <i class="bi bi-people-fill fs-5"></i>
                         </div>
                         <div class="text-end">
@@ -382,7 +551,7 @@
                             <i class="bi bi-arrow-right"></i>
                         </a>
                     </div>
-                    <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap" style="flex-grow: 1;">
+                    <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap" style="flex-grow: 1;">
                         <!-- Block 1: Passed -->
                         <div class="text-center flex-grow-1 p-3 border rounded-3" style="border-color: var(--border-color) !important; background: var(--bg-canvas); min-width: 90px; border-radius: 12px !important;">
                             <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success rounded-circle mb-2" style="width: 36px; height: 36px;">
@@ -431,14 +600,15 @@
                 </div>
             </div>
             
-            <!-- Right Column: Quick Actions -->
-            <div class="col-lg-5">
-                <div class="card border-0 p-4 h-100" style="border-radius: 16px !important;">
+            <!-- Right Column: Quick Actions & Instant Import -->
+            <div class="col-lg-5 d-flex flex-column gap-4">
+                <!-- Card 1: Quick Actions -->
+                <div class="card border-0 p-4" style="border-radius: 16px !important;">
                     <h4 class="fw-bold mb-4" style="font-size: 17px; color: var(--text-primary);">Quick Actions</h4>
-                    <div class="row g-3" style="flex-grow: 1;">
+                    <div class="row g-3">
                         <!-- Action 1: Upload Paper -->
                         <div class="col-6">
-                            <a th:href="@{/admin/upload-paper}" class="text-decoration-none d-block p-3 border rounded-3 h-100 text-secondary hover-action" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important; transition: var(--transition-smooth);">
+                            <a th:href="@{/admin/upload-paper}" class="text-decoration-none d-block p-3 border rounded-3 h-100 text-secondary hover-action" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important;">
                                 <div class="d-inline-flex align-items-center justify-content-center bg-opacity-10 rounded-3 mb-2" style="width: 32px; height: 32px; background-color: rgba(255, 107, 0, 0.08); color: #ff6b00;">
                                     <i class="bi bi-cloud-arrow-up-fill fs-5"></i>
                                 </div>
@@ -449,7 +619,7 @@
                         
                         <!-- Action 2: Review Submissions -->
                         <div class="col-6">
-                            <a th:href="@{/admin/submissions}" class="text-decoration-none d-block p-3 border rounded-3 h-100 text-secondary hover-action" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important; transition: var(--transition-smooth);">
+                            <a th:href="@{/admin/submissions}" class="text-decoration-none d-block p-3 border rounded-3 h-100 text-secondary hover-action" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important;">
                                 <div class="d-inline-flex align-items-center justify-content-center bg-opacity-10 rounded-3 mb-2" style="width: 32px; height: 32px; background-color: rgba(255, 107, 0, 0.08); color: #ff6b00;">
                                     <i class="bi bi-clipboard2-check-fill fs-5"></i>
                                 </div>
@@ -460,7 +630,7 @@
                         
                         <!-- Action 3: View Results -->
                         <div class="col-6">
-                            <a th:href="@{/admin/results}" class="text-decoration-none d-block p-3 border rounded-3 h-100 text-secondary hover-action" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important; transition: var(--transition-smooth);">
+                            <a th:href="@{/admin/results}" class="text-decoration-none d-block p-3 border rounded-3 h-100 text-secondary hover-action" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important;">
                                 <div class="d-inline-flex align-items-center justify-content-center bg-opacity-10 rounded-3 mb-2" style="width: 32px; height: 32px; background-color: rgba(255, 107, 0, 0.08); color: #ff6b00;">
                                     <i class="bi bi-bar-chart-fill fs-5"></i>
                                 </div>
@@ -471,7 +641,7 @@
                         
                         <!-- Action 4: Manage Students -->
                         <div class="col-6">
-                            <a th:href="@{/admin/results}" class="text-decoration-none d-block p-3 border rounded-3 h-100 text-secondary hover-action" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important; transition: var(--transition-smooth);">
+                            <a th:href="@{/admin/results}" class="text-decoration-none d-block p-3 border rounded-3 h-100 text-secondary hover-action" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important;">
                                 <div class="d-inline-flex align-items-center justify-content-center bg-opacity-10 rounded-3 mb-2" style="width: 32px; height: 32px; background-color: rgba(255, 107, 0, 0.08); color: #ff6b00;">
                                     <i class="bi bi-people-fill fs-5"></i>
                                 </div>
@@ -482,7 +652,7 @@
                         
                         <!-- Action 5: Generate Report -->
                         <div class="col-6">
-                            <a th:href="@{/admin/results}" class="text-decoration-none d-block p-3 border rounded-3 h-100 text-secondary hover-action" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important; transition: var(--transition-smooth);">
+                            <a th:href="@{/admin/results}" class="text-decoration-none d-block p-3 border rounded-3 h-100 text-secondary hover-action" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important;">
                                 <div class="d-inline-flex align-items-center justify-content-center bg-opacity-10 rounded-3 mb-2" style="width: 32px; height: 32px; background-color: rgba(255, 107, 0, 0.08); color: #ff6b00;">
                                     <i class="bi bi-file-earmark-bar-graph-fill fs-5"></i>
                                 </div>
@@ -493,7 +663,7 @@
                         
                         <!-- Action 6: System Settings -->
                         <div class="col-6">
-                            <a href="#" class="text-decoration-none d-block p-3 border rounded-3 h-100 text-secondary hover-action" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important; transition: var(--transition-smooth);">
+                            <a href="#" class="text-decoration-none d-block p-3 border rounded-3 h-100 text-secondary hover-action" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important;">
                                 <div class="d-inline-flex align-items-center justify-content-center bg-opacity-10 rounded-3 mb-2" style="width: 32px; height: 32px; background-color: rgba(255, 107, 0, 0.08); color: #ff6b00;">
                                     <i class="bi bi-gear-fill fs-5"></i>
                                 </div>
@@ -503,94 +673,209 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Card 2: Instant Import (Drag & Drop) -->
+                <div class="card border-0 p-4" style="border-radius: 16px !important;">
+                    <h4 class="fw-bold mb-3" style="font-size: 16px; color: var(--text-primary);">Instant Import Center</h4>
+                    <div id="drag-drop-zone" class="border border-2 border-dashed rounded-4 p-4 text-center cursor-pointer transition-smooth" style="border-color: var(--primary) !important; background-color: var(--bg-canvas); cursor: pointer; transition: var(--transition-smooth);">
+                        <i class="bi bi-cloud-arrow-up-fill text-primary fs-2 mb-2 d-inline-block" style="transition: var(--transition-smooth);" id="drag-drop-icon"></i>
+                        <h5 class="fw-bold mb-1" style="font-size: 13.5px; color: var(--text-primary);">Drag & drop exam paper here</h5>
+                        <p class="text-muted mb-0" style="font-size: 10.5px;">Supports PDF or Word documents</p>
+                        <input type="file" id="instant-upload-input" class="d-none" accept=".pdf,.doc,.docx,.txt">
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Latest Activity Section -->
-        <div class="card border-0 p-4 mb-4" style="border-radius: 16px !important;">
-            <div class="d-flex align-items-center justify-content-between mb-4">
-                <h4 class="fw-bold mb-0" style="font-size: 17px; color: var(--text-primary);">Latest Activity</h4>
-                <a th:href="@{/admin/submissions}" class="text-decoration-none fw-bold small d-flex align-items-center gap-1" style="color: #ff6b00;">
-                    <span>View All Activity</span>
-                    <i class="bi bi-arrow-right"></i>
-                </a>
-            </div>
-            
-            <div class="d-flex flex-column gap-3">
-                <!-- Activity 1: New paper uploaded -->
-                <div class="d-flex align-items-center justify-content-between p-3 border rounded-3" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important;">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="d-inline-flex align-items-center justify-content-center bg-opacity-10 text-primary rounded-circle" style="width: 36px; height: 36px; background-color: rgba(99, 102, 241, 0.08) !important; color: #6366f1 !important;">
-                            <i class="bi bi-file-earmark-text-fill fs-5"></i>
+        <!-- Activity, Tasks, Events & Security Rows -->
+        <div class="row g-4 mb-4">
+            <!-- Left: Today's Tasks & Activity Timeline -->
+            <div class="col-lg-8">
+                <!-- Widget: Today's Tasks -->
+                <div class="card border-0 p-4 mb-4" style="border-radius: 16px !important;">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h4 class="fw-bold mb-0" style="font-size: 17px; color: var(--text-primary);">Today's Tasks</h4>
+                        <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary fw-bold" th:text="${#lists.size(todayTasks)} + ' Tasks'">0 Tasks</span>
+                    </div>
+                    <div class="d-flex flex-column gap-2" id="today-tasks-list">
+                        <!-- Empty State -->
+                        <div th:if="${#lists.isEmpty(todayTasks)}" class="text-center py-4 text-muted">
+                            <i class="bi bi-check2-all text-success fs-2"></i>
+                            <p class="mb-0 small mt-1">No tasks scheduled for today!</p>
                         </div>
-                        <div>
-                            <span class="fw-bold d-block" style="font-size: 13px; color: var(--text-primary);">New paper uploaded</span>
-                            <span class="small text-muted" th:text="${!papers.isEmpty() ? papers[0].subject : 'Mathematics 101'}">Mathematics 101</span>
+                        <!-- Task checklist -->
+                        <div th:each="task : ${todayTasks}" class="d-flex align-items-center justify-content-between p-3 border rounded-3 hover-action" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important;">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input task-complete-checkbox" type="checkbox" th:attr="data-task-id=${task.id}" th:checked="${task.status == 'Completed'}" style="cursor: pointer; width: 1.15em; height: 1.15em;">
+                                </div>
+                                <div>
+                                    <span class="fw-bold d-block" th:classappend="${task.status == 'Completed'} ? 'text-decoration-line-through text-muted' : ''" th:text="${task.title}" style="font-size: 13.5px; color: var(--text-primary);">Task Title</span>
+                                    <span class="text-meta" style="font-size: 11px;" th:text="'Assigned to: ' + ${task.assignedTo} + ' | Created by: ' + ${task.createdBy}">Assigned by Super Admin</span>
+                                </div>
+                            </div>
+                            <span class="badge rounded-pill px-2.5 py-1.5 font-outfit" 
+                                  th:classappend="${task.priority == 'HIGH' ? 'bg-danger' : (task.priority == 'MEDIUM' ? 'bg-warning text-dark' : 'bg-success')}" 
+                                  th:text="${task.priority}">Priority</span>
                         </div>
                     </div>
-                    <span class="small text-muted fw-semibold">2 min ago</span>
                 </div>
-                
-                <!-- Activity 2: Submission received -->
-                <div class="d-flex align-items-center justify-content-between p-3 border rounded-3" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important;">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success rounded-circle" style="width: 36px; height: 36px;">
-                            <i class="bi bi-check-lg fs-5"></i>
+
+                <!-- Widget: Recent Activities Timeline -->
+                <div class="card border-0 p-4" style="border-radius: 16px !important;">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <h4 class="fw-bold mb-0" style="font-size: 17px; color: var(--text-primary);">Recent Activities</h4>
+                        <a th:href="@{/admin/calendar}" class="text-decoration-none fw-bold small d-flex align-items-center gap-1" style="color: #ff6b00;">
+                            <span>Calendar View</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                    
+                    <div class="d-flex flex-column gap-3">
+                        <div th:each="act : ${recentActivities}" class="d-flex align-items-center justify-content-between p-3 border rounded-3 activity-card" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important;">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="d-inline-flex align-items-center justify-content-center bg-opacity-10 rounded-circle" th:classappend="${act.badgeClass}" style="width: 36px; height: 36px;">
+                                    <i class="bi" th:classappend="${act.icon}"></i>
+                                </div>
+                                <div>
+                                    <span class="fw-bold d-block" style="font-size: 13px; color: var(--text-primary);" th:text="${act.message}">Activity Log</span>
+                                    <span class="small text-muted" th:text="${act.timeAgo}">Time</span>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <span class="fw-bold d-block" style="font-size: 13px; color: var(--text-primary);">Submission received</span>
-                            <span class="small text-muted" th:text="${submissionsList != null && !submissionsList.isEmpty() ? (submissionsList[0].student != null ? submissionsList[0].student.name : 'Student') + ' - ' + (submissionsList[0].paper != null ? submissionsList[0].paper.subject : 'Exam') : 'John Doe - Physics 201'}">John Doe - Physics 201</span>
+                        <div th:if="${#lists.isEmpty(recentActivities)}" class="text-center py-4 text-muted">
+                            <p class="mb-0 small">No recent activity logs available.</p>
                         </div>
                     </div>
-                    <span class="small text-muted fw-semibold">10 min ago</span>
-                </div>
-                
-                <!-- Activity 3: Evaluation completed -->
-                <div class="d-flex align-items-center justify-content-between p-3 border rounded-3" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important;">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 text-warning rounded-circle" style="width: 36px; height: 36px; background-color: rgba(245, 158, 11, 0.08) !important; color: #f59e0b !important;">
-                            <i class="bi bi-clock-fill fs-5"></i>
-                        </div>
-                        <div>
-                            <span class="fw-bold d-block" style="font-size: 13px; color: var(--text-primary);">Evaluation completed</span>
-                            <span class="small text-muted" th:text="${!papers.isEmpty() ? papers[0].subject : 'Chemistry 101'}">Chemistry 101</span>
-                        </div>
-                    </div>
-                    <span class="small text-muted fw-semibold">1 hour ago</span>
-                </div>
-                
-                <!-- Activity 4: New student registered -->
-                <div class="d-flex align-items-center justify-content-between p-3 border rounded-3" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important;">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="d-inline-flex align-items-center justify-content-center bg-purple bg-opacity-10 text-purple rounded-circle" style="width: 36px; height: 36px; background-color: rgba(139, 92, 246, 0.08) !important; color: #8b5cf6 !important;">
-                            <i class="bi bi-person-fill fs-5"></i>
-                        </div>
-                        <div>
-                            <span class="fw-bold d-block" style="font-size: 13px; color: var(--text-primary);">New student registered</span>
-                            <span class="small text-muted">Mike Johnson</span>
-                        </div>
-                    </div>
-                    <span class="small text-muted fw-semibold">2 hours ago</span>
                 </div>
             </div>
             
-            <div class="text-center mt-4">
-                <button class="btn btn-outline-secondary btn-sm px-4 py-2 border rounded-pill d-inline-flex align-items-center gap-2 fw-semibold" style="font-size: 12px; border-color: var(--border-color) !important; color: var(--text-secondary);">
-                    <span>Load More</span>
-                    <i class="bi bi-chevron-down"></i>
-                </button>
+            <!-- Right: Upcoming Events & Security Health -->
+            <div class="col-lg-4">
+                <!-- Widget: Upcoming Events Panel -->
+                <div class="card border-0 p-4 mb-4" style="border-radius: 16px !important;">
+                    <h4 class="fw-bold mb-3" style="font-size: 17px; color: var(--text-primary);">Upcoming Events</h4>
+                    
+                    <div class="d-flex flex-column gap-3">
+                        <!-- Today's Exams -->
+                        <div>
+                            <span class="text-meta uppercase fw-bold d-block mb-1.5" style="font-size: 10px; letter-spacing: 0.5px; color: var(--text-muted);">Today's Exams</span>
+                            <div th:if="${#lists.isEmpty(todayExams)}" class="p-3 border rounded text-center text-muted small" style="border-color: var(--border-color) !important; background: var(--bg-canvas);">No exams today</div>
+                            <div th:each="ex : ${todayExams}" class="p-2.5 border rounded-3 mb-1" style="border-color: rgba(2, 132, 199, 0.15) !important; background: rgba(2, 132, 199, 0.03); border-left: 3px solid #0284c7 !important;">
+                                <span class="fw-bold d-block" style="font-size: 12.5px; color: var(--text-primary);" th:text="${ex.title}">Exam</span>
+                                <span class="text-meta" style="font-size: 10.5px;" th:text="${#temporals.format(ex.startDatetime, 'hh:mm a')} + ' - ' + ${#temporals.format(ex.endDatetime, 'hh:mm a')}">09:00 AM</span>
+                            </div>
+                        </div>
+
+                        <!-- Upcoming Exams -->
+                        <div>
+                            <span class="text-meta uppercase fw-bold d-block mb-1.5" style="font-size: 10px; letter-spacing: 0.5px; color: var(--text-muted);">Upcoming Exams</span>
+                            <div th:if="${#lists.isEmpty(upcomingExams)}" class="p-3 border rounded text-center text-muted small" style="border-color: var(--border-color) !important; background: var(--bg-canvas);">No upcoming exams scheduled</div>
+                            <div th:each="ex : ${upcomingExams}" class="p-2.5 border rounded-3 mb-1" style="border-color: rgba(2, 132, 199, 0.15) !important; background: rgba(2, 132, 199, 0.03); border-left: 3px solid #0284c7 !important;">
+                                <span class="fw-bold d-block" style="font-size: 12.5px; color: var(--text-primary);" th:text="${ex.title}">Exam</span>
+                                <span class="text-meta" style="font-size: 10.5px;" th:text="${#temporals.format(ex.startDatetime, 'MMM dd, hh:mm a')}">Date</span>
+                            </div>
+                        </div>
+
+                        <!-- Pending Tasks / Overdue Tasks -->
+                        <div>
+                            <span class="text-meta uppercase fw-bold d-block mb-1.5" style="font-size: 10px; letter-spacing: 0.5px; color: var(--text-muted);">Pending Work</span>
+                            <div th:if="${#lists.isEmpty(pendingTasks) and #lists.isEmpty(overdueTasks)}" class="p-3 border rounded text-center text-muted small" style="border-color: var(--border-color) !important; background: var(--bg-canvas);">No pending work</div>
+                            
+                            <!-- Overdue Tasks -->
+                            <div th:each="task : ${overdueTasks}" class="p-2.5 border rounded-3 mb-1" style="border-color: rgba(239, 68, 68, 0.15) !important; background: rgba(239, 68, 68, 0.03); border-left: 3px solid #ef4444 !important;">
+                                <span class="fw-bold d-block text-danger" style="font-size: 12.5px;" th:text="'🚨 ' + ${task.title}">Overdue</span>
+                                <span class="text-meta text-danger" style="font-size: 10px; font-weight: 700;">OVERDUE</span>
+                            </div>
+
+                            <!-- Pending Tasks -->
+                            <div th:each="task : ${pendingTasks}" class="p-2.5 border rounded-3 mb-1" style="border-color: rgba(249, 115, 22, 0.15) !important; background: rgba(249, 115, 22, 0.03); border-left: 3px solid #f97316 !important;">
+                                <span class="fw-bold d-block" style="font-size: 12.5px; color: var(--text-primary);" th:text="${task.title}">Pending</span>
+                                <span class="text-meta" style="font-size: 10.5px;" th:text="'Due ' + ${#temporals.format(task.endDatetime, 'MMM dd')}">Due date</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Widget: Security & Health (Original) -->
+                <div class="card border-0 p-4" style="border-radius: 16px !important;">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <h4 class="fw-bold mb-0" style="font-size: 17px; color: var(--text-primary);">Security & Health</h4>
+                        <span class="badge rounded-pill bg-success bg-opacity-10 text-success fw-bold px-2 py-1" style="font-size: 10px; border: 1px solid rgba(16, 185, 129, 0.15);"><span class="status-pulse-dot me-1" style="width: 5px; height: 5px; background-color: #10b981; display: inline-block;"></span> SECURE</span>
+                    </div>
+                    
+                    <div class="d-flex flex-column gap-3">
+                        <div class="d-flex align-items-start gap-3 p-3 border rounded-3" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important;">
+                            <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success rounded-circle mt-1" style="width: 28px; height: 28px;">
+                                <i class="bi bi-database-fill-check fs-6"></i>
+                            </div>
+                            <div>
+                                <span class="fw-bold d-block" style="font-size: 12.5px; color: var(--text-primary);">Database Status</span>
+                                <span class="small text-muted" style="font-size: 11px; display: block; margin-top: 2px;">Connected & healthy (4ms latency)</span>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex align-items-start gap-3 p-3 border rounded-3" style="border-color: var(--border-color) !important; background: var(--bg-canvas); border-radius: 12px !important;">
+                            <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-circle mt-1" style="width: 28px; height: 28px; background-color: rgba(255, 107, 0, 0.08) !important; color: #ff6b00 !important;">
+                                <i class="bi bi-shield-fill-check fs-6"></i>
+                            </div>
+                            <div>
+                                <span class="fw-bold d-block" style="font-size: 12.5px; color: var(--text-primary);">Proctor Monitoring</span>
+                                <span class="small text-muted" style="font-size: 11px; display: block; margin-top: 2px;">Active & waiting for session launch</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-2">
+                            <h5 class="fw-bold mb-2 text-uppercase text-muted" style="font-size: 10px; letter-spacing: 0.5px;">Security Audit Log</h5>
+                            <div class="d-flex flex-column gap-2" style="font-size: 11px; font-family: monospace;">
+                                <div class="p-2 rounded border" style="border-color: var(--border-color) !important; background-color: rgba(255, 255, 255, 0.01);">
+                                    <span class="text-success">[OK]</span> Auto-cleanup check completed. 0 leaks.
+                                </div>
+                                <div class="p-2 rounded border" style="border-color: var(--border-color) !important; background-color: rgba(255, 255, 255, 0.01);">
+                                    <span class="text-warning">[WARN]</span> Proctor tab-switch monitoring armed.
+                                </div>
+                                <div class="p-2 rounded border" style="border-color: var(--border-color) !important; background-color: rgba(255, 255, 255, 0.01);">
+                                    <span class="text-success">[OK]</span> Backup storage synchronized.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Question Papers & Exam Status (Bottom Table) -->
-        <h3 class="fw-bold mb-3 mt-5" style="font-size: 17px !important; letter-spacing: -0.3px; color: var(--text-primary) !important;"><i class="bi bi-file-earmark-check-fill text-primary me-2"></i>Question Papers & Exam Status</h3>
-        <div class="card border-0 saas-table-card mb-4">
+        <div class="d-flex flex-column gap-2 mb-3 mt-5">
+            <h3 class="fw-bold mb-0" style="font-size: 18px !important; letter-spacing: -0.3px; color: var(--text-primary) !important;">
+                <i class="bi bi-file-earmark-check-fill text-primary me-2"></i>Exam Control Center
+            </h3>
+            <p class="text-muted small mb-0">Manage uploaded exam papers, activate testing sessions, and monitor active timers in real time.</p>
+        </div>
+
+        <!-- Interactive Filtering controls -->
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 p-2 bg-white rounded-4 border shadow-sm dark-bg-adjust" style="background-color: var(--card-bg) !important; border-color: var(--border-color) !important;">
+            <!-- Search Bar -->
+            <div class="position-relative flex-grow-1" style="max-width: 380px; min-width: 260px;">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                <input type="text" id="paper-search-input" class="form-control ps-5 rounded-pill border-0 shadow-sm" placeholder="Search exams by subject or course..." style="background-color: var(--bg-canvas); color: var(--text-primary); border: 1px solid var(--border-color) !important; padding: 0.55rem 1rem; font-size: 13px;">
+            </div>
+            <!-- Tabs -->
+            <div class="d-flex align-items-center gap-1 p-1 rounded-pill" style="border: 1px solid var(--border-color); background-color: var(--bg-canvas) !important;">
+                <button class="btn btn-sm rounded-pill px-3 py-1.5 active filter-tab-btn" data-filter="all" style="font-size: 11.5px; font-weight: 600;">All</button>
+                <button class="btn btn-sm rounded-pill px-3 py-1.5 filter-tab-btn" data-filter="active" style="font-size: 11.5px; font-weight: 600;">Active</button>
+                <button class="btn btn-sm rounded-pill px-3 py-1.5 filter-tab-btn" data-filter="published" style="font-size: 11.5px; font-weight: 600;">Published</button>
+                <button class="btn btn-sm rounded-pill px-3 py-1.5 filter-tab-btn" data-filter="draft" style="font-size: 11.5px; font-weight: 600;">Draft</button>
+                <button class="btn btn-sm rounded-pill px-3 py-1.5 filter-tab-btn" data-filter="ended" style="font-size: 11.5px; font-weight: 600;">Ended</button>
+            </div>
+        </div>
+
+        <div class="card border-0 saas-table-card mb-5">
             <div class="table-responsive">
                 <table class="table align-middle saas-table">
                     <thead>
                         <tr>
-                            <th>Subject Name</th>
-                            <th>Course / Sem</th>
+                            <th>Subject / Exam Details</th>
+                            <th>Course & Semester</th>
                             <th>Eligible Students</th>
                             <th>Attempts</th>
                             <th>Uploaded At</th>
@@ -598,45 +883,48 @@
                             <th class="text-end">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="text-secondary">
-                        <tr th:each="p : ${papers}">
+                    <tbody class="text-secondary" id="papers-table-body">
+                        <tr th:each="p : ${papers}" class="paper-row" th:attr="data-status=${#strings.toLowerCase(p.examStatus)}, data-subject=${#strings.toLowerCase(p.subject)}, data-course=${#strings.toLowerCase(p.course)}">
                             <td class="fw-bold" style="color: var(--text-primary) !important;">
                                 <div class="d-flex align-items-center">
-                                    <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-3" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background-color: rgba(255, 107, 0, 0.08) !important; color: #ff6b00 !important;">
+                                    <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: rgba(255, 107, 0, 0.08) !important; color: #ff6b00 !important;">
                                         <i class="bi bi-file-earmark-text-fill fs-5"></i>
                                     </div>
-                                    <span th:text="${p.subject}">Subject</span>
+                                    <div class="d-flex flex-column">
+                                        <span th:text="${p.subject}" style="font-size: 14.5px;">Subject</span>
+                                        <span class="text-muted fw-normal mt-0.5" style="font-size: 11px;" th:text="${p.totalMarks != null ? p.totalMarks + ' Marks' : '100 Marks'}">100 Marks</span>
+                                    </div>
                                 </div>
                             </td>
-                            <td class="fw-semibold" style="color: var(--text-primary) !important;">
-                                <span class="d-inline-flex align-items-center gap-2">
-                                    <i class="bi bi-mortarboard text-secondary"></i>
-                                    <span th:text="${p.course} + ' - Sem ' + ${p.semester}">B.Tech - Sem 1</span>
-                                </span>
+                            <td>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold" style="color: var(--text-primary) !important; font-size: 13.5px;" th:text="${p.course}">B.Tech</span>
+                                    <span class="text-muted" style="font-size: 11px; font-weight: 600;" th:text="'Sem ' + ${p.semester}">Sem 1</span>
+                                </div>
                             </td>
-                            <td class="fw-semibold" style="color: var(--text-primary) !important;">
-                                <span class="d-inline-flex align-items-center gap-2">
-                                    <i class="bi bi-people text-secondary"></i>
+                            <td>
+                                <span class="d-inline-flex align-items-center gap-1.5 px-3 py-1.5 rounded-pill" style="background-color: rgba(99, 102, 241, 0.05); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.1); font-weight: 600; font-size: 12.5px;">
+                                    <i class="bi bi-people-fill"></i>
                                     <span th:text="${eligibleStudentsMap.get(p.id)}">0</span>
                                 </span>
                             </td>
-                            <td class="fw-semibold" style="color: var(--text-primary) !important;">
-                                <span class="d-inline-flex align-items-center gap-2">
-                                    <i class="bi bi-clipboard-check text-secondary"></i>
+                            <td>
+                                <span class="d-inline-flex align-items-center gap-1.5 px-3 py-1.5 rounded-pill" style="background-color: rgba(16, 185, 129, 0.05); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.1); font-weight: 600; font-size: 12.5px;">
+                                    <i class="bi bi-clipboard2-check-fill"></i>
                                     <span th:text="${attemptsMap.get(p.id)}">0</span>
                                 </span>
                             </td>
                             <td class="text-meta fw-semibold">
-                                <span class="d-inline-flex align-items-center gap-2">
-                                    <i class="bi bi-calendar3"></i>
-                                    <span th:text="${#temporals.format(p.uploadedAt, 'yyyy-MM-dd HH:mm')}">Uploaded At</span>
-                                </span>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-semibold" style="color: var(--text-primary) !important; font-size: 12.5px;" th:text="${#temporals.format(p.uploadedAt, 'MMM dd, yyyy')}">Jun 05, 2026</span>
+                                    <span class="text-muted fw-normal" style="font-size: 11px;" th:text="${#temporals.format(p.uploadedAt, 'HH:mm')}">14:30</span>
+                                </div>
                             </td>
                             <td class="paper-status-cell" th:attr="data-paper-id=${p.id}">
-                                <span th:if="${p.examStatus == 'DRAFT'}" class="status-badge-saas status-badge-draft"><i class="bi bi-pencil-square"></i> DRAFT</span>
-                                <span th:if="${p.examStatus == 'PUBLISHED'}" class="status-badge-saas status-badge-published"><i class="bi bi-file-earmark-arrow-up"></i> PUBLISHED</span>
-                                <span th:if="${p.examStatus == 'ACTIVE'}" class="status-badge-saas status-badge-active"><i class="bi bi-broadcast"></i> ACTIVE</span>
-                                <span th:if="${p.examStatus == 'ENDED'}" class="status-badge-saas status-badge-ended"><i class="bi bi-slash-circle"></i> ENDED</span>
+                                <span th:if="${p.examStatus == 'DRAFT'}" class="status-badge-premium status-draft"><span class="status-dot"></span> DRAFT</span>
+                                <span th:if="${p.examStatus == 'PUBLISHED'}" class="status-badge-premium status-published"><span class="status-dot"></span> PUBLISHED</span>
+                                <span th:if="${p.examStatus == 'ACTIVE'}" class="status-badge-premium status-active"><span class="status-pulse-dot"></span> ACTIVE</span>
+                                <span th:if="${p.examStatus == 'ENDED'}" class="status-badge-premium status-ended"><span class="status-dot"></span> ENDED</span>
                             </td>
                             <td class="text-end paper-action-cell" th:attr="data-paper-id=${p.id}">
                                 <!-- Show Activate Exam button ONLY if paper is DRAFT or PUBLISHED -->
@@ -653,14 +941,23 @@
                                 </div>
 
                                 <!-- Show Ended label if ENDED -->
-                                <span th:if="${p.examStatus == 'ENDED'}" class="text-danger fw-bold small"><i class="bi bi-x-circle-fill me-1"></i> Ended</span>
+                                <span th:if="${p.examStatus == 'ENDED'}" class="text-danger fw-bold small d-inline-flex align-items-center gap-1.5"><i class="bi bi-check-circle-fill"></i> Ended</span>
                             </td>
                         </tr>
-                        <tr th:if="${papers == null or papers.isEmpty()}">
+                        <tr th:if="${papers == null or papers.isEmpty()}" id="no-papers-row">
                             <td colspan="7" class="py-5 text-center text-muted">
                                 <div class="py-3">
                                     <i class="bi bi-file-earmark-x fs-1 text-secondary opacity-30 d-block mb-2"></i>
                                     <span>No question papers uploaded yet.</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- Client-side "No Results Found" row -->
+                        <tr id="no-search-results-row" style="display: none;">
+                            <td colspan="7" class="py-5 text-center text-muted">
+                                <div class="py-3">
+                                    <i class="bi bi-search fs-1 text-secondary opacity-30 d-block mb-2"></i>
+                                    <span>No exams matching search filter found.</span>
                                 </div>
                             </td>
                         </tr>
@@ -680,6 +977,60 @@
             const dateEl = document.getElementById('current-date');
             if (dateEl) {
                 dateEl.textContent = new Date().toLocaleDateString('en-US', options);
+            }
+
+            // Live Exam HUD Initialization
+            let firstActivePaperId = null;
+            const activeRows = document.querySelectorAll('.paper-row[data-status="active"]');
+            const hudActiveState = document.getElementById('hud-active-state');
+            const hudStandbyState = document.getElementById('hud-standby-state');
+            const liveExamHud = document.getElementById('live-exam-hud');
+
+            if (liveExamHud) {
+                // Ensure HUD container is visible
+                liveExamHud.style.display = 'block';
+
+                if (activeRows.length > 0) {
+                    const firstActive = activeRows[0];
+                    const statusCell = firstActive.querySelector('.paper-status-cell');
+                    firstActivePaperId = statusCell ? statusCell.getAttribute('data-paper-id') : null;
+
+                    // Extract text content cleanly
+                    const subjectSpan = firstActive.querySelector('td:nth-child(1) span');
+                    const subject = subjectSpan ? subjectSpan.textContent : 'Exam';
+                    
+                    const courseSpan = firstActive.querySelector('td:nth-child(2) span.fw-bold');
+                    const course = courseSpan ? courseSpan.textContent : '';
+                    
+                    const semSpan = firstActive.querySelector('td:nth-child(2) span.text-muted');
+                    const semester = semSpan ? semSpan.textContent : '';
+
+                    const eligibleSpan = firstActive.querySelector('td:nth-child(3) span span');
+                    const eligibleCount = eligibleSpan ? parseInt(eligibleSpan.textContent) || 0 : 0;
+                    
+                    const attemptsSpan = firstActive.querySelector('td:nth-child(4) span span');
+                    const attemptsCount = attemptsSpan ? parseInt(attemptsSpan.textContent) || 0 : 0;
+
+                    // Update HUD texts
+                    document.getElementById('hud-subject-name').textContent = subject;
+                    document.getElementById('hud-course-sem').textContent = `${course} - ${semester}`;
+                    document.getElementById('hud-submission-ratio').textContent = `${attemptsCount} / ${eligibleCount} Students`;
+
+                    const progressPercent = eligibleCount > 0 ? Math.round((attemptsCount / eligibleCount) * 100) : 0;
+                    const progressBar = document.getElementById('hud-progress-bar');
+                    if (progressBar) {
+                        progressBar.style.width = `${progressPercent}%`;
+                        progressBar.setAttribute('aria-valuenow', progressPercent);
+                    }
+
+                    // Show active, hide standby
+                    if (hudActiveState) hudActiveState.classList.remove('d-none');
+                    if (hudStandbyState) hudStandbyState.classList.add('d-none');
+                } else {
+                    // Show standby, hide active
+                    if (hudActiveState) hudActiveState.classList.add('d-none');
+                    if (hudStandbyState) hudStandbyState.classList.remove('d-none');
+                }
             }
 
             // Real-Time Countdown Timer Engine for Active Exams
@@ -723,13 +1074,19 @@
                         // Change Action column to Ended label
                         const actionCell = document.querySelector(`.paper-action-cell[data-paper-id="${paperId}"]`);
                         if (actionCell) {
-                            actionCell.innerHTML = `<span class="text-danger fw-bold small"><i class="bi bi-x-circle-fill me-1"></i> Ended</span>`;
+                            actionCell.innerHTML = `<span class="text-danger fw-bold small d-inline-flex align-items-center gap-1.5"><i class="bi bi-check-circle-fill"></i> Ended</span>`;
                         }
 
                         // Change Status badge to ENDED (Red)
                         const statusCell = document.querySelector(`.paper-status-cell[data-paper-id="${paperId}"]`);
                         if (statusCell) {
-                            statusCell.innerHTML = `<span class="status-badge-saas status-badge-ended"><i class="bi bi-slash-circle"></i> ENDED</span>`;
+                            statusCell.innerHTML = `<span class="status-badge-premium status-ended"><span class="status-dot"></span> ENDED</span>`;
+                        }
+
+                        // Switch HUD state to standby if it was the active paper
+                        if (paperId === firstActivePaperId) {
+                            if (hudActiveState) hudActiveState.classList.add('d-none');
+                            if (hudStandbyState) hudStandbyState.classList.remove('d-none');
                         }
 
                         clearInterval(timerInterval);
@@ -750,9 +1107,17 @@
 
                     textSpan.textContent = displayStr;
 
+                    // Update HUD clock string in real-time
+                    if (paperId === firstActivePaperId) {
+                        const hudTimerText = document.getElementById('hud-timer-text');
+                        if (hudTimerText) {
+                            hudTimerText.textContent = displayStr;
+                        }
+                    }
+
                     // Urgent Warning: Less than 5 minutes remaining
                     if (remainingMs < 5 * 60 * 1000) {
-                        timer.className = "d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill border text-danger bg-danger bg-opacity-10 border-danger border-opacity-20";
+                        timer.className = "timer-badge-premium d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill border text-danger bg-danger bg-opacity-10 border-danger border-opacity-20";
                         if (icon) icon.className = "bi bi-stopwatch animate-pulse text-danger";
                     }
                 }
@@ -762,7 +1127,230 @@
                 // Tick every second
                 const timerInterval = setInterval(updateCountdown, 1000);
             });
+
+            // Search and Status Filtering for Exam Control Center
+            const searchInput = document.getElementById('paper-search-input');
+            const filterTabs = document.querySelectorAll('.filter-tab-btn');
+            const paperRows = document.querySelectorAll('.paper-row');
+            const noSearchResultsRow = document.getElementById('no-search-results-row');
+
+            let currentFilter = 'all';
+            let searchQuery = '';
+
+            function applyFilters() {
+                let visibleCount = 0;
+                
+                paperRows.forEach(row => {
+                    const status = row.getAttribute('data-status') || '';
+                    const subject = row.getAttribute('data-subject') || '';
+                    const course = row.getAttribute('data-course') || '';
+
+                    const matchesFilter = (currentFilter === 'all' || status === currentFilter);
+                    const matchesSearch = (subject.includes(searchQuery) || course.includes(searchQuery));
+
+                    if (matchesFilter && matchesSearch) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                if (noSearchResultsRow) {
+                    if (paperRows.length > 0 && visibleCount === 0) {
+                        noSearchResultsRow.style.display = '';
+                    } else {
+                        noSearchResultsRow.style.display = 'none';
+                    }
+                }
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function(e) {
+                    searchQuery = e.target.value.toLowerCase().trim();
+                    applyFilters();
+                });
+            }
+
+            filterTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    filterTabs.forEach(t => {
+                        t.classList.remove('active');
+                        t.classList.add('text-muted');
+                    });
+                    this.classList.add('active');
+                    this.classList.remove('text-muted');
+                    currentFilter = this.getAttribute('data-filter');
+                    applyFilters();
+                });
+            });
+
+            // Drag and Drop Zone Engine
+            const dragZone = document.getElementById('drag-drop-zone');
+            const fileInput = document.getElementById('instant-upload-input');
+            const modalFileInput = document.getElementById('modal-file-input');
+            const droppedFileName = document.getElementById('dropped-file-name');
+            const droppedFileSize = document.getElementById('dropped-file-size');
+            const modalEl = document.getElementById('uploadDetailsModal');
+            let bootstrapModal = null;
+
+            if (modalEl) {
+                bootstrapModal = new bootstrap.Modal(modalEl);
+            }
+
+            if (dragZone && fileInput) {
+                dragZone.addEventListener('click', () => {
+                    fileInput.click();
+                });
+
+                fileInput.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        handleSelectedFile(e.target.files[0]);
+                    }
+                });
+
+                // Highlight drag area on hover
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dragZone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dragZone.style.borderColor = 'var(--success)';
+                        dragZone.style.backgroundColor = 'rgba(16, 185, 129, 0.04)';
+                        const icon = document.getElementById('drag-drop-icon');
+                        if (icon) icon.style.transform = 'translateY(-5px) scale(1.1)';
+                    }, false);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dragZone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dragZone.style.borderColor = 'var(--primary)';
+                        dragZone.style.backgroundColor = 'var(--bg-canvas)';
+                        const icon = document.getElementById('drag-drop-icon');
+                        if (icon) icon.style.transform = '';
+                    }, false);
+                });
+
+                dragZone.addEventListener('drop', (e) => {
+                    const dt = e.dataTransfer;
+                    const files = dt.files;
+                    if (files.length > 0) {
+                        handleSelectedFile(files[0]);
+                    }
+                });
+            }
+
+            function handleSelectedFile(file) {
+                if (!file) return;
+                
+                if (droppedFileName) droppedFileName.textContent = file.name;
+                if (droppedFileSize) {
+                    const sizeKB = (file.size / 1024).toFixed(1);
+                    droppedFileSize.textContent = `${sizeKB} KB`;
+                }
+
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                if (modalFileInput) {
+                    modalFileInput.files = dataTransfer.files;
+                }
+
+                if (bootstrapModal) {
+                    bootstrapModal.show();
+                }
+            }
+
+            // Handle task checkboxes check/uncheck AJAX
+            document.querySelectorAll('.task-complete-checkbox').forEach(chk => {
+                chk.addEventListener('change', function() {
+                    const taskId = this.getAttribute('data-task-id');
+                    const label = this.closest('.hover-action').querySelector('span.fw-bold');
+                    
+                    const params = new URLSearchParams();
+                    params.append('id', taskId);
+
+                    fetch('/admin/calendar/event/toggle-complete', {
+                        method: 'POST',
+                        body: params
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            if (data.event.status === 'Completed') {
+                                label.classList.add('text-decoration-line-through', 'text-muted');
+                            } else {
+                                label.classList.remove('text-decoration-line-through', 'text-muted');
+                            }
+                        } else {
+                            alert('Error updating task: ' + data.message);
+                            this.checked = !this.checked;
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        this.checked = !this.checked;
+                    });
+                });
+            });
         });
     </script>
+
+    <!-- Instant Upload Details Modal -->
+    <div class="modal fade" id="uploadDetailsModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="uploadDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0" style="border-radius: 20px !important; background-color: var(--card-bg); color: var(--text-secondary); border: 1px solid var(--border-color) !important; box-shadow: var(--card-shadow-hover) !important; backdrop-filter: blur(20px);">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="uploadDetailsModalLabel" style="color: var(--text-primary); font-size: 17px;"><i class="bi bi-file-earmark-arrow-up text-primary me-2"></i>Complete Import Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: var(--theme-close-btn-filter);"></button>
+                </div>
+                <div class="modal-body pt-3">
+                    <form id="instant-upload-form" th:action="@{/admin/upload-paper}" method="POST" enctype="multipart/form-data">
+                        <input type="file" name="file" id="modal-file-input" class="d-none">
+                        
+                        <div class="p-3 mb-3 border rounded-3 d-flex align-items-center gap-3 bg-light dark-bg-adjust" style="background-color: var(--bg-canvas) !important; border-color: var(--border-color) !important;">
+                            <i class="bi bi-file-earmark-zip-fill text-primary fs-3"></i>
+                            <div class="min-w-0 flex-grow-1">
+                                <span class="fw-bold d-block text-truncate" id="dropped-file-name" style="font-size: 13px; color: var(--text-primary);">filename.pdf</span>
+                                <span class="small text-muted" id="dropped-file-size" style="font-size: 11px;">0 KB</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="modal-subject" class="form-label label-custom" style="font-size: 10.5px; font-weight: 700; color: var(--text-muted);">Subject Name</label>
+                            <input type="text" name="subject" id="modal-subject" class="form-control rounded-3" placeholder="e.g. Mathematics 101" required style="background-color: var(--bg-canvas); color: var(--text-primary); border: 1px solid var(--border-color) !important; font-size: 13px; padding: 0.6rem 0.85rem;">
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label for="modal-course" class="form-label label-custom" style="font-size: 10.5px; font-weight: 700; color: var(--text-muted);">Course</label>
+                                <input type="text" name="course" id="modal-course" class="form-control rounded-3" placeholder="e.g. B.Tech" required style="background-color: var(--bg-canvas); color: var(--text-primary); border: 1px solid var(--border-color) !important; font-size: 13px; padding: 0.6rem 0.85rem;">
+                            </div>
+                            <div class="col-6">
+                                <label for="modal-semester" class="form-label label-custom" style="font-size: 10.5px; font-weight: 700; color: var(--text-muted);">Semester</label>
+                                <input type="text" name="semester" id="modal-semester" class="form-control rounded-3" placeholder="e.g. 1" required style="background-color: var(--bg-canvas); color: var(--text-primary); border: 1px solid var(--border-color) !important; font-size: 13px; padding: 0.6rem 0.85rem;">
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label for="modal-duration" class="form-label label-custom" style="font-size: 10.5px; font-weight: 700; color: var(--text-muted);">Duration (Mins)</label>
+                                <input type="number" name="duration" id="modal-duration" class="form-control rounded-3" placeholder="e.g. 120" required style="background-color: var(--bg-canvas); color: var(--text-primary); border: 1px solid var(--border-color) !important; font-size: 13px; padding: 0.6rem 0.85rem;">
+                            </div>
+                            <div class="col-6">
+                                <label for="modal-total-marks" class="form-label label-custom" style="font-size: 10.5px; font-weight: 700; color: var(--text-muted);">Total Marks</label>
+                                <input type="number" step="0.5" name="totalMarks" id="modal-total-marks" class="form-control rounded-3" placeholder="e.g. 100" required style="background-color: var(--bg-canvas); color: var(--text-primary); border: 1px solid var(--border-color) !important; font-size: 13px; padding: 0.6rem 0.85rem;">
+                            </div>
+                        </div>
+
+                        <div class="modal-footer border-top-0 px-0 pb-0 pt-3">
+                            <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal" style="font-size: 12px; padding: 0.5rem 1.25rem;">Cancel</button>
+                            <button type="submit" class="btn btn-primary rounded-pill d-flex align-items-center gap-1.5 px-4" style="font-size: 12px; padding: 0.5rem 1.25rem;"><i class="bi bi-cloud-arrow-up-fill"></i> Upload & Import</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
