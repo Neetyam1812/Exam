@@ -12,12 +12,26 @@ import java.util.List;
 @Repository
 public interface CalendarEventRepository extends JpaRepository<CalendarEvent, Long> {
 
-    @Query("SELECT e FROM CalendarEvent e WHERE e.eventType = 'EXAM' OR e.visibility = 'SHARED' OR e.createdBy = :username OR e.assignedTo = :username")
-    List<CalendarEvent> findVisibleEvents(@Param("username") String username);
+    @Query("SELECT e FROM CalendarEvent e WHERE " +
+           "e.visibility = 'PUBLIC' " +
+           "OR e.eventType = 'EXAM' " +
+           "OR e.eventType = 'HOLIDAY' " +
+           "OR (e.visibility = 'PRIVATE' AND e.createdBy = :username) " +
+           "OR (e.visibility = 'SHARED' AND (e.createdBy = :username OR e.sharedWith LIKE CONCAT('%,', :userIdStr, ',%') OR e.assignedTo = 'Everyone' OR e.assignedTo = 'All')) " +
+           "OR (e.visibility IS NULL AND (e.eventType = 'EXAM' OR e.createdBy = :username OR e.assignedTo = :username))")
+    List<CalendarEvent> findVisibleEvents(@Param("username") String username, @Param("userIdStr") String userIdStr);
 
-    @Query("SELECT e FROM CalendarEvent e WHERE (e.eventType = 'EXAM' OR e.visibility = 'SHARED' OR e.createdBy = :username OR e.assignedTo = :username) AND e.startDatetime >= :start AND e.endDatetime <= :end")
+    @Query("SELECT e FROM CalendarEvent e WHERE (" +
+           "e.visibility = 'PUBLIC' " +
+           "OR e.eventType = 'EXAM' " +
+           "OR e.eventType = 'HOLIDAY' " +
+           "OR (e.visibility = 'PRIVATE' AND e.createdBy = :username) " +
+           "OR (e.visibility = 'SHARED' AND (e.createdBy = :username OR e.sharedWith LIKE CONCAT('%,', :userIdStr, ',%') OR e.assignedTo = 'Everyone' OR e.assignedTo = 'All')) " +
+           "OR (e.visibility IS NULL AND (e.eventType = 'EXAM' OR e.createdBy = :username OR e.assignedTo = :username))" +
+           ") AND e.startDatetime >= :start AND e.endDatetime <= :end")
     List<CalendarEvent> findVisibleEventsInDateRange(
             @Param("username") String username,
+            @Param("userIdStr") String userIdStr,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end
     );

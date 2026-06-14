@@ -183,7 +183,7 @@ public class AdminDashboardController {
         model.addAttribute("absentCount", absentCount);
 
         // Fetch Collaborative Calendar & Tasks details
-        List<CalendarEvent> allVisibleEvents = calendarEventRepository.findVisibleEvents(admin.getAdminName());
+        List<CalendarEvent> allVisibleEvents = calendarEventRepository.findVisibleEvents(admin.getAdminName(), admin.getId().toString());
         
         // Auto-check overdue tasks on page load
         LocalDateTime nowLimit = LocalDateTime.now();
@@ -200,7 +200,7 @@ public class AdminDashboardController {
             }
         }
         if (eventsModified) {
-            allVisibleEvents = calendarEventRepository.findVisibleEvents(admin.getAdminName());
+            allVisibleEvents = calendarEventRepository.findVisibleEvents(admin.getAdminName(), admin.getId().toString());
         }
 
         LocalDate todayDate = LocalDate.now();

@@ -72,7 +72,7 @@ public class AdminCalendarController {
         Admin admin = getLoggedInAdmin(session);
         if (admin == null) return List.of();
         
-        List<CalendarEvent> events = new java.util.ArrayList<>(calendarEventRepository.findVisibleEvents(admin.getAdminName()));
+        List<CalendarEvent> events = new java.util.ArrayList<>(calendarEventRepository.findVisibleEvents(admin.getAdminName(), admin.getId().toString()));
         
         // Auto-update overdue events
         LocalDateTime now = LocalDateTime.now();
@@ -89,7 +89,7 @@ public class AdminCalendarController {
             }
         }
         if (changed) {
-            events = new java.util.ArrayList<>(calendarEventRepository.findVisibleEvents(admin.getAdminName()));
+            events = new java.util.ArrayList<>(calendarEventRepository.findVisibleEvents(admin.getAdminName(), admin.getId().toString()));
         }
         
         // Inject dynamic festival and public holidays
@@ -149,7 +149,7 @@ public class AdminCalendarController {
         h.setEndDatetime(LocalDateTime.of(year, month, day, 23, 59));
         h.setCreatedBy("System");
         h.setAssignedTo("All");
-        h.setVisibility("SHARED");
+        h.setVisibility("PUBLIC");
         list.add(h);
     }
 
@@ -159,6 +159,48 @@ public class AdminCalendarController {
         return adminRepository.findAll().stream()
                 .map(Admin::getAdminName)
                 .collect(Collectors.toList());
+    }
+
+    @GetMapping("/users")
+    @ResponseBody
+    public List<Map<String, Object>> getUsers(HttpSession session) {
+        Admin current = getLoggedInAdmin(session);
+        if (current == null) return List.of();
+        
+        List<Admin> allAdmins = adminRepository.findAll();
+        List<Map<String, Object>> result = new java.util.ArrayList<>();
+        
+        for (Admin a : allAdmins) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", a.getId());
+            map.put("username", a.getAdminName());
+            map.put("email", a.getEmail());
+            
+            String role = "Teacher";
+            String displayName = a.getAdminName();
+            
+            if ("superadmin".equalsIgnoreCase(a.getAdminName())) {
+                role = "Super Admin";
+                displayName = "Super Admin";
+            } else if ("examadmin".equalsIgnoreCase(a.getAdminName())) {
+                role = "Exam Admin";
+                displayName = "Exam Admin";
+            } else if ("facultyadmin".equalsIgnoreCase(a.getAdminName())) {
+                role = "Faculty Admin";
+                displayName = "Faculty Admin";
+            } else if ("controller".equalsIgnoreCase(a.getAdminName())) {
+                role = "Controller";
+                displayName = "Controller";
+            } else {
+                role = "Teacher";
+                displayName = a.getAdminName() + " (Teacher)";
+            }
+            
+            map.put("role", role);
+            map.put("displayName", displayName);
+            result.add(map);
+        }
+        return result;
     }
 
     @PostMapping("/event/add")
@@ -176,6 +218,7 @@ public class AdminCalendarController {
             @RequestParam(value = "endTime", required = false) String endTimeStr,
             @RequestParam(value = "assignedTo", required = false) String assignedTo,
             @RequestParam(value = "visibility", defaultValue = "SHARED") String visibility,
+            @RequestParam(value = "sharedWith", required = false) String sharedWith,
             HttpSession session) {
 
         Map<String, Object> response = new HashMap<>();
@@ -194,6 +237,9 @@ public class AdminCalendarController {
             event.setEventType(eventType);
             event.setPriority(priority);
             event.setVisibility(visibility);
+            if (sharedWith != null) {
+                event.setSharedWith(sharedWith);
+            }
             event.setCreatedBy(admin.getAdminName());
             event.setStatus("Pending");
 
@@ -262,10 +308,12 @@ public class AdminCalendarController {
         Optional<CalendarEvent> eventOpt = calendarEventRepository.findById(id);
         if (eventOpt.isPresent()) {
             CalendarEvent event = eventOpt.get();
-            // Check authorization: must be creator, assignee, or assigned to everyone/all to update
+            // Check authorization: must be creator, assignee, assigned to everyone/all, or shared to update
             boolean isAssignee = admin.getAdminName().equalsIgnoreCase(event.getAssignedTo());
             boolean isEveryone = "Everyone".equalsIgnoreCase(event.getAssignedTo()) || "All".equalsIgnoreCase(event.getAssignedTo());
-            if (!admin.getAdminName().equalsIgnoreCase(event.getCreatedBy()) && !isAssignee && !isEveryone) {
+            boolean isShared = "SHARED".equalsIgnoreCase(event.getVisibility());
+            boolean isPublic = "PUBLIC".equalsIgnoreCase(event.getVisibility());
+            if (!admin.getAdminName().equalsIgnoreCase(event.getCreatedBy()) && !isAssignee && !isEveryone && !isShared && !isPublic) {
                 response.put("status", "error");
                 response.put("message", "Permission denied");
                 return ResponseEntity.status(403).body(response);
@@ -308,7 +356,9 @@ public class AdminCalendarController {
             CalendarEvent event = eventOpt.get();
             boolean isAssignee = admin.getAdminName().equalsIgnoreCase(event.getAssignedTo());
             boolean isEveryone = "Everyone".equalsIgnoreCase(event.getAssignedTo()) || "All".equalsIgnoreCase(event.getAssignedTo());
-            if (!admin.getAdminName().equalsIgnoreCase(event.getCreatedBy()) && !isAssignee && !isEveryone) {
+            boolean isShared = "SHARED".equalsIgnoreCase(event.getVisibility());
+            boolean isPublic = "PUBLIC".equalsIgnoreCase(event.getVisibility());
+            if (!admin.getAdminName().equalsIgnoreCase(event.getCreatedBy()) && !isAssignee && !isEveryone && !isShared && !isPublic) {
                 response.put("status", "error");
                 response.put("message", "Permission denied");
                 return ResponseEntity.status(403).body(response);

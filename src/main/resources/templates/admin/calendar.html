@@ -402,7 +402,9 @@
         searchQuery,
         setSearchQuery,
         darkMode,
-        setDarkMode
+        setDarkMode,
+        categoryFilters,
+        setCategoryFilters
     }) {
         const handleThemeToggle = () => {
             const body = document.body;
@@ -519,13 +521,17 @@
                         <i className="bi bi-chevron-down absolute right-3.5 text-xs text-gray-500 dark:text-gray-400 pointer-events-none"></i>
                     </div>
 
+
                     <button 
-                        className={`p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#2a2a2a] ${currentView === 'month' ? 'text-[#1a73e8]' : 'text-gray-600 dark:text-[#e8eaed]'}`}
-                        onClick={() => setCurrentView('month')}
+                        className={`p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#2a2a2a] ${categoryFilters.tasks ? 'text-[#0b8043] dark:text-[#0f9d58]' : 'text-gray-400 dark:text-gray-650'}`}
+                        onClick={() => {
+                            setCategoryFilters(prev => ({
+                                ...prev,
+                                tasks: !prev.tasks
+                            }));
+                        }}
+                        title="Toggle Tasks Visibility"
                     >
-                        <i className="bi bi-grid-3x3-gap-fill"></i>
-                    </button>
-                    <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-gray-600 dark:text-[#e8eaed]">
                         <i className="bi bi-check2-circle"></i>
                     </button>
                 </div>
@@ -543,7 +549,10 @@
         setConflictCheckOpen,
         globalConflicts,
         onCreateEventClick,
-        adminName
+        adminName,
+        allAdmins = [],
+        visibleAdmins = {},
+        setVisibleAdmins
     }) {
         const [miniMonth, setMiniMonth] = useState(dateHelpers.startOfMonth(currentDate));
         const [myCalsExpanded, setMyCalsExpanded] = useState(true);
@@ -760,6 +769,32 @@
                                 </div>
                                 <span>Exams</span>
                             </label>
+
+                            {/* Other admins dynamic checkboxes */}
+                            {allAdmins.filter(name => name.toLowerCase() !== adminName.toLowerCase()).map(name => {
+                                const isChecked = visibleAdmins[name] !== false;
+                                return (
+                                    <label key={name} className="flex items-center gap-3 px-1.5 py-1 rounded hover:bg-gray-50 dark:hover:bg-[#2a2a2a] cursor-pointer text-[13px] text-gray-700 dark:text-[#e8eaed]">
+                                        <input
+                                            type="checkbox"
+                                            checked={isChecked}
+                                            onChange={() => {
+                                                setVisibleAdmins(prev => ({
+                                                    ...prev,
+                                                    [name]: !isChecked
+                                                }));
+                                            }}
+                                            className="sr-only"
+                                        />
+                                        <div 
+                                            className={`w-3.5 h-3.5 rounded-[3px] flex items-center justify-center border transition-all ${isChecked ? 'border-transparent text-white bg-[#1a73e8]' : 'border-gray-400 dark:border-gray-650 bg-transparent'}`}
+                                        >
+                                            {isChecked && <i className="bi bi-check-lg text-[10px]"></i>}
+                                        </div>
+                                        <span>{name}</span>
+                                    </label>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
@@ -1419,7 +1454,9 @@
         popoverCoords,
         mode,
         setMode,
-        allAdmins
+        allAdmins,
+        adminName,
+        usersList = []
     }) {
         const [title, setTitle] = useState('');
         const [category, setCategory] = useState('admin');
@@ -1429,9 +1466,24 @@
         const [room, setRoom] = useState('');
         const [description, setDescription] = useState('');
         const [priority, setPriority] = useState('LOW');
-        const [visibility, setVisibility] = useState('SHARED');
+        const [visibility, setVisibility] = useState('PRIVATE');
         const [assignedTo, setAssignedTo] = useState('');
         const [eventType, setEventType] = useState('TASK');
+
+        const [selectedUserIds, setSelectedUserIds] = useState([]);
+        const [userSearch, setUserSearch] = useState('');
+        const [dropdownOpen, setDropdownOpen] = useState(false);
+        const searchContainerRef = useRef(null);
+
+        useEffect(() => {
+            const handleClickOutside = (e) => {
+                if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
+                    setDropdownOpen(false);
+                }
+            };
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => document.removeEventListener('mousedown', handleClickOutside);
+        }, []);
 
         useEffect(() => {
             if (editEvent) {
@@ -1445,9 +1497,14 @@
                 setRoom(editEvent.room || '');
                 setDescription(cleanDescription(editEvent.description) || '');
                 setPriority(editEvent.priority || 'LOW');
-                setVisibility(editEvent.visibility || 'SHARED');
+                setVisibility(editEvent.visibility || 'PRIVATE');
                 setAssignedTo(editEvent.assignedTo || '');
                 setEventType(editEvent.eventType || 'TASK');
+
+                const ids = (editEvent.sharedWith || '').split(',').filter(Boolean).map(Number);
+                setSelectedUserIds(ids);
+                setUserSearch('');
+                setDropdownOpen(false);
             } else if (selectedDate) {
                 setTitle('');
                 setCategory('admin');
@@ -1458,9 +1515,13 @@
                 setRoom('');
                 setDescription('');
                 setPriority('LOW');
-                setVisibility('SHARED');
+                setVisibility('PRIVATE');
                 setAssignedTo('');
                 setEventType('TASK');
+
+                setSelectedUserIds([]);
+                setUserSearch('');
+                setDropdownOpen(false);
             }
         }, [editEvent, selectedDate, isOpen]);
 
@@ -1469,6 +1530,11 @@
         const handleSubmit = (e) => {
             if (e) e.preventDefault();
             if (!title.trim()) return;
+
+            let finalSharedWith = '';
+            if (visibility === 'SHARED' && selectedUserIds.length > 0) {
+                finalSharedWith = ',' + selectedUserIds.join(',') + ',';
+            }
 
             onSave({
                 id: editEvent ? editEvent.id : null,
@@ -1482,7 +1548,8 @@
                 dateStr,
                 startTime,
                 endTime,
-                room
+                room,
+                sharedWith: finalSharedWith
             });
             onClose();
         };
@@ -1693,7 +1760,17 @@
                             <span className="text-xs text-gray-400 w-20">Assignee:</span>
                             <select
                                 value={assignedTo}
-                                onChange={(e) => setAssignedTo(e.target.value)}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    setAssignedTo(val);
+                                    if (val === '') {
+                                        setVisibility('PRIVATE');
+                                    } else if (val === 'Everyone') {
+                                        setVisibility('PUBLIC');
+                                    } else {
+                                        setVisibility('SHARED');
+                                    }
+                                }}
                                 className="flex-1 bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] p-1.5 rounded text-xs text-gray-800 dark:text-white outline-none"
                             >
                                 <option value="">Assign to Me</option>
@@ -1702,6 +1779,119 @@
                                     <option key={admin} value={admin}>{admin}</option>
                                 ))}
                             </select>
+                        </div>
+
+                        {/* Visibility Selector */}
+                        <div className="flex gap-2 items-center">
+                            <span className="text-xs text-gray-400 w-20">Visibility:</span>
+                            <select
+                                value={visibility}
+                                onChange={(e) => setVisibility(e.target.value)}
+                                className="flex-1 bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] p-1.5 rounded text-xs text-gray-800 dark:text-white outline-none"
+                            >
+                                <option value="PRIVATE">🔒 Private</option>
+                                <option value="SHARED">👥 Shared</option>
+                                <option value="PUBLIC">🌍 Public</option>
+                            </select>
+                        </div>
+                        {/* Visibility Explanation */}
+                        <div className="text-[10px] text-gray-400 -mt-2 space-y-0.5" style={{ paddingLeft: '88px' }}>
+                            {visibility === 'PRIVATE' && <div>Private: Only you can view.</div>}
+                            {visibility === 'SHARED' && <div>Shared: Only creator and assigned user can view.</div>}
+                            {visibility === 'PUBLIC' && <div>Public: Visible to all admins.</div>}
+                        </div>
+
+                        {/* Dynamic User Selection for Shared Tasks */}
+                        <div 
+                            ref={searchContainerRef}
+                            className={`transition-all duration-300 ${visibility === 'SHARED' ? 'max-h-[500px] opacity-100 overflow-visible' : 'max-h-0 opacity-0 overflow-hidden pointer-events-none'}`}
+                        >
+                            <div className="flex flex-col gap-2 p-2.5 rounded bg-gray-50 dark:bg-[#202124] border border-gray-200 dark:border-[#3c3c3c]">
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase">Shared With:</label>
+                                
+                                {/* Selected users chips */}
+                                <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+                                    {selectedUserIds.length === 0 ? (
+                                        <span className="text-[11px] text-gray-400 italic">No users selected yet</span>
+                                    ) : (
+                                        selectedUserIds.map(id => {
+                                            const user = usersList.find(u => String(u.id) === String(id));
+                                            return (
+                                                <div key={id} className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#1a73e8] text-white text-[10px] font-medium">
+                                                    <span>{user ? user.displayName : `User ${id}`}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setSelectedUserIds(prev => prev.filter(uid => uid !== id))}
+                                                        className="hover:text-red-300 font-bold focus:outline-none ml-1 cursor-pointer text-xs"
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+
+                                {/* Search input & dropdown */}
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Search user..."
+                                        value={userSearch}
+                                        onChange={(e) => {
+                                            setUserSearch(e.target.value);
+                                            setDropdownOpen(true);
+                                        }}
+                                        onFocus={() => setDropdownOpen(true)}
+                                        className="w-full bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] p-1.5 rounded text-xs text-gray-800 dark:text-white outline-none"
+                                    />
+                                    {dropdownOpen && (
+                                        <div className="absolute left-0 right-0 mt-1 max-h-36 overflow-y-auto bg-white dark:bg-[#2d2d2d] border border-gray-300 dark:border-[#3c3c3c] rounded shadow-lg z-50">
+                                            {(() => {
+                                                const query = userSearch.toLowerCase().trim();
+                                                const filtered = usersList.filter(u => {
+                                                    if (u.username?.toLowerCase() === adminName?.toLowerCase()) return false;
+                                                    if (!query) return true;
+                                                    return (
+                                                        u.displayName?.toLowerCase().includes(query) ||
+                                                        u.email?.toLowerCase().includes(query) ||
+                                                        u.role?.toLowerCase().includes(query)
+                                                    );
+                                                });
+                                                
+                                                if (filtered.length === 0) {
+                                                    return <div className="p-2 text-xs text-gray-400 italic text-center">No users found</div>;
+                                                }
+                                                
+                                                return filtered.map(u => {
+                                                    const isChecked = selectedUserIds.includes(u.id);
+                                                    return (
+                                                        <div
+                                                            key={u.id}
+                                                            onClick={() => {
+                                                                if (isChecked) {
+                                                                    setSelectedUserIds(prev => prev.filter(id => id !== u.id));
+                                                                } else {
+                                                                    setSelectedUserIds(prev => [...prev, u.id]);
+                                                                }
+                                                            }}
+                                                            className="flex items-center justify-between p-2 hover:bg-gray-100 dark:hover:bg-[#3c3c3c] cursor-pointer text-xs border-b last:border-0 border-gray-100 dark:border-[#3c3c3c]"
+                                                        >
+                                                            <div className="flex flex-col">
+                                                                <span className="font-semibold text-gray-850 dark:text-white">{u.displayName}</span>
+                                                                <span className="text-[10px] text-gray-400">{u.role} • {u.email}</span>
+                                                            </div>
+                                                            <div className={`w-3.5 h-3.5 rounded-[3px] flex items-center justify-center border transition-all ${isChecked ? 'border-transparent text-white bg-[#1a73e8]' : 'border-gray-400 dark:border-gray-650 bg-transparent'}`}>
+                                                                {isChecked && <i className="bi bi-check-lg text-[10px]"></i>}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                });
+                                            })()}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
 
                         {/* Room Location (Conflict Audit Target) */}
@@ -1760,7 +1950,8 @@
         onDeleteClick,
         onToggleComplete,
         conflicts = [],
-        adminName
+        adminName,
+        usersList = []
     }) {
         if (!isOpen || !event) return null;
 
@@ -1817,6 +2008,12 @@
         };
 
         const canDelete = (event.createdBy?.toLowerCase() === adminName?.toLowerCase() || event.createdBy === 'System') && event.eventType !== 'HOLIDAY';
+        const isCreator = event.createdBy?.toLowerCase() === adminName?.toLowerCase();
+        const isAssignee = event.assignedTo?.toLowerCase() === adminName?.toLowerCase();
+        const isEveryone = ['everyone', 'all'].includes(event.assignedTo?.toLowerCase());
+        const isShared = event.visibility?.toUpperCase() === 'SHARED';
+        const isPublic = event.visibility?.toUpperCase() === 'PUBLIC';
+        const canComplete = isCreator || isAssignee || isEveryone || isShared || isPublic;
 
         return (
             <div 
@@ -1880,6 +2077,38 @@
                         </span>
                     </div>
 
+                    {/* Creator & Visibility Details */}
+                    <div className="flex flex-col gap-1.5 text-xs border-t border-gray-200 dark:border-[#3c3c3c] pt-2.5">
+                        <div className="flex justify-between">
+                            <span className="text-gray-550 dark:text-gray-400">Created By:</span>
+                            <span className="font-semibold text-gray-700 dark:text-white">{event.createdBy}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-550 dark:text-gray-400">Visibility:</span>
+                            <span className="font-semibold text-gray-700 dark:text-white capitalize">{event.visibility?.toLowerCase()}</span>
+                        </div>
+                        {event.visibility?.toUpperCase() === 'SHARED' && (
+                            <div className="mt-1">
+                                <span className="text-gray-550 dark:text-gray-400 block mb-1">Shared With:</span>
+                                <div className="space-y-1 pl-2">
+                                    {(() => {
+                                        const ids = (event.sharedWith || '').split(',').filter(Boolean);
+                                        if (ids.length === 0) return <div className="text-gray-400 italic">No one</div>;
+                                        return ids.map(id => {
+                                            const u = usersList.find(user => String(user.id) === String(id));
+                                            return (
+                                                <div key={id} className="flex items-center gap-1.5 text-xs text-gray-750 dark:text-gray-300">
+                                                    <i className="bi bi-check-circle-fill text-green-550 text-[10px]"></i>
+                                                    <span>{u ? u.displayName : `User ${id}`}</span>
+                                                </div>
+                                            );
+                                        });
+                                    })()}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Notes details */}
                     {event.description && (
                         <div className="flex items-start gap-2.5 text-xs text-gray-600 dark:text-gray-300 border-t border-gray-200 dark:border-[#3c3c3c] pt-2.5">
@@ -1891,7 +2120,7 @@
                     )}
 
                     {/* Task toggle complete btn */}
-                    {event.eventType === 'TASK' && (
+                    {event.eventType === 'TASK' && canComplete && (
                         <div className="pt-2 border-t border-gray-200 dark:border-[#3c3c3c]">
                             <button
                                 onClick={() => {
@@ -1990,6 +2219,19 @@
             birthdays: true
         });
         const [searchQuery, setSearchQuery] = useState('');
+        const [visibleAdmins, setVisibleAdmins] = useState({});
+
+        useEffect(() => {
+            if (allAdmins.length > 0) {
+                const initial = {};
+                allAdmins.forEach(name => {
+                    if (name.toLowerCase() !== adminName.toLowerCase()) {
+                        initial[name] = true;
+                    }
+                });
+                setVisibleAdmins(prev => ({ ...initial, ...prev }));
+            }
+        }, [allAdmins, adminName]);
 
         const [sidebarOpen, setSidebarOpen] = useState(true);
         const [conflictCheckOpen, setConflictCheckOpen] = useState(false);
@@ -2037,6 +2279,7 @@
                             createdBy: e.createdBy,
                             assignedTo: e.assignedTo,
                             visibility: e.visibility,
+                            sharedWith: e.sharedWith,
                             start: e.startDatetime,
                             end: e.endDatetime,
                             room: roomVal
@@ -2047,8 +2290,16 @@
                 .catch(err => console.error("Failed to load events", err));
         }, []);
 
+        const [usersList, setUsersList] = useState([]);
+
         useEffect(() => {
             loadAllEvents();
+            // Fetch users list from database dynamically
+            fetch('/admin/calendar/users')
+                .then(res => res.json())
+                .then(data => setUsersList(data))
+                .catch(err => console.error("Failed to load users", err));
+
             // Sync with backend theme class on window listener
             const handleTheme = () => {
                 setDarkMode(document.body.classList.contains('dark-theme'));
@@ -2074,9 +2325,23 @@
                     const match = e.title?.toLowerCase().includes(q) || e.description?.toLowerCase().includes(q) || e.room?.toLowerCase().includes(q);
                     if (!match) return false;
                 }
+
+                // Checkboxes control visibility only (do not affect private tasks of current user)
+                if (e.visibility?.toUpperCase() === 'PUBLIC' && e.createdBy) {
+                    const creator = e.createdBy;
+                    if (creator.toLowerCase() !== adminName.toLowerCase() && creator !== 'System') {
+                        const matchingKey = Object.keys(visibleAdmins).find(
+                            k => k.toLowerCase() === creator.toLowerCase()
+                        );
+                        if (matchingKey && !visibleAdmins[matchingKey]) {
+                            return false;
+                        }
+                    }
+                }
+
                 return true;
             });
-        }, [events, searchQuery]);
+        }, [events, searchQuery, visibleAdmins, adminName]);
 
         // Save event handler
         const handleSaveEvent = (data) => {
@@ -2095,12 +2360,8 @@
             formData.append('eventType', data.eventType);
             formData.append('priority', data.priority);
             
-            // Determine visibility dynamically based on assignment
-            let finalVisibility = 'PRIVATE';
-            if (data.assignedTo === 'Everyone' || data.eventType === 'HOLIDAY' || data.eventType === 'EXAM') {
-                finalVisibility = 'SHARED';
-            }
-            formData.append('visibility', finalVisibility);
+            formData.append('visibility', data.visibility);
+            formData.append('sharedWith', data.sharedWith || '');
             
             formData.append('assignedTo', data.assignedTo);
             formData.append('date', data.dateStr);
@@ -2250,6 +2511,8 @@
                     setSearchQuery={setSearchQuery}
                     darkMode={darkMode}
                     setDarkMode={setDarkMode}
+                    categoryFilters={categoryFilters}
+                    setCategoryFilters={setCategoryFilters}
                 />
 
                 <div className="flex flex-1 overflow-hidden relative">
@@ -2264,6 +2527,9 @@
                             globalConflicts={globalConflicts}
                             onCreateEventClick={handleCreateButtonClick}
                             adminName={adminName}
+                            allAdmins={allAdmins}
+                            visibleAdmins={visibleAdmins}
+                            setVisibleAdmins={setVisibleAdmins}
                         />
                     )}
 
@@ -2317,6 +2583,8 @@
                         mode={modalMode}
                         setMode={setModalMode}
                         allAdmins={allAdmins}
+                        adminName={adminName}
+                        usersList={usersList}
                     />
 
                     <EventDetailPopover
@@ -2329,6 +2597,7 @@
                         onToggleComplete={handleToggleComplete}
                         conflicts={detailEvent ? conflictsMap[detailEvent.id] : []}
                         adminName={adminName}
+                        usersList={usersList}
                     />
                 </div>
             </div>

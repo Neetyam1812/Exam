@@ -40,6 +40,9 @@ public class CalendarEvent {
 
     private String visibility = "SHARED"; // PRIVATE, SHARED, ASSIGNED
 
+    @Column(name = "shared_with", columnDefinition = "TEXT")
+    private String sharedWith;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -98,6 +101,9 @@ public class CalendarEvent {
 
     public String getVisibility() { return visibility; }
     public void setVisibility(String visibility) { this.visibility = visibility; }
+
+    public String getSharedWith() { return sharedWith; }
+    public void setSharedWith(String sharedWith) { this.sharedWith = sharedWith; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
