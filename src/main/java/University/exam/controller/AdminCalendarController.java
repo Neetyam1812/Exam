@@ -262,9 +262,10 @@ public class AdminCalendarController {
         Optional<CalendarEvent> eventOpt = calendarEventRepository.findById(id);
         if (eventOpt.isPresent()) {
             CalendarEvent event = eventOpt.get();
-            // Check authorization: must be creator or assignee to update
-            if (!admin.getAdminName().equalsIgnoreCase(event.getCreatedBy()) &&
-                !admin.getAdminName().equalsIgnoreCase(event.getAssignedTo())) {
+            // Check authorization: must be creator, assignee, or assigned to everyone/all to update
+            boolean isAssignee = admin.getAdminName().equalsIgnoreCase(event.getAssignedTo());
+            boolean isEveryone = "Everyone".equalsIgnoreCase(event.getAssignedTo()) || "All".equalsIgnoreCase(event.getAssignedTo());
+            if (!admin.getAdminName().equalsIgnoreCase(event.getCreatedBy()) && !isAssignee && !isEveryone) {
                 response.put("status", "error");
                 response.put("message", "Permission denied");
                 return ResponseEntity.status(403).body(response);
@@ -305,8 +306,9 @@ public class AdminCalendarController {
         Optional<CalendarEvent> eventOpt = calendarEventRepository.findById(id);
         if (eventOpt.isPresent()) {
             CalendarEvent event = eventOpt.get();
-            if (!admin.getAdminName().equalsIgnoreCase(event.getCreatedBy()) &&
-                !admin.getAdminName().equalsIgnoreCase(event.getAssignedTo())) {
+            boolean isAssignee = admin.getAdminName().equalsIgnoreCase(event.getAssignedTo());
+            boolean isEveryone = "Everyone".equalsIgnoreCase(event.getAssignedTo()) || "All".equalsIgnoreCase(event.getAssignedTo());
+            if (!admin.getAdminName().equalsIgnoreCase(event.getCreatedBy()) && !isAssignee && !isEveryone) {
                 response.put("status", "error");
                 response.put("message", "Permission denied");
                 return ResponseEntity.status(403).body(response);

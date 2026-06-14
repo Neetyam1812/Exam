@@ -3,1649 +3,2153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendar & Scheduler - Admin Dashboard</title>
-    <!-- Bootstrap 5.3 CSS -->
+    <title>Google Calendar - Admin Portal & AI Conflict Auditor</title>
+    <!-- Bootstrap 5.3 CSS for layout compatibility -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FullCalendar v6 -->
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- React & ReactDOM UMD -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- Babel compiler for inline JSX compiling -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
     <style>
-        /* Custom calendar styling matching SaaS theme */
-        .calendar-card {
-            border: 1px solid var(--border-color);
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 1.5rem;
-            box-shadow: var(--card-shadow);
+        /* Exact color mappings and layout definitions */
+        :root {
+            --sidebar-width: 270px;
+            --font-sans: 'Outfit', 'Roboto', 'Inter', system-ui, sans-serif;
         }
 
-        .filter-section {
-            background: var(--bg-canvas);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 1.25rem;
-        }
-
-        /* Color legend badges */
-        .legend-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 6px;
-        }
-        .bg-legend-exam { background-color: #1a73e8; }
-        .bg-legend-shared { background-color: #8b5cf6; }
-        .bg-legend-completed { background-color: #10b981; }
-        .bg-legend-urgent { background-color: #ef4444; }
-        .bg-legend-pending { background-color: #f97316; }
-
-        /* FullCalendar Customization to replicate Google Calendar Web UI */
-        body.dark-theme {
-            --fc-border-color: #2f3032;
-            --fc-bg-color: #131314;
-            --fc-today-bg: rgba(138, 180, 248, 0.05);
-            --fc-page-bg-color: #131314;
-        }
-        body:not(.dark-theme) {
-            --fc-border-color: #dadce0;
-            --fc-bg-color: #ffffff;
-            --fc-today-bg: rgba(26, 115, 232, 0.04);
-            --fc-page-bg-color: #ffffff;
-        }
-
-        .fc {
-            font-family: 'Outfit', 'Inter', sans-serif;
-            color: var(--text-primary);
-        }
-
-        .fc-theme-standard td, .fc-theme-standard th {
-            background-color: var(--fc-bg-color) !important;
-            border-color: var(--fc-border-color) !important;
-            transition: background-color 0.25s ease, border-color 0.25s ease;
-        }
-
-        .fc .fc-scrollgrid {
-            border: 1px solid var(--fc-border-color) !important;
-            border-radius: 12px !important;
-            overflow: hidden !important;
-        }
-
-        /* Day Headers (SUN, MON...) formatted to hold weekday & day number */
-        .fc .fc-col-header-cell-cushion {
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            padding: 8px 0 !important;
-            text-decoration: none !important;
-            width: 100%;
-        }
-
-        .fc-header-weekday {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-bottom: 2px;
-        }
-
-        .fc-header-dayno {
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-primary);
-            width: 26px;
-            height: 26px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            margin-top: 2px;
-            transition: background-color 0.2s, color 0.2s;
-        }
-
-        .fc-header-dayno-today {
-            background-color: #1a73e8 !important;
-            color: #ffffff !important;
-            font-weight: 700 !important;
-        }
-
-        /* Reset default FullCalendar day number wrapper styling */
-        .fc .fc-daygrid-day-number {
-            font-size: inherit;
-            font-weight: inherit;
-            color: inherit;
-            text-decoration: none;
-            padding: 0 !important;
-            width: auto !important;
-            height: auto !important;
-            display: block !important;
-            border-radius: 0 !important;
-            background-color: transparent !important;
-        }
-
-        /* Centering cell day number */
-        .fc .fc-daygrid-day-top {
-            display: flex !important;
-            justify-content: center !important;
-            padding-top: 6px !important;
-        }
-
-        /* Custom cell day number layout */
-        .fc-day-number-normal {
-            color: var(--text-secondary);
-            font-weight: 500;
-            font-size: 12px;
-            width: 26px;
-            height: 26px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .fc-day-number-today-badge {
-            background-color: #1a73e8 !important;
-            color: #ffffff !important;
-            width: 26px;
-            height: 26px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            font-weight: 700;
-            font-size: 12px;
-        }
-
-        /* Subtle today cell background tint */
-        .fc .fc-day-today {
-            background-color: var(--fc-today-bg) !important;
-        }
-
-        /* Timed Events (Dot events) styled like Google Calendar */
-        .fc-daygrid-dot-event {
-            background-color: transparent !important;
-            border: none !important;
-            color: var(--text-primary) !important;
-            font-family: 'Inter', sans-serif !important;
-            font-size: 12px !important;
-            font-weight: 500 !important;
-            padding: 2px 6px !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 4px !important;
-            margin: 1px 4px !important;
-            transition: background-color 0.2s !important;
-        }
-        .fc-daygrid-dot-event:hover {
-            background-color: rgba(255, 255, 255, 0.08) !important;
-        }
-        body:not(.dark-theme) .fc-daygrid-dot-event:hover {
-            background-color: rgba(0, 0, 0, 0.04) !important;
-        }
-        .fc-daygrid-event-dot {
-            border-width: 4px !important;
-            border-radius: 50% !important;
-            margin-right: 2px !important;
-        }
-        .fc-event-time {
-            font-weight: 600 !important;
-            text-transform: lowercase !important;
-            margin-right: 2px !important;
-        }
-        .fc-event-title {
-            font-weight: 400 !important;
-            color: var(--text-primary) !important;
-        }
-        body.dark-theme .fc-event-title {
-            color: #e3e3e3 !important;
-        }
-
-        /* Block Events (Full-Day / Holidays) styled like Google Calendar */
-        .fc-daygrid-block-event {
-            border-radius: 4px !important;
-            padding: 3px 8px !important;
-            font-size: 12px !important;
-            font-weight: 500 !important;
-            margin: 2px 6px !important;
-            border: none !important;
-            box-shadow: none !important;
-            display: block !important;
-            text-align: left !important;
-        }
-        .fc-event-holiday .fc-event-title {
-            color: inherit !important;
-            font-weight: inherit !important;
-        }
-
-        /* Light Theme Holiday Pill */
-        body:not(.dark-theme) .fc-event-holiday {
-            background-color: #e6f4ea !important;
-            color: #137333 !important;
-            border: none !important;
-        }
-        body:not(.dark-theme) .fc-event-holiday * {
-            color: #137333 !important;
-        }
-
-        /* Dark Theme Holiday Pill */
-        body.dark-theme .fc-event-holiday {
-            background-color: #2d5337 !important;
-            color: #a7f3d0 !important;
-            border: none !important;
-        }
-        body.dark-theme .fc-event-holiday * {
-            color: #a7f3d0 !important;
-        }
-
-        /* Toolbar Customization */
-        .fc-toolbar {
-            margin-bottom: 1.5rem !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: space-between !important;
-        }
-        .fc .fc-toolbar-title {
-            font-size: 22px !important;
-            font-weight: 400 !important;
-            font-family: 'Outfit', sans-serif !important;
-            color: var(--text-primary) !important;
-            margin-left: 12px !important;
-        }
-        
-        /* View Selector Buttons Group Styling */
-        .fc .fc-button-group {
-            border: 1px solid var(--border-color) !important;
-            border-radius: 6px !important;
-            overflow: hidden !important;
-            box-shadow: none !important;
-        }
-        .fc .fc-button-group .fc-button {
-            border: none !important;
-            border-radius: 0 !important;
-            margin: 0 !important;
-            border-right: 1px solid var(--border-color) !important;
-            background-color: transparent !important;
-            color: var(--text-secondary) !important;
-            font-size: 13px !important;
-            font-weight: 500 !important;
-            padding: 6px 14px !important;
-            box-shadow: none !important;
-            text-transform: capitalize !important;
-            transition: background-color 0.2s;
-        }
-        .fc .fc-button-group .fc-button:last-child {
-            border-right: none !important;
-        }
-        .fc .fc-button-group .fc-button:hover {
-            background-color: var(--sidebar-hover) !important;
-        }
-        .fc .fc-button-group .fc-button-active {
-            background-color: var(--sidebar-hover) !important;
-            color: var(--primary) !important;
-            font-weight: 600 !important;
-        }
-        
-        /* Today Button */
-        .fc .fc-today-button {
-            background-color: transparent !important;
-            border: 1px solid var(--border-color) !important;
-            color: var(--text-primary) !important;
-            font-size: 13px !important;
-            font-weight: 500 !important;
-            border-radius: 6px !important;
-            padding: 6px 14px !important;
-            box-shadow: none !important;
-            text-transform: capitalize !important;
-            margin-right: 8px !important;
-            transition: background-color 0.2s;
-        }
-        .fc .fc-today-button:hover {
-            background-color: var(--sidebar-hover) !important;
-        }
-        .fc .fc-today-button:disabled {
-            opacity: 0.5 !important;
-            background-color: transparent !important;
-        }
-
-        /* Prev / Next circular buttons */
-        .fc .fc-prev-button, .fc .fc-next-button {
-            background-color: transparent !important;
-            border: none !important;
-            color: var(--text-primary) !important;
-            border-radius: 50% !important;
-            width: 36px !important;
-            height: 36px !important;
-            padding: 0 !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            margin: 0 2px !important;
-            box-shadow: none !important;
-            transition: background-color 0.2s;
-        }
-        .fc .fc-prev-button:hover, .fc .fc-next-button:hover {
-            background-color: var(--sidebar-hover) !important;
-        }
-
-        body.dark-theme .modal-content {
-            background-color: #111827;
-            border-color: rgba(255,255,255,0.08);
-            color: #f9fafb;
-        }
-
-        body.dark-theme .modal-header, 
-        body.dark-theme .modal-footer {
-            border-color: rgba(255,255,255,0.08);
-        }
-
-        body.dark-theme .form-control, 
-        body.dark-theme .form-select {
-            background-color: #1f2937;
-            border-color: rgba(255,255,255,0.08);
-            color: #f9fafb;
-        }
-
-        body.dark-theme .form-control:focus, 
-        body.dark-theme .form-select:focus {
-            background-color: #1f2937;
-            border-color: var(--primary);
-            color: #f9fafb;
-        }
-
-        /* GOOGLE CALENDAR LAYOUT EXTENSIONS */
-        .gcal-container {
-            display: flex;
-            flex-direction: column;
+        body {
+            font-family: var(--font-sans);
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
             height: 100vh;
-            background-color: var(--fc-bg-color);
+            background-color: #ffffff;
+            color: #3c4043;
         }
 
-        .gcal-header {
-            height: 64px;
-            border-bottom: 1px solid var(--fc-border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 16px;
-            background-color: var(--fc-bg-color);
-            z-index: 10;
+        body.dark-theme {
+            background-color: #1a1a1a;
+            color: #e8eaed;
         }
 
-        .gcal-body {
-            display: flex;
-            flex-grow: 1;
-            height: calc(100vh - 64px);
-            overflow: hidden;
+        /* Prevent Bootstrap button text color overrides inside React calendar */
+        #react-calendar-root button:not([class*="text-"]) {
+            color: inherit;
         }
 
-        .gcal-sidebar {
-            width: 270px;
-            border-right: 1px solid var(--fc-border-color);
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            background-color: var(--fc-bg-color);
-            transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1), padding 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .gcal-sidebar.collapsed {
-            width: 0;
-            padding: 0 !important;
-            border-right: none;
-            margin-left: 0;
-        }
-
-        .gcal-main {
-            flex-grow: 1;
-            padding: 16px;
-            overflow: hidden;
-            background-color: var(--fc-bg-color);
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* GCal Logo & Icons styling */
-        .gcal-logo-box {
-            background-color: #1a73e8;
-            color: #ffffff;
-            width: 38px;
-            height: 38px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 16px;
-            font-family: 'Outfit', sans-serif;
-            box-shadow: 0 2px 4px rgba(26,115,232,0.2);
-        }
-
-        .btn-gcal-icon-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+        /* Make date and time input picker icons visible in dark mode */
+        .dark-theme input[type="date"]::-webkit-calendar-picker-indicator,
+        .dark-theme input[type="time"]::-webkit-calendar-picker-indicator,
+        .dark input[type="date"]::-webkit-calendar-picker-indicator,
+        .dark input[type="time"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            opacity: 0.8;
             cursor: pointer;
-            transition: background-color 0.2s, color 0.2s;
-            outline: none;
+            transition: opacity 0.15s ease;
         }
-        .btn-gcal-icon-btn:hover {
-            background-color: var(--sidebar-hover);
-            color: var(--text-primary);
+        .dark-theme input[type="date"]::-webkit-calendar-picker-indicator:hover,
+        .dark-theme input[type="time"]::-webkit-calendar-picker-indicator:hover,
+        .dark input[type="date"]::-webkit-calendar-picker-indicator:hover,
+        .dark input[type="time"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
         }
 
-        .btn-gcal-icon-btn-sm {
+        /* Spring Boot Global Sidebar styling integration */
+        .sidebar {
+            width: var(--sidebar-width) !important;
+            min-width: var(--sidebar-width) !important;
+            max-width: var(--sidebar-width) !important;
+            flex-shrink: 0;
+        }
+
+        /* Custom scrollbars matching Google Calendar style */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
             background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background-color 0.2s, color 0.2s;
-            outline: none;
         }
-        .btn-gcal-icon-btn-sm:hover {
-            background-color: var(--sidebar-hover);
-            color: var(--text-primary);
+        ::-webkit-scrollbar-thumb {
+            background: #dadce0;
+            border-radius: 4px;
+        }
+        .dark-theme ::-webkit-scrollbar-thumb {
+            background: #5f6368;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #bdc1c6;
+        }
+        .dark-theme ::-webkit-scrollbar-thumb:hover {
+            background: #70757a;
         }
 
-        .btn-gcal-header-action {
-            background-color: transparent;
-            border: 1px solid var(--border-color) !important;
-            color: var(--text-primary) !important;
-            font-size: 13.5px !important;
-            font-weight: 500 !important;
-            border-radius: 4px !important;
-            padding: 6px 14px !important;
+        /* Remove all box shadows globally as requested */
+        * {
             box-shadow: none !important;
-            transition: background-color 0.2s;
+        }
+
+        /* Dynamic tailwind config */
+        input[type="checkbox"] {
             cursor: pointer;
-        }
-        .btn-gcal-header-action:hover {
-            background-color: var(--sidebar-hover);
-        }
-
-        /* GCal Search styling */
-        .gcal-search-container {
-            background-color: rgba(0, 0, 0, 0.04);
-            border-radius: 8px;
-            padding: 6px 12px;
-            width: 450px;
-            max-width: 100%;
-            margin-left: 20px;
-            transition: background-color 0.2s, box-shadow 0.2s;
-            border: 1px solid transparent;
-        }
-        body.dark-theme .gcal-search-container {
-            background-color: rgba(255, 255, 255, 0.05);
-        }
-        .gcal-search-container:focus-within {
-            background-color: var(--card-bg) !important;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
-            border-color: var(--border-color);
-        }
-        .search-icon-gcal {
-            color: var(--text-muted);
-            font-size: 16px;
-            margin-right: 10px;
-        }
-        .gcal-search-input {
-            background: transparent;
-            border: none;
-            outline: none;
-            color: var(--text-primary);
-            font-size: 14px;
-            width: 100%;
-        }
-
-        /* GCal Create Button styling */
-        .btn-gcal-create {
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 24px 10px 16px !important;
-            border-radius: 24px !important;
-            font-size: 14px !important;
-            font-weight: 500 !important;
-            font-family: 'Outfit', 'Inter', sans-serif !important;
-            border: none !important;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24) !important;
-            transition: box-shadow 0.2s, background-color 0.2s !important;
-            cursor: pointer;
-            margin-top: 8px;
-        }
-        body:not(.dark-theme) .btn-gcal-create {
-            background-color: #ffffff !important;
-            color: #3c4043 !important;
-        }
-        body:not(.dark-theme) .btn-gcal-create:hover {
-            background-color: #f8fafc !important;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06) !important;
-        }
-        body.dark-theme .btn-gcal-create {
-            background-color: #303134 !important;
-            color: #e3e3e3 !important;
-        }
-        body.dark-theme .btn-gcal-create:hover {
-            background-color: #3c4043 !important;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.1) !important;
-        }
-
-        /* Colored Google Plus icon in Create button */
-        .gcal-plus-icon {
-            width: 20px;
-            height: 20px;
-            display: inline-block;
-            position: relative;
-        }
-        .gcal-plus-icon::before {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 8px;
-            width: 4px;
-            height: 16px;
-            background: linear-gradient(to bottom, #4285f4 50%, #34a853 50%);
-            border-radius: 2px;
-        }
-        .gcal-plus-icon::after {
-            content: '';
-            position: absolute;
-            top: 8px;
-            left: 2px;
-            width: 16px;
-            height: 4px;
-            background: linear-gradient(to right, #ea4335 50%, #fbbc05 50%);
-            border-radius: 2px;
-        }
-
-        /* GCal Profile Avatar */
-        .gcal-profile-circle {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background-color: var(--primary);
-            color: #ffffff;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 13.5px;
-            user-select: none;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-        }
-
-        /* Mini Calendar styling */
-        .mini-calendar-container {
-            padding: 0 4px;
-        }
-        .btn-icon-mini {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            outline: none;
-        }
-        .btn-icon-mini:hover {
-            background-color: var(--sidebar-hover);
-            color: var(--text-primary);
-        }
-        .mini-calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            row-gap: 2px;
-            column-gap: 2px;
-            text-align: center;
-        }
-        .mini-grid-header {
-            font-size: 10.5px;
-            font-weight: 600;
-            color: var(--text-muted);
-            padding: 4px 0;
-        }
-        .mini-grid-days {
-            display: contents;
-        }
-        .mini-day-cell {
-            font-size: 11px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            cursor: pointer;
-            user-select: none;
-            transition: background-color 0.15s, color 0.15s;
-        }
-        .mini-day-cell:hover {
-            background-color: var(--sidebar-hover);
-        }
-        .mini-day-cell.other-month {
-            color: var(--text-muted);
-            opacity: 0.4;
-        }
-        .mini-day-cell.selected {
-            background-color: #1a73e8 !important;
-            color: #ffffff !important;
-            font-weight: 700;
-        }
-        .mini-day-cell.today {
-            border: 1px solid #1a73e8;
-            color: #1a73e8;
-            font-weight: 700;
-        }
-        .mini-day-cell.today.selected {
-            background-color: #1a73e8 !important;
-            color: #ffffff !important;
-        }
-
-        /* GCal Checkbox styling */
-        .gcal-checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 13.5px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            padding: 5px 0;
-            user-select: none;
-        }
-        .gcal-checkbox-label:hover {
-            color: var(--text-primary);
-        }
-        .gcal-checkbox {
-            appearance: none;
-            -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
-            border: 2px solid var(--text-muted);
-            border-radius: 3px;
-            outline: none;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            transition: background-color 0.15s, border-color 0.15s;
-        }
-        .gcal-checkbox:checked {
-            border-color: transparent;
-        }
-        .gcal-checkbox::after {
-            content: "\F26E"; /* Bootstrap check icon code */
-            font-family: "bootstrap-icons";
-            font-size: 10px;
-            color: #ffffff;
-            display: none;
-            font-weight: 900;
-        }
-        .gcal-checkbox:checked::after {
-            display: block;
-        }
-
-        .gcal-checkbox-user { border-color: #1a73e8; }
-        .gcal-checkbox-user:checked { background-color: #1a73e8; }
-
-        .gcal-checkbox-exams { border-color: #8b5cf6; }
-        .gcal-checkbox-exams:checked { background-color: #8b5cf6; }
-
-        .gcal-checkbox-tasks { border-color: #f97316; }
-        .gcal-checkbox-tasks:checked { background-color: #f97316; }
-
-        .gcal-checkbox-holidays { border-color: #137333; }
-        .gcal-checkbox-holidays:checked { background-color: #137333; }
-
-        .gcal-checkbox-text {
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        /* Dynamic Theme Input & Placeholder overrides */
-        .gcal-sidebar input::placeholder {
-            color: var(--text-muted) !important;
-        }
-        .gcal-sidebar input {
-            color: var(--text-primary) !important;
-        }
-        #quick-date-jump {
-            color: var(--text-primary) !important;
-            font-weight: 500 !important;
-        }
-
-        /* Event text colors */
-        .fc-event-time {
-            color: var(--text-primary) !important;
-        }
-        body.dark-theme .fc-event-time {
-            color: #cbd5e1 !important;
-        }
-        body.dark-theme .fc-event-title {
-            color: #cbd5e1 !important;
-        }
-
-        /* FullCalendar Popover Custom Theme Overrides */
-        .fc-popover {
-            border-radius: 8px !important;
-            overflow: hidden !important;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06) !important;
-            border: 1px solid var(--border-color) !important;
-        }
-        .fc-popover-header {
-            background-color: #f8fafc !important;
-            font-weight: 600 !important;
-            padding: 6px 10px !important;
-            color: var(--text-primary) !important;
-            border-bottom: 1px solid var(--border-color) !important;
-        }
-        .fc-popover-body {
-            background-color: var(--fc-bg-color) !important;
-            color: var(--text-primary) !important;
-        }
-        body.dark-theme .fc-popover-header {
-            background-color: #1f2937 !important;
-            color: var(--text-primary) !important;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-        }
-        body.dark-theme .fc-popover-body {
-            background-color: #111827 !important;
-            color: var(--text-primary) !important;
-        }
-        body.dark-theme .fc-popover {
-            border: 1px solid rgba(255, 255, 255, 0.08) !important;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2) !important;
-        }
-
-        /* FullCalendar Dark Theme Text Color Overrides */
-        body.dark-theme .fc {
-            color: var(--text-primary) !important;
-        }
-        body.dark-theme .fc-list-day-text,
-        body.dark-theme .fc-list-day-side-text {
-            color: var(--text-primary) !important;
-        }
-        body.dark-theme .fc-list-event-title,
-        body.dark-theme .fc-list-event-time {
-            color: var(--text-primary) !important;
-        }
-        body.dark-theme .fc-list-empty {
-            color: var(--text-muted) !important;
-        }
-        body.dark-theme .fc-timegrid-slot-label-cushion,
-        body.dark-theme .fc-timegrid-axis-cushion {
-            color: var(--text-secondary) !important;
-        }
-        body.dark-theme .fc-daygrid-more-link {
-            color: var(--primary) !important;
-            font-weight: 600 !important;
-        }
-        .fc-daygrid-more-link {
-            color: var(--primary) !important;
-            font-weight: 600 !important;
-            font-size: 11.5px !important;
-            padding: 2px 4px !important;
-            border-radius: 4px !important;
-            transition: background-color 0.2s;
-            text-decoration: none !important;
-        }
-        .fc-daygrid-more-link:hover {
-            background-color: var(--sidebar-hover) !important;
-            text-decoration: none !important;
-        }
-
-        /* Dropdown Menu Item overrides */
-        .dropdown-menu .dropdown-item {
-            color: var(--text-secondary) !important;
-            transition: background-color 0.15s, color 0.15s;
-        }
-        .dropdown-menu .dropdown-item:hover {
-            background-color: var(--sidebar-hover) !important;
-            color: var(--text-primary) !important;
-        }
-        body.dark-theme .dropdown-menu .dropdown-item {
-            color: #cbd5e1 !important;
-        }
-        body.dark-theme .dropdown-menu .dropdown-item:hover {
-            background-color: rgba(255, 255, 255, 0.08) !important;
-            color: #ffffff !important;
         }
     </style>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gcal: {
+                            bg: {
+                                light: '#ffffff',
+                                dark: '#1a1a1a',
+                            },
+                            cell: {
+                                light: '#ffffff',
+                                dark: '#1e1e1e',
+                                hoverLight: '#f1f3f4',
+                                hoverDark: '#2a2a2a',
+                            },
+                            border: {
+                                light: '#dadce0',
+                                dark: '#3c3c3c',
+                            },
+                            text: {
+                                primaryLight: '#3c4043',
+                                primaryDark: '#e8eaed',
+                                secondaryLight: '#70757a',
+                                secondaryDark: '#9aa0a6',
+                                otherLight: '#dadce0',
+                                otherDark: '#5f6368',
+                            },
+                            blue: '#1a73e8',
+                            createBg: '#303030',
+                            createBorder: '#5f6368',
+                            category: {
+                                admin: '#1a73e8',
+                                exams: '#7986cb',
+                                tasks: '#f4511e',
+                                holidays: '#0d652d',
+                                holidaysText: '#81c995',
+                                birthdays: '#33b679',
+                            }
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'Roboto', 'Inter', 'system-ui', 'sans-serif'],
+                    },
+                    borderWidth: {
+                        '0.5': '0.5px',
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body>
+<body class="bg-white dark-theme:bg-[#1a1a1a] transition-colors duration-150">
 
 <div class="d-flex">
-    <!-- Sidebar Fragment -->
+    <!-- Sidebar Fragment from Spring Boot Thymeleaf -->
     <div th:replace="~{admin/fragments :: sidebar('calendar')}"></div>
 
-    <!-- Main Workspace -->
+    <!-- Main Workspace where our React application mounts -->
     <main class="flex-grow-1 p-0" style="margin-left: var(--sidebar-width); height: 100vh; overflow: hidden;">
-        <div class="gcal-container d-flex flex-column h-100">
-            <!-- Google Calendar Styled Header -->
-            <header class="gcal-header">
-                <!-- Left: Logo & Nav -->
-                <div class="d-flex align-items-center">
-                    <button id="gcal-hamburger" class="btn-gcal-icon-btn me-2"><i class="bi bi-list fs-5"></i></button>
-                    <div class="d-flex align-items-center me-4">
-                        <span class="brand-name font-outfit" style="font-size: 19px; font-weight: 500; color: var(--text-primary);">Calendar</span>
-                    </div>
-                    
-                    <button id="gcal-today-btn" class="btn btn-gcal-header-action me-2">Today</button>
-                    <button id="gcal-prev-btn" class="btn-gcal-icon-btn-sm me-1"><i class="bi bi-chevron-left"></i></button>
-                    <button id="gcal-next-btn" class="btn-gcal-icon-btn-sm me-2"><i class="bi bi-chevron-right"></i></button>
-                    
-                    <span id="gcal-title" class="font-outfit fs-5 text-nowrap ms-2" style="color: var(--text-primary); font-weight: 400;">May 2026</span>
-                </div>
-
-                <!-- Center: Search -->
-                <div class="gcal-search-container d-none d-md-flex align-items-center">
-                    <i class="bi bi-search search-icon-gcal"></i>
-                    <input type="text" id="search-input" placeholder="Search tasks, exams..." class="gcal-search-input">
-                </div>
-
-                <!-- Right: Action Buttons -->
-                <div class="d-flex align-items-center gap-1">
-                    <!-- Quick Date Jump -->
-                    <div class="d-flex align-items-center gap-2 bg-transparent border-0 px-2" style="margin-right: 10px;">
-                        <label class="label-custom mb-0 text-nowrap" style="font-size: 9px;"><i class="bi bi-calendar-event"></i> Jump:</label>
-                        <input type="date" id="quick-date-jump" class="form-control form-control-sm border-0 bg-transparent text-secondary p-0" style="width: auto; outline: none; box-shadow: none; font-size: 12px; cursor: pointer;">
-                    </div>
-                    
-                    <button class="btn-gcal-icon-btn d-md-none"><i class="bi bi-search"></i></button>
-                    <button class="btn-gcal-icon-btn"><i class="bi bi-question-circle"></i></button>
-                    <a href="/admin/settings" class="btn-gcal-icon-btn text-decoration-none"><i class="bi bi-gear"></i></a>
-                    
-                    <!-- View Dropdown -->
-                    <div class="dropdown ms-1 me-2">
-                        <button class="btn btn-gcal-header-action dropdown-toggle" type="button" id="viewDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <span id="current-view-label">Month</span>
-                        </button>
-                        <ul class="dropdown-menu border-0 shadow-lg dropdown-menu-end" aria-labelledby="viewDropdown" style="border-radius: 12px; background-color: var(--card-bg);">
-                            <li><a class="dropdown-item py-2" href="#" id="view-month">Month</a></li>
-                            <li><a class="dropdown-item py-2" href="#" id="view-week">Week</a></li>
-                            <li><a class="dropdown-item py-2" href="#" id="view-day">Day</a></li>
-                            <li><a class="dropdown-item py-2" href="#" id="view-list">Schedule</a></li>
-                        </ul>
-                    </div>
-
-                    <button class="btn-gcal-icon-btn ms-1"><i class="bi bi-calendar-check"></i></button>
-                    <button class="btn-gcal-icon-btn"><i class="bi bi-check2-circle"></i></button>
-                </div>
-            </header>
-
-            <!-- Google Calendar Styled Body -->
-            <div class="gcal-body d-flex flex-grow-1">
-                <!-- Google Calendar Left Sidebar -->
-                <aside class="gcal-sidebar">
-                    <!-- Create Button -->
-                    <div class="dropdown mb-4">
-                        <button class="btn btn-gcal-create dropdown-toggle" type="button" id="createDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <span class="gcal-plus-icon"></span>
-                            Create
-                        </button>
-                        <ul class="dropdown-menu border-0 shadow-lg" aria-labelledby="createDropdown" style="border-radius: 12px; background-color: var(--card-bg);">
-                            <li><a class="dropdown-item py-2" href="#" id="menu-create-task"><i class="bi bi-check-square me-2 text-primary"></i> Create Task</a></li>
-                            <li><a class="dropdown-item py-2" href="#" id="menu-schedule-exam"><i class="bi bi-mortarboard me-2 text-primary"></i> Schedule Exam</a></li>
-                        </ul>
-                    </div>
-
-                    <!-- Mini Calendar Widget -->
-                    <div class="mini-calendar-container mb-4">
-                        <div class="d-flex justify-content-between align-items-center mb-2 px-1">
-                            <span id="mini-month-year" class="fw-bold font-outfit" style="font-size: 13.5px; color: var(--text-primary);">May 2026</span>
-                            <div class="d-flex gap-1">
-                                <button type="button" id="mini-prev-btn" class="btn-icon-mini"><i class="bi bi-chevron-left"></i></button>
-                                <button type="button" id="mini-next-btn" class="btn-icon-mini"><i class="bi bi-chevron-right"></i></button>
-                            </div>
-                        </div>
-                        <div class="mini-calendar-grid">
-                            <div class="mini-grid-header">S</div>
-                            <div class="mini-grid-header">M</div>
-                            <div class="mini-grid-header">T</div>
-                            <div class="mini-grid-header">W</div>
-                            <div class="mini-grid-header">T</div>
-                            <div class="mini-grid-header">F</div>
-                            <div class="mini-grid-header">S</div>
-                            <div id="mini-calendar-days" class="mini-grid-days"></div>
-                        </div>
-                    </div>
-
-                    <!-- Search People (Standard decoration to match UI) -->
-                    <div class="mb-4 px-1">
-                        <div class="input-group input-group-sm" style="border-bottom: 1px solid var(--border-color);">
-                            <span class="input-group-text bg-transparent border-0 text-muted p-0 pe-2"><i class="bi bi-people"></i></span>
-                            <input type="text" placeholder="Search for people" class="form-control border-0 bg-transparent p-0 text-secondary" style="font-size: 13px; box-shadow: none;">
-                        </div>
-                    </div>
-
-                    <!-- Checkbox Filters (My Calendars) -->
-                    <div class="mt-4 px-1">
-                        <h5 class="label-custom mb-3" style="font-size: 10px; letter-spacing: 0.8px;">My Calendars</h5>
-                        <div class="d-flex flex-column gap-2">
-                            <label class="gcal-checkbox-label">
-                                <input type="checkbox" id="gcal-filter-user-events" checked class="gcal-checkbox gcal-checkbox-user">
-                                <span class="gcal-checkbox-text" th:text="${adminName}">Neetyam Patel</span>
-                            </label>
-                            <label class="gcal-checkbox-label">
-                                <input type="checkbox" id="gcal-filter-exams" checked class="gcal-checkbox gcal-checkbox-exams">
-                                <span class="gcal-checkbox-text">Exams</span>
-                            </label>
-                            <label class="gcal-checkbox-label">
-                                <input type="checkbox" id="gcal-filter-tasks" checked class="gcal-checkbox gcal-checkbox-tasks">
-                                <span class="gcal-checkbox-text">Tasks</span>
-                            </label>
-                            <label class="gcal-checkbox-label">
-                                <input type="checkbox" id="gcal-filter-holidays" checked class="gcal-checkbox gcal-checkbox-holidays">
-                                <span class="gcal-checkbox-text">Holidays</span>
-                            </label>
-                        </div>
-                    </div>
-                </aside>
-
-                <!-- Google Calendar Main Grid -->
-                <main class="gcal-main flex-grow-1">
-                    <div id="calendar" style="height: 100%;"></div>
-                </main>
-            </div>
-        </div>
+        <div id="react-calendar-root" class="h-100 w-100"></div>
     </main>
 </div>
 
-<!-- Modal: Add Event / Schedule Exam -->
-<div class="modal fade" id="addEventModal" tabindex="-1" aria-labelledby="addEventModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
-            <div class="modal-header">
-                <h5 class="modal-title font-outfit fw-bold" id="addEventModalLabel">Create Scheduled Entry</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <!-- Toggle Entry Type -->
-                <div class="d-flex justify-content-center mb-4">
-                    <div class="btn-group w-100" role="group">
-                        <input type="radio" class="btn-check" name="entry-type" id="type-task" checked>
-                        <label class="btn btn-outline-primary py-2 font-outfit" for="type-task"><i class="bi bi-check-square"></i> Create Task</label>
-                        <input type="radio" class="btn-check" name="entry-type" id="type-exam">
-                        <label class="btn btn-outline-primary py-2 font-outfit" for="type-exam"><i class="bi bi-mortarboard"></i> Schedule Exam</label>
-                    </div>
-                </div>
+<!-- Inline Thymeleaf variables injected into window globals -->
+<script th:inline="javascript">
+    window.loggedInAdminName = [[${adminName}]];
+    window.allAdminsList = [[${allAdmins}]];
+</script>
 
-                <form id="event-form">
-                    <!-- Global/Implicit fields -->
-                    <input type="hidden" name="eventType" id="form-eventType" value="TASK">
-                    <input type="hidden" name="startDatetime" id="form-startDatetime">
-                    <input type="hidden" name="endDatetime" id="form-endDatetime">
+<!-- React Main Application Code (using Babel standalone for JSX wrapped in CDATA for Thymeleaf parser protection) -->
+<script type="text/babel">
+/*<![CDATA[*/
+    const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
-                    <!-- Date & Time Row (Populated dynamically) -->
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-6">
-                            <label class="label-custom">Date</label>
-                            <input type="date" name="date" id="form-date" class="form-control" required>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="label-custom">Start Time</label>
-                            <input type="time" name="startTime" id="form-startTime" class="form-control" value="09:00" required>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="label-custom">End Time</label>
-                            <input type="time" name="endTime" id="form-endTime" class="form-control" value="11:00" required>
-                        </div>
-                    </div>
+    // --- NATIVE DATE HELPERS (no external library requirement) ---
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const weekdayNamesShort = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
-                    <!-- Task Specific Fields -->
-                    <div id="task-fields">
-                        <div class="mb-3">
-                            <label class="label-custom">Task Title</label>
-                            <input type="text" name="title" id="form-title" class="form-control" placeholder="e.g. Publish OOP Grades">
-                        </div>
-                        <div class="mb-3">
-                            <label class="label-custom">Description</label>
-                            <textarea name="description" id="form-description" class="form-control" rows="3" placeholder="Enter task guidelines..."></textarea>
-                        </div>
-                        <div class="row g-2 mb-3">
-                            <div class="col-md-6">
-                                <label class="label-custom">Priority</label>
-                                <select name="priority" id="form-priority" class="form-select">
-                                    <option value="LOW">🟢 Low</option>
-                                    <option value="MEDIUM" selected>🟠 Medium</option>
-                                    <option value="HIGH">🔴 High</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="label-custom">Category</label>
-                                <select name="category" id="form-category" class="form-select">
-                                    <option value="Exam Preparation">Exam Preparation</option>
-                                    <option value="Paper Upload">Paper Upload</option>
-                                    <option value="Evaluation">Evaluation</option>
-                                    <option value="Result Processing">Result Processing</option>
-                                    <option value="Student Management">Student Management</option>
-                                    <option value="Meeting">Meeting</option>
-                                    <option value="Personal">Personal</option>
-                                    <option value="Other" selected>Other</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row g-2 mb-3">
-                            <div class="col-md-6">
-                                <label class="label-custom">Assign To</label>
-                                <select name="assignedTo" id="form-assignedTo" class="form-select">
-                                    <option value="" th:text="${adminName}"></option>
-                                    <option th:each="adminName : ${allAdmins}" th:value="${adminName}" th:text="${adminName}"></option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="label-custom">Visibility</label>
-                                <select name="visibility" id="form-visibility" class="form-select">
-                                    <option value="SHARED" selected>Shared (All Admins)</option>
-                                    <option value="PRIVATE">Private (Only Me)</option>
-                                    <option value="ASSIGNED">Assigned (Me & Assignee)</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Exam Specific Fields -->
-                    <div id="exam-fields" class="d-none">
-                        <div class="mb-3">
-                            <label class="label-custom">Subject / Paper</label>
-                            <input type="text" id="exam-subject" class="form-control" placeholder="e.g. Data Structures">
-                        </div>
-                        <div class="row g-2 mb-3">
-                            <div class="col-md-6">
-                                <label class="label-custom">Semester</label>
-                                <input type="text" id="exam-semester" class="form-control" placeholder="Semester 3">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="label-custom">Division</label>
-                                <input type="text" id="exam-division" class="form-control" placeholder="Div A">
-                            </div>
-                        </div>
-                        <div class="row g-2 mb-3">
-                            <div class="col-md-6">
-                                <label class="label-custom">Duration (Mins)</label>
-                                <input type="number" id="exam-duration" class="form-control" value="120">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="label-custom">Exam Type</label>
-                                <select id="exam-type" class="form-select">
-                                    <option value="Online">Online</option>
-                                    <option value="Offline">Offline</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" id="save-event-btn" class="btn btn-primary">Save Entry</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal: Event Details -->
-<div class="modal fade" id="eventDetailModal" tabindex="-1" aria-labelledby="eventDetailModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
-            <div class="modal-header">
-                <h5 class="modal-title font-outfit fw-bold" id="detail-title">Event Title</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <span id="detail-type-badge" class="badge bg-primary">Type</span>
-                    <span id="detail-priority-badge" class="badge bg-danger">Priority</span>
-                    <span id="detail-status-badge" class="badge bg-secondary">Status</span>
-                </div>
-                
-                <p id="detail-description" class="text-secondary" style="white-space: pre-line;">No description provided.</p>
-
-                <hr class="my-3" style="border-color: var(--border-color);">
-
-                <div class="row text-meta g-2">
-                    <div class="col-6">
-                        <strong>Category:</strong> <span id="detail-category">Other</span>
-                    </div>
-                    <div class="col-6">
-                        <strong>Visibility:</strong> <span id="detail-visibility">Shared</span>
-                    </div>
-                    <div class="col-6">
-                        <strong>Created By:</strong> <span id="detail-created">Admin</span>
-                    </div>
-                    <div class="col-6">
-                        <strong>Assigned To:</strong> <span id="detail-assigned">Admin</span>
-                    </div>
-                    <div class="col-12 mt-2">
-                        <strong>Schedule:</strong> <i class="bi bi-clock"></i> <span id="detail-schedule">Date / Time</span>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer justify-content-between">
-                <div>
-                    <!-- Actions visible depending on roles -->
-                    <button type="button" id="complete-task-btn" class="btn btn-success d-none"><i class="bi bi-check-circle"></i> Mark Completed</button>
-                </div>
-                <div>
-                    <button type="button" id="delete-event-btn" class="btn btn-outline-danger d-none"><i class="bi bi-trash"></i> Delete</button>
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Bootstrap 5 Bundle JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- Calendar Engine script -->
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const calendarEl = document.getElementById('calendar');
-        let selectedEventId = null;
-
-        // Initialize modals
-        const addEventModal = new bootstrap.Modal(document.getElementById('addEventModal'));
-        const eventDetailModal = new bootstrap.Modal(document.getElementById('eventDetailModal'));
-
-        // Left sidebar hamburger toggle
-        document.getElementById('gcal-hamburger').addEventListener('click', function() {
-            const sidebar = document.querySelector('.gcal-sidebar');
-            sidebar.classList.toggle('collapsed');
-            // Recalculate main calendar grid size after transition
-            setTimeout(() => {
-                calendar.updateSize();
-            }, 300);
-        });
-
-        // Mini Calendar State & rendering
-        let miniCurrentDate = new Date();
-        let selectedDate = new Date();
-
-        function renderMiniCalendar() {
-            const daysContainer = document.getElementById('mini-calendar-days');
-            const monthYearLabel = document.getElementById('mini-month-year');
-            
-            if (!daysContainer || !monthYearLabel) return;
-            
-            daysContainer.innerHTML = '';
-            
-            const year = miniCurrentDate.getFullYear();
-            const month = miniCurrentDate.getMonth();
-            
-            monthYearLabel.innerText = miniCurrentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
-            
-            const firstDay = new Date(year, month, 1);
-            const startDayOfWeek = firstDay.getDay();
-            const totalDays = new Date(year, month + 1, 0).getDate();
-            const prevTotalDays = new Date(year, month, 0).getDate();
-            
-            // Previous month trailing days
-            for (let i = startDayOfWeek - 1; i >= 0; i--) {
-                const d = prevTotalDays - i;
-                const cell = document.createElement('div');
-                cell.className = 'mini-day-cell other-month';
-                cell.innerText = d;
-                
-                const cellDate = new Date(year, month - 1, d);
-                cell.addEventListener('click', () => selectMiniDate(cellDate));
-                daysContainer.appendChild(cell);
+    const dateHelpers = {
+        isSameDay(d1, d2) {
+            if (!d1 || !d2) return false;
+            return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
+        },
+        isToday(d) {
+            return this.isSameDay(d, new Date());
+        },
+        isSameMonth(d1, d2) {
+            if (!d1 || !d2) return false;
+            return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth();
+        },
+        startOfMonth(d) {
+            return new Date(d.getFullYear(), d.getMonth(), 1);
+        },
+        endOfMonth(d) {
+            return new Date(d.getFullYear(), d.getMonth() + 1, 0);
+        },
+        startOfWeek(d) {
+            const day = d.getDay();
+            return new Date(d.getFullYear(), d.getMonth(), d.getDate() - day);
+        },
+        endOfWeek(d) {
+            const day = d.getDay();
+            return new Date(d.getFullYear(), d.getMonth(), d.getDate() + (6 - day));
+        },
+        addMonths(d, n) {
+            return new Date(d.getFullYear(), d.getMonth() + n, 1);
+        },
+        subMonths(d, n) {
+            return new Date(d.getFullYear(), d.getMonth() - n, 1);
+        },
+        addWeeks(d, n) {
+            return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n * 7);
+        },
+        subWeeks(d, n) {
+            return new Date(d.getFullYear(), d.getMonth(), d.getDate() - n * 7);
+        },
+        addDays(d, n) {
+            return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+        },
+        subDays(d, n) {
+            return new Date(d.getFullYear(), d.getMonth(), d.getDate() - n);
+        },
+        eachDayOfInterval(start, end) {
+            const days = [];
+            let current = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+            const stop = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+            while (current <= stop) {
+                days.push(new Date(current));
+                current.setDate(current.getDate() + 1);
             }
-            
-            // Current month days
-            const today = new Date();
-            for (let d = 1; d <= totalDays; d++) {
-                const cell = document.createElement('div');
-                cell.className = 'mini-day-cell';
-                cell.innerText = d;
-                
-                const cellDate = new Date(year, month, d);
-                
-                if (cellDate.getDate() === today.getDate() && 
-                    cellDate.getMonth() === today.getMonth() && 
-                    cellDate.getFullYear() === today.getFullYear()) {
-                    cell.classList.add('today');
-                }
-                
-                if (cellDate.getDate() === selectedDate.getDate() && 
-                    cellDate.getMonth() === selectedDate.getMonth() && 
-                    cellDate.getFullYear() === selectedDate.getFullYear()) {
-                    cell.classList.add('selected');
-                }
-                
-                cell.addEventListener('click', () => selectMiniDate(cellDate));
-                daysContainer.appendChild(cell);
+            return days;
+        },
+        differenceInMinutes(d1, d2) {
+            return Math.round((d1.getTime() - d2.getTime()) / 60000);
+        },
+        format(date, pattern) {
+            if (pattern === 'MMMM yyyy') {
+                return `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
             }
-            
-            // Next month leading days (fill to 6 rows / 42 cells)
-            const currentCellsCount = startDayOfWeek + totalDays;
-            const remainingCells = 42 - currentCellsCount;
-            for (let d = 1; d <= remainingCells; d++) {
-                const cell = document.createElement('div');
-                cell.className = 'mini-day-cell other-month';
-                cell.innerText = d;
-                
-                const cellDate = new Date(year, month + 1, d);
-                cell.addEventListener('click', () => selectMiniDate(cellDate));
-                daysContainer.appendChild(cell);
+            if (pattern === 'MMM') {
+                return monthNames[date.getMonth()].substring(0, 3);
             }
+            if (pattern === 'd') {
+                return `${date.getDate()}`;
+            }
+            if (pattern === 'EEEE') {
+                const longWeekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+                return longWeekdays[date.getDay()];
+            }
+            if (pattern === 'EEEE, MMMM d') {
+                return `${this.format(date, 'EEEE')}, ${monthNames[date.getMonth()]} ${date.getDate()}`;
+            }
+            if (pattern === 'EEE') {
+                return weekdayNamesShort[date.getDay()];
+            }
+            if (pattern === 'HH:mm') {
+                return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+            }
+            if (pattern === 'hh:mm a') {
+                let hours = date.getHours();
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12;
+                hours = hours ? hours : 12;
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                return `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+            }
+            return date.toDateString();
         }
+    };
 
-        function selectMiniDate(date) {
-            selectedDate = new Date(date);
-            miniCurrentDate = new Date(date);
-            renderMiniCalendar();
-            calendar.gotoDate(date);
-        }
+    // --- BACKEND ROOM INJECTION & EXTRACTOR UTILITIES ---
+    const parseRoomFromDescription = (desc) => {
+        if (!desc) return '';
+        const match = desc.match(/\[Room:\s*(.*?)\]/);
+        return match ? match[1] : '';
+    };
 
-        document.getElementById('mini-prev-btn').addEventListener('click', () => {
-            miniCurrentDate.setMonth(miniCurrentDate.getMonth() - 1);
-            renderMiniCalendar();
+    const cleanDescription = (desc) => {
+        if (!desc) return '';
+        return desc.replace(/\[Room:\s*(.*?)\]/, '').trim();
+    };
+
+    const getEventCategory = (e) => {
+        if (!e) return 'admin';
+        const type = e.eventType?.toLowerCase();
+        const catName = e.category?.toLowerCase();
+        if (type === 'holiday' || catName === 'holiday' || catName === 'holidays') return 'holidays';
+        if (type === 'exam' || catName === 'exams' || catName === 'exam') return 'exams';
+        if (catName === 'birthdays' || catName === 'birthday') return 'birthdays';
+        if (type === 'task' || catName === 'tasks' || catName === 'task') return 'tasks';
+        return 'admin';
+    };
+
+    // --- AI CONFLICT AUDITING HELPER ---
+    const detectConflicts = (events) => {
+        const conflictsMap = {};
+        const globalConflicts = [];
+
+        events.forEach(e => {
+            conflictsMap[e.id] = [];
         });
 
-        document.getElementById('mini-next-btn').addEventListener('click', () => {
-            miniCurrentDate.setMonth(miniCurrentDate.getMonth() + 1);
-            renderMiniCalendar();
-        });
+        const sortedEvents = [...events].sort(
+            (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
+        );
 
-        // Initialize main FullCalendar
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            headerToolbar: false, // Hide default FullCalendar toolbar entirely
-            eventTimeFormat: {
-                hour: 'numeric',
-                minute: '2-digit',
-                meridiem: 'short',
-                omitZeroMinute: true
-            },
-            dayHeaderContent: function(arg) {
-                const weekday = arg.date.toLocaleString('default', { weekday: 'short' }).toUpperCase();
-                return {
-                    html: `<div class="fc-header-weekday">${weekday}</div>`
-                };
-            },
-            dayCellContent: function(arg) {
-                const day = arg.date.getDate();
-                let dayText = `${day}`;
-                if (day === 1) {
-                    const monthName = arg.date.toLocaleString('default', { month: 'short' });
-                    dayText = `${day} ${monthName}`;
-                }
-                
-                // Check if it's today
-                const today = new Date();
-                const isToday = arg.date.getDate() === today.getDate() &&
-                                arg.date.getMonth() === today.getMonth() &&
-                                arg.date.getFullYear() === today.getFullYear();
-                                
-                if (isToday) {
-                    return {
-                        html: `<div class="fc-day-number-today-badge">${dayText}</div>`
-                    };
-                }
-                
-                return {
-                    html: `<div class="fc-day-number-normal">${dayText}</div>`
-                };
-            },
-            navLinks: true,
-            editable: false,
-            dayMaxEvents: true,
-            events: function(info, successCallback, failureCallback) {
-                fetch('/admin/calendar/events')
-                    .then(response => response.json())
-                    .then(events => {
-                        const query = document.getElementById('search-input').value.toLowerCase();
-                        
-                        // Checkbox filters
-                        const showUserEvents = document.getElementById('gcal-filter-user-events').checked;
-                        const showExams = document.getElementById('gcal-filter-exams').checked;
-                        const showTasks = document.getElementById('gcal-filter-tasks').checked;
-                        const showHolidays = document.getElementById('gcal-filter-holidays').checked;
+        for (let i = 0; i < sortedEvents.length; i++) {
+            const eventA = sortedEvents[i];
+            const startA = new Date(eventA.start);
+            const endA = new Date(eventA.end);
 
-                        let filtered = events.filter(e => {
-                            // Exclude birthdays from displaying
-                            const isBirthday = (e.title && e.title.toLowerCase().includes('birthday')) || 
-                                               (e.title && e.title.toLowerCase().includes('birth')) ||
-                                               (e.category && e.category.toLowerCase().includes('birthday')) ||
-                                               (e.category && e.category.toLowerCase().includes('birth'));
-                            if (isBirthday) return false;
+            for (let j = i + 1; j < sortedEvents.length; j++) {
+                const eventB = sortedEvents[j];
+                const startB = new Date(eventB.start);
+                const endB = new Date(eventB.end);
 
-                            // Filter by Search Query
-                            const titleMatch = !query || e.title.toLowerCase().includes(query) || (e.description && e.description.toLowerCase().includes(query));
-                            if (!titleMatch) return false;
+                // Check overlap
+                const isOverlapping = startA < endB && startB < endA;
 
-                            // Filter by My Calendars Checkboxes
-                            if (e.eventType === 'HOLIDAY') {
-                                if (!showHolidays) return false;
-                            } else if (e.eventType === 'EXAM') {
-                                if (!showExams) return false;
-                            } else if (e.eventType === 'TASK') {
-                                if (!showTasks) return false;
-                                
-                                const currentAdmin = '[[${adminName}]]'.toLowerCase();
-                                const isUserEvent = (e.createdBy && e.createdBy.toLowerCase() === currentAdmin) || 
-                                                    (e.assignedTo && e.assignedTo.toLowerCase() === currentAdmin);
-                                if (isUserEvent && !showUserEvents) {
-                                    return false;
-                                }
-                            }
+                if (isOverlapping) {
+                    // Overlap Warning
+                    const overlapMsg = `Overlapping events: "${eventA.title}" and "${eventB.title}"`;
+                    conflictsMap[eventA.id].push({ type: 'overlap', message: overlapMsg, peerId: eventB.id });
+                    conflictsMap[eventB.id].push({ type: 'overlap', message: overlapMsg, peerId: eventA.id });
 
-                            return true;
-                        });
-
-                        let mapped = filtered.map(e => {
-                            let color = '#64748b'; // default Slate
-                            if (e.eventType === 'HOLIDAY') {
-                                color = '#137333'; // Google Calendar green for holidays
-                            } else if (e.eventType === 'EXAM') {
-                                color = '#1a73e8'; // Blue (Google Calendar blue)
-                            } else if (e.status === 'Completed') {
-                                color = '#10b981'; // Green
-                            } else if (e.priority === 'HIGH') {
-                                color = '#ef4444'; // Red
-                            } else if (e.priority === 'MEDIUM') {
-                                color = '#f97316'; // Orange
-                            } else if (e.visibility === 'SHARED') {
-                                color = '#8b5cf6'; // Purple
-                            }
-
-                            let isAllDay = (e.eventType === 'HOLIDAY');
-                            let classNames = [];
-                            if (isAllDay) {
-                                classNames.push('fc-event-holiday');
-                            } else {
-                                classNames.push('fc-event-timed');
-                                if (e.eventType === 'EXAM') classNames.push('fc-event-exam-timed');
-                                else if (e.status === 'Completed') classNames.push('fc-event-completed-timed');
-                                else if (e.priority === 'HIGH') classNames.push('fc-event-high-timed');
-                                else if (e.priority === 'MEDIUM') classNames.push('fc-event-medium-timed');
-                                else if (e.visibility === 'SHARED') classNames.push('fc-event-shared-timed');
-                            }
-
-                            return {
-                                id: e.id,
-                                title: e.title,
-                                start: e.startDatetime,
-                                end: e.endDatetime,
-                                allDay: isAllDay,
-                                backgroundColor: isAllDay ? color : 'transparent',
-                                borderColor: color,
-                                textColor: isAllDay ? '#ffffff' : 'var(--text-primary)',
-                                classNames: classNames,
-                                extendedProps: e
-                            };
-                        });
-                        successCallback(mapped);
-                    })
-                    .catch(err => {
-                        console.error("Error loading events", err);
-                        failureCallback(err);
+                    globalConflicts.push({
+                        id: `overlap-${eventA.id}-${eventB.id}`,
+                        type: 'overlap',
+                        description: overlapMsg,
+                        eventIds: [eventA.id, eventB.id],
+                        date: startA
                     });
-            },
-            dateClick: function(info) {
-                document.getElementById('form-date').value = info.dateStr;
-                addEventModal.show();
-            },
-            eventClick: function(info) {
-                const e = info.event.extendedProps;
-                selectedEventId = e.id;
 
-                document.getElementById('detail-title').innerText = e.title;
-                document.getElementById('detail-description').innerText = e.description || "No description provided.";
-                document.getElementById('detail-category').innerText = e.category || "Other";
-                document.getElementById('detail-visibility').innerText = e.visibility;
-                document.getElementById('detail-created').innerText = e.createdBy;
-                document.getElementById('detail-assigned').innerText = e.assignedTo || "None";
-                
-                const start = new Date(e.startDatetime);
-                const end = new Date(e.endDatetime);
-                const formatOptions = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-                document.getElementById('detail-schedule').innerText = start.toLocaleString([], formatOptions) + " - " + end.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    // Room Double Booking Warning
+                    if (
+                        eventA.room &&
+                        eventB.room &&
+                        eventA.room.trim() !== '' &&
+                        eventA.room.trim().toLowerCase() === eventB.room.trim().toLowerCase()
+                    ) {
+                        const roomMsg = `Room "${eventA.room}" double-booked for "${eventA.title}" and "${eventB.title}"`;
+                        conflictsMap[eventA.id].push({ type: 'room-booking', message: roomMsg, peerId: eventB.id });
+                        conflictsMap[eventB.id].push({ type: 'room-booking', message: roomMsg, peerId: eventA.id });
 
-                const typeB = document.getElementById('detail-type-badge');
-                typeB.innerText = e.eventType;
-                typeB.className = "badge " + (e.eventType === 'EXAM' ? 'bg-primary' : (e.eventType === 'HOLIDAY' ? 'bg-warning text-dark' : 'bg-secondary'));
-
-                const prioB = document.getElementById('detail-priority-badge');
-                prioB.innerText = e.priority + " Priority";
-                prioB.className = "badge " + (e.priority === 'HIGH' ? 'bg-danger' : (e.priority === 'MEDIUM' ? 'bg-warning text-dark' : 'bg-success'));
-
-                const statB = document.getElementById('detail-status-badge');
-                statB.innerText = e.status;
-                statB.className = "badge " + (e.status === 'Completed' ? 'bg-success' : (e.status === 'Overdue' ? 'bg-danger' : 'bg-secondary'));
-
-                const completeBtn = document.getElementById('complete-task-btn');
-                const deleteBtn = document.getElementById('delete-event-btn');
-
-                if (e.eventType === 'TASK') {
-                    completeBtn.classList.remove('d-none');
-                    completeBtn.innerText = e.status === 'Completed' ? 'Mark Pending' : 'Mark Completed';
+                        globalConflicts.push({
+                            id: `room-${eventA.id}-${eventB.id}`,
+                            type: 'room-booking',
+                            description: roomMsg,
+                            eventIds: [eventA.id, eventB.id],
+                            date: startA
+                        });
+                    }
                 } else {
-                    completeBtn.classList.add('d-none');
-                }
+                    // Back-to-back Exam Warning (only if both are Exams)
+                    if (
+                        eventA.category?.toLowerCase() === 'exams' &&
+                        eventB.category?.toLowerCase() === 'exams'
+                    ) {
+                        const bufferMinutes = Math.abs(dateHelpers.differenceInMinutes(startB, endA));
+                        if (bufferMinutes < 30) {
+                            const examMsg = `Back-to-back exams ("${eventA.title}" and "${eventB.title}") have less than 30m buffer (${bufferMinutes} mins)`;
+                            conflictsMap[eventA.id].push({ type: 'exam-buffer', message: examMsg, peerId: eventB.id });
+                            conflictsMap[eventB.id].push({ type: 'exam-buffer', message: examMsg, peerId: eventA.id });
 
-                const currentAdminName = '[[${adminName}]]';
-                if (e.createdBy.toLowerCase() === currentAdminName.toLowerCase() && e.eventType !== 'HOLIDAY') {
-                    deleteBtn.classList.remove('d-none');
-                } else {
-                    deleteBtn.classList.add('d-none');
+                            globalConflicts.push({
+                                id: `exam-${eventA.id}-${eventB.id}`,
+                                type: 'exam-buffer',
+                                description: examMsg,
+                                eventIds: [eventA.id, eventB.id],
+                                date: startA
+                            });
+                        }
+                    }
                 }
-
-                eventDetailModal.show();
-            },
-            datesSet: function(info) {
-                // Update header month-year title from FullCalendar's view title
-                document.getElementById('gcal-title').innerText = info.view.title;
-                
-                // Sync mini-calendar center date
-                const currentMainDate = calendar.getDate();
-                miniCurrentDate = new Date(currentMainDate);
-                selectedDate = new Date(currentMainDate);
-                renderMiniCalendar();
             }
-        });
+        }
 
-        calendar.render();
+        return { conflictsMap, globalConflicts };
+    };
 
-        // Sync dark theme changes dynamically
-        window.addEventListener('themeChanged', function() {
-            calendar.render();
-        });
-
-        // Trigger filters refetch
-        const refetch = () => calendar.refetchEvents();
-        document.getElementById('search-input').addEventListener('input', refetch);
-        
-        // My Calendars Checkboxes refetch
-        document.getElementById('gcal-filter-user-events').addEventListener('change', refetch);
-        document.getElementById('gcal-filter-exams').addEventListener('change', refetch);
-        document.getElementById('gcal-filter-tasks').addEventListener('change', refetch);
-        document.getElementById('gcal-filter-holidays').addEventListener('change', refetch);
-
-        // Header Navigation wiring
-        document.getElementById('gcal-today-btn').addEventListener('click', () => {
-            calendar.today();
-        });
-        document.getElementById('gcal-prev-btn').addEventListener('click', () => {
-            calendar.prev();
-        });
-        document.getElementById('gcal-next-btn').addEventListener('click', () => {
-            calendar.next();
-        });
-
-        // Header view selector dropdown wiring
-        document.getElementById('view-month').addEventListener('click', function(e) {
-            e.preventDefault();
-            calendar.changeView('dayGridMonth');
-            document.getElementById('current-view-label').innerText = 'Month';
-        });
-        document.getElementById('view-week').addEventListener('click', function(e) {
-            e.preventDefault();
-            calendar.changeView('timeGridWeek');
-            document.getElementById('current-view-label').innerText = 'Week';
-        });
-        document.getElementById('view-day').addEventListener('click', function(e) {
-            e.preventDefault();
-            calendar.changeView('timeGridDay');
-            document.getElementById('current-view-label').innerText = 'Day';
-        });
-        document.getElementById('view-list').addEventListener('click', function(e) {
-            e.preventDefault();
-            calendar.changeView('listWeek');
-            document.getElementById('current-view-label').innerText = 'Schedule';
-        });
-
-        // Set current date in quick date jump input
-        const todayVal = new Date();
-        const yyyyVal = todayVal.getFullYear();
-        const mmVal = String(todayVal.getMonth() + 1).padStart(2, '0');
-        const ddVal = String(todayVal.getDate()).padStart(2, '0');
-        document.getElementById('quick-date-jump').value = `${yyyyVal}-${mmVal}-${ddVal}`;
-
-        // Date jump sync
-        document.getElementById('quick-date-jump').addEventListener('change', function() {
-            if (this.value) {
-                calendar.gotoDate(this.value);
-            }
-        });
-
-        // Create Dropdown item clicks (AddTask & ScheduleExam modals opening)
-        document.getElementById('menu-create-task').addEventListener('click', function(e) {
-            e.preventDefault();
-            document.getElementById('type-task').checked = true;
-            document.getElementById('form-eventType').value = 'TASK';
-            document.getElementById('task-fields').classList.remove('d-none');
-            document.getElementById('exam-fields').classList.add('d-none');
-            
-            const today = new Date();
-            const dateStr = today.toISOString().split('T')[0];
-            document.getElementById('form-date').value = dateStr;
-            addEventModal.show();
-        });
-
-        document.getElementById('menu-schedule-exam').addEventListener('click', function(e) {
-            e.preventDefault();
-            document.getElementById('type-exam').checked = true;
-            document.getElementById('form-eventType').value = 'EXAM';
-            document.getElementById('task-fields').classList.add('d-none');
-            document.getElementById('exam-fields').classList.remove('d-none');
-            
-            const today = new Date();
-            const dateStr = today.toISOString().split('T')[0];
-            document.getElementById('form-date').value = dateStr;
-            addEventModal.show();
-        });
-
-        // Form Type toggling inside modal
-        document.getElementById('type-task').addEventListener('change', function() {
-            document.getElementById('form-eventType').value = 'TASK';
-            document.getElementById('task-fields').classList.remove('d-none');
-            document.getElementById('exam-fields').classList.add('d-none');
-        });
-        document.getElementById('type-exam').addEventListener('change', function() {
-            document.getElementById('form-eventType').value = 'EXAM';
-            document.getElementById('task-fields').classList.add('d-none');
-            document.getElementById('exam-fields').classList.remove('d-none');
-        });
-
-        // Save entry
-        document.getElementById('save-event-btn').addEventListener('click', function() {
-            const form = document.getElementById('event-form');
-            const eventType = document.getElementById('form-eventType').value;
-            
-            const formData = new FormData(form);
-
-            if (eventType === 'EXAM') {
-                const subject = document.getElementById('exam-subject').value;
-                const semester = document.getElementById('exam-semester').value;
-                const division = document.getElementById('exam-division').value;
-                const duration = document.getElementById('exam-duration').value;
-                const examType = document.getElementById('exam-type').value;
-
-                if (!subject) {
-                    alert('Subject is required for Exam Events');
-                    return;
-                }
-
-                formData.set('title', '📘 ' + subject + ' Examination');
-                formData.set('description', 'Semester: ' + semester + '\nDivision: ' + division + '\nDuration: ' + duration + ' mins\nExam Type: ' + examType);
-                formData.set('category', 'Exam Preparation');
-                formData.set('priority', 'HIGH');
-                formData.set('visibility', 'SHARED');
+    // --- COMPONENT: TOPBAR ---
+    function Topbar({
+        currentDate,
+        onNavigateToday,
+        onNavigatePrev,
+        onNavigateNext,
+        currentView,
+        setCurrentView,
+        sidebarOpen,
+        setSidebarOpen,
+        searchQuery,
+        setSearchQuery,
+        darkMode,
+        setDarkMode
+    }) {
+        const handleThemeToggle = () => {
+            const body = document.body;
+            if (body.classList.contains('dark-theme')) {
+                body.classList.remove('dark-theme');
+                setDarkMode(false);
             } else {
-                const title = document.getElementById('form-title').value;
-                if (!title) {
-                    alert('Task Title is required');
-                    return;
+                body.classList.add('dark-theme');
+                setDarkMode(true);
+            }
+            window.dispatchEvent(new Event('themeChanged'));
+        };
+
+        return (
+            <header className="h-16 flex items-center justify-between px-3 border-b select-none z-30 flex-shrink-0 bg-white dark:bg-[#1a1a1a] border-[#dadce0] dark:border-[#3c3c3c]">
+                {/* Left section: Hamburger & Logo */}
+                <div className="flex items-center gap-1.5">
+                    <button
+                        onClick={() => setSidebarOpen(!sidebarOpen)}
+                        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-gray-600 dark:text-[#e8eaed]"
+                    >
+                        <i className="bi bi-list fs-5"></i>
+                    </button>
+
+                    <div className="flex items-center gap-2 ml-1">
+                        {/* Google Calendar Logo Style */}
+                        <div className="relative w-10 h-10 flex items-center justify-center bg-[#1a73e8] text-white rounded-lg">
+                            <span className="text-[10px] font-bold uppercase absolute top-1 leading-none">
+                                {dateHelpers.format(currentDate, 'MMM')}
+                            </span>
+                            <span className="text-base font-bold absolute bottom-0.5 leading-none">
+                                {dateHelpers.format(currentDate, 'd')}
+                            </span>
+                        </div>
+                        <span className="text-[18px] font-normal tracking-tight text-gray-800 dark:text-[#e8eaed]">
+                            Calendar
+                        </span>
+                    </div>
+                </div>
+
+                {/* Center-Left: Navigation */}
+                <div className="flex items-center gap-2 ml-4">
+                    <button
+                        onClick={onNavigateToday}
+                        className="px-4 py-1.5 border rounded-full text-sm font-medium transition-colors text-gray-700 dark:text-[#e8eaed] border-[#dadce0] dark:border-[#3c3c3c] hover:bg-gray-50 dark:hover:bg-[#2a2a2a]"
+                    >
+                        Today
+                    </button>
+
+                    <div className="flex items-center ml-1">
+                        <button
+                            onClick={onNavigatePrev}
+                            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-gray-600 dark:text-[#e8eaed]"
+                        >
+                            <i className="bi bi-chevron-left"></i>
+                        </button>
+                        <button
+                            onClick={onNavigateNext}
+                            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-gray-600 dark:text-[#e8eaed]"
+                        >
+                            <i className="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+
+                    <h1 className="text-[22px] font-normal text-gray-800 dark:text-[#e8eaed] pl-2">
+                        {dateHelpers.format(currentDate, 'MMMM yyyy')}
+                    </h1>
+                </div>
+
+                {/* Search query box */}
+                <div className="flex-1 max-w-lg mx-6">
+                    <div className="relative flex items-center bg-gray-100 dark:bg-[#2a2a2a] border border-transparent rounded-lg focus-within:bg-white dark:focus-within:bg-[#1e1e1e] focus-within:border-gray-200 dark:focus-within:border-[#3c3c3c] transition-all duration-150">
+                        <i className="bi bi-search text-gray-500 absolute left-3"></i>
+                        <input
+                            type="text"
+                            placeholder="Search tasks, exams..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full h-9 pl-10 pr-4 bg-transparent outline-none text-sm text-gray-800 dark:text-[#e8eaed]"
+                        />
+                    </div>
+                </div>
+
+                {/* Right actions */}
+                <div className="flex items-center gap-1.5">
+                    {/* Theme switcher */}
+                    <button
+                        onClick={handleThemeToggle}
+                        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-gray-600 dark:text-[#e8eaed]"
+                        title={darkMode ? 'Light Theme' : 'Dark Theme'}
+                    >
+                        {darkMode ? <i className="bi bi-sun text-yellow-500"></i> : <i className="bi bi-moon"></i>}
+                    </button>
+
+                    <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-gray-600 dark:text-[#e8eaed]" title="Help">
+                        <i className="bi bi-question-circle"></i>
+                    </button>
+
+                    <a href="/admin/settings" className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-gray-600 dark:text-[#e8eaed]" title="Settings">
+                        <i className="bi bi-gear"></i>
+                    </a>
+
+                    {/* View selector dropdown */}
+                    <div className="relative flex items-center">
+                        <select
+                            value={currentView}
+                            onChange={(e) => setCurrentView(e.target.value)}
+                            className="bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] text-gray-700 dark:text-[#e8eaed] text-sm rounded-full pl-4 pr-9 py-1.5 outline-none hover:bg-gray-50 dark:hover:bg-[#2a2a2a] cursor-pointer min-w-[120px] appearance-none"
+                        >
+                            <option value="month">Month</option>
+                            <option value="week">Week</option>
+                            <option value="day">Day</option>
+                        </select>
+                        <i className="bi bi-chevron-down absolute right-3.5 text-xs text-gray-500 dark:text-gray-400 pointer-events-none"></i>
+                    </div>
+
+                    <button 
+                        className={`p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#2a2a2a] ${currentView === 'month' ? 'text-[#1a73e8]' : 'text-gray-600 dark:text-[#e8eaed]'}`}
+                        onClick={() => setCurrentView('month')}
+                    >
+                        <i className="bi bi-grid-3x3-gap-fill"></i>
+                    </button>
+                    <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-gray-600 dark:text-[#e8eaed]">
+                        <i className="bi bi-check2-circle"></i>
+                    </button>
+                </div>
+            </header>
+        );
+    }
+
+    // --- COMPONENT: SIDEBAR ---
+    function Sidebar({
+        currentDate,
+        setCurrentDate,
+        categoryFilters,
+        setCategoryFilters,
+        conflictCheckOpen,
+        setConflictCheckOpen,
+        globalConflicts,
+        onCreateEventClick,
+        adminName
+    }) {
+        const [miniMonth, setMiniMonth] = useState(dateHelpers.startOfMonth(currentDate));
+        const [myCalsExpanded, setMyCalsExpanded] = useState(true);
+        const [otherCalsExpanded, setOtherCalsExpanded] = useState(true);
+
+        useEffect(() => {
+            setMiniMonth(dateHelpers.startOfMonth(currentDate));
+        }, [currentDate]);
+
+        const miniCalDays = useMemo(() => {
+            const monthStart = dateHelpers.startOfMonth(miniMonth);
+            const monthEnd = dateHelpers.endOfMonth(monthStart);
+            const startDate = dateHelpers.startOfWeek(monthStart);
+            const endDate = dateHelpers.endOfWeek(monthEnd);
+            return dateHelpers.eachDayOfInterval(startDate, endDate);
+        }, [miniMonth]);
+
+        const handleCategoryToggle = (key) => {
+            setCategoryFilters(prev => ({
+                ...prev,
+                [key]: !prev[key]
+            }));
+        };
+
+        return (
+            <aside className="w-64 border-r flex flex-col h-full bg-white dark:bg-[#1a1a1a] border-[#dadce0] dark:border-[#3c3c3c] flex-shrink-0 select-none pb-4 overflow-y-auto">
+                {/* Create Dropdown button */}
+                <div className="p-4">
+                    <button
+                        onClick={onCreateEventClick}
+                        className="flex items-center gap-3 px-6 py-3.5 bg-white dark:bg-[#303030] hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-gray-700 dark:text-[#e8eaed] rounded-full border border-[#dadce0] dark:border-[#5f6368] transition-shadow duration-150 font-medium text-sm cursor-pointer"
+                    >
+                        <i className="bi bi-plus-lg text-[#1a73e8] dark:text-[#e8eaed] text-lg"></i>
+                        <span>Create</span>
+                        <i className="bi bi-chevron-down text-xs text-gray-400"></i>
+                    </button>
+                </div>
+
+                {/* Mini Calendar */}
+                <div className="px-4 py-1">
+                    <div className="flex items-center justify-between px-1 mb-2">
+                        <span className="text-xs font-semibold text-gray-700 dark:text-[#e8eaed]">
+                            {dateHelpers.format(miniMonth, 'MMMM yyyy')}
+                        </span>
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => setMiniMonth(dateHelpers.subMonths(miniMonth, 1))}
+                                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-gray-600 dark:text-gray-400"
+                            >
+                                <i className="bi bi-chevron-left text-xs"></i>
+                            </button>
+                            <button
+                                onClick={() => setMiniMonth(dateHelpers.addMonths(miniMonth, 1))}
+                                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-gray-600 dark:text-gray-400"
+                            >
+                                <i className="bi bi-chevron-right text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Day short headers */}
+                    <div className="grid grid-cols-7 text-center text-[10px] font-semibold text-gray-500 dark:text-gray-400 mb-1">
+                        <span>S</span>
+                        <span>M</span>
+                        <span>T</span>
+                        <span>W</span>
+                        <span>T</span>
+                        <span>F</span>
+                        <span>S</span>
+                    </div>
+
+                    {/* Mini grid days */}
+                    <div className="grid grid-cols-7 text-center gap-y-1 text-[12px]">
+                        {miniCalDays.map((day, idx) => {
+                            const isCurr = dateHelpers.isSameMonth(day, miniMonth);
+                            const isSelected = dateHelpers.isSameDay(day, currentDate);
+                            const isToday = dateHelpers.isToday(day);
+
+                            return (
+                                <button
+                                    key={idx}
+                                    onClick={() => setCurrentDate(day)}
+                                    className={`
+                                        h-7 w-7 mx-auto flex items-center justify-center rounded-full transition-colors font-medium cursor-pointer
+                                        ${!isCurr ? 'text-gray-300 dark:text-[#5f6368]' : 'text-gray-700 dark:text-[#e8eaed]'}
+                                        ${isToday && !isSelected ? 'text-[#1a73e8] border border-[#1a73e8]' : ''}
+                                        ${isSelected ? 'bg-[#1a73e8] text-white' : 'hover:bg-gray-100 dark:hover:bg-[#2a2a2a]'}
+                                    `}
+                                >
+                                    {day.getDate()}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* People Finder Decoration */}
+                <div className="mt-4 px-4">
+                    <div className="flex items-center gap-2 py-1.5 border-b border-[#dadce0] dark:border-[#3c3c3c]">
+                        <i className="bi bi-people text-gray-500"></i>
+                        <input
+                            type="text"
+                            placeholder="Search for people"
+                            className="bg-transparent border-0 outline-none text-xs text-gray-600 dark:text-[#9aa0a6] placeholder-gray-400 dark:placeholder-gray-600 w-full"
+                        />
+                    </div>
+                </div>
+
+                {/* Checkbox: My Calendars */}
+                <div className="mt-5 px-4">
+                    <div 
+                        onClick={() => setMyCalsExpanded(!myCalsExpanded)}
+                        className="flex items-center justify-between text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2.5 px-1 cursor-pointer"
+                    >
+                        <span>My Calendars</span>
+                        <i className={`bi ${myCalsExpanded ? 'bi-chevron-up' : 'bi-chevron-down'}`}></i>
+                    </div>
+
+                    {myCalsExpanded && (
+                        <div className="space-y-1.5">
+                            {/* Neetyam Patel */}
+                            <label className="flex items-center gap-3 px-1.5 py-1 rounded hover:bg-gray-50 dark:hover:bg-[#2a2a2a] cursor-pointer text-[13px] text-gray-700 dark:text-[#e8eaed]">
+                                <input
+                                    type="checkbox"
+                                    checked={categoryFilters.admin}
+                                    onChange={() => handleCategoryToggle('admin')}
+                                    className="sr-only"
+                                />
+                                <div 
+                                    className={`w-3.5 h-3.5 rounded-[3px] flex items-center justify-center border transition-all ${categoryFilters.admin ? 'border-transparent text-white bg-[#1a73e8]' : 'border-gray-400 dark:border-gray-650 bg-transparent'}`}
+                                >
+                                    {categoryFilters.admin && <i className="bi bi-check-lg text-[10px]"></i>}
+                                </div>
+                                <span>{adminName || 'Super Admin'}</span>
+                            </label>
+
+                            {/* Birthdays */}
+                            <label className="flex items-center gap-3 px-1.5 py-1 rounded hover:bg-gray-50 dark:hover:bg-[#2a2a2a] cursor-pointer text-[13px] text-gray-700 dark:text-[#e8eaed]">
+                                <input
+                                    type="checkbox"
+                                    checked={categoryFilters.birthdays}
+                                    onChange={() => handleCategoryToggle('birthdays')}
+                                    className="sr-only"
+                                />
+                                <div 
+                                    className={`w-3.5 h-3.5 rounded-[3px] flex items-center justify-center border transition-all ${categoryFilters.birthdays ? 'border-transparent text-white bg-[#33b679]' : 'border-gray-400 dark:border-gray-650 bg-transparent'}`}
+                                >
+                                    {categoryFilters.birthdays && <i className="bi bi-check-lg text-[10px]"></i>}
+                                </div>
+                                <span>Birthdays</span>
+                            </label>
+
+                            {/* Tasks */}
+                            <label className="flex items-center gap-3 px-1.5 py-1 rounded hover:bg-gray-50 dark:hover:bg-[#2a2a2a] cursor-pointer text-[13px] text-gray-700 dark:text-[#e8eaed]">
+                                <input
+                                    type="checkbox"
+                                    checked={categoryFilters.tasks}
+                                    onChange={() => handleCategoryToggle('tasks')}
+                                    className="sr-only"
+                                />
+                                <div 
+                                    className={`w-3.5 h-3.5 rounded-[3px] flex items-center justify-center border transition-all ${categoryFilters.tasks ? 'border-transparent text-white bg-[#0b8043]' : 'border-gray-400 dark:border-gray-650 bg-transparent'}`}
+                                >
+                                    {categoryFilters.tasks && <i className="bi bi-check-lg text-[10px]"></i>}
+                                </div>
+                                <span>Tasks</span>
+                            </label>
+                        </div>
+                    )}
+                </div>
+
+                {/* Checkbox: Other Calendars */}
+                <div className="mt-5 px-4">
+                    <div 
+                        onClick={() => setOtherCalsExpanded(!otherCalsExpanded)}
+                        className="flex items-center justify-between text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2.5 px-1 cursor-pointer"
+                    >
+                        <div className="flex items-center gap-1">
+                            <span>Other Calendars</span>
+                        </div>
+                        <i className={`bi ${otherCalsExpanded ? 'bi-chevron-up' : 'bi-chevron-down'}`}></i>
+                    </div>
+
+                    {otherCalsExpanded && (
+                        <div className="space-y-1.5">
+                            {/* Holidays in India */}
+                            <label className="flex items-center gap-3 px-1.5 py-1 rounded hover:bg-gray-50 dark:hover:bg-[#2a2a2a] cursor-pointer text-[13px] text-gray-700 dark:text-[#e8eaed]">
+                                <input
+                                    type="checkbox"
+                                    checked={categoryFilters.holidays}
+                                    onChange={() => handleCategoryToggle('holidays')}
+                                    className="sr-only"
+                                />
+                                <div 
+                                    className={`w-3.5 h-3.5 rounded-[3px] flex items-center justify-center border transition-all ${categoryFilters.holidays ? 'border-transparent text-white bg-[#0f9d58]' : 'border-gray-400 dark:border-gray-650 bg-transparent'}`}
+                                >
+                                    {categoryFilters.holidays && <i className="bi bi-check-lg text-[10px]"></i>}
+                                </div>
+                                <span>Holidays in India</span>
+                            </label>
+                            
+                            {/* Exams */}
+                            <label className="flex items-center gap-3 px-1.5 py-1 rounded hover:bg-gray-50 dark:hover:bg-[#2a2a2a] cursor-pointer text-[13px] text-gray-700 dark:text-[#e8eaed]">
+                                <input
+                                    type="checkbox"
+                                    checked={categoryFilters.exams}
+                                    onChange={() => handleCategoryToggle('exams')}
+                                    className="sr-only"
+                                />
+                                <div 
+                                    className={`w-3.5 h-3.5 rounded-[3px] flex items-center justify-center border transition-all ${categoryFilters.exams ? 'border-transparent text-white bg-[#7986cb]' : 'border-gray-400 dark:border-gray-650 bg-transparent'}`}
+                                >
+                                    {categoryFilters.exams && <i className="bi bi-check-lg text-[10px]"></i>}
+                                </div>
+                                <span>Exams</span>
+                            </label>
+                        </div>
+                    )}
+                </div>
+
+                <hr className="my-4 border-[#dadce0] dark:border-[#3c3c3c]" />
+
+                {/* Smart conflict check shortcut */}
+                <div className="px-4">
+                    <button
+                        onClick={() => setConflictCheckOpen(!conflictCheckOpen)}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold tracking-wide transition-colors cursor-pointer ${conflictCheckOpen ? 'bg-red-50 text-red-700 dark:bg-red-950/20 dark:text-red-400 border border-red-200 dark:border-red-900/30' : 'bg-transparent text-gray-700 dark:text-[#e8eaed] border border-gray-200 dark:border-[#3c3c3c] hover:bg-gray-50 dark:hover:bg-[#2a2a2a]'}`}
+                    >
+                        <span className="flex items-center gap-2">
+                            <i className="bi bi-shield-fill-exclamation text-red-500 text-sm"></i>
+                            Conflict Auditor
+                        </span>
+                        {globalConflicts.length > 0 && (
+                            <span className="px-1.5 py-0.5 bg-red-600 text-white rounded-full text-[9px] font-bold">
+                                {globalConflicts.length}
+                            </span>
+                        )}
+                    </button>
+                </div>
+            </aside>
+        );
+    }
+
+    // --- COMPONENT: MONTHVIEW ---
+    function MonthView({
+        currentDate,
+        events,
+        categoryFilters,
+        conflictsMap,
+        onCellClick,
+        onEventClick
+    }) {
+        const monthStart = dateHelpers.startOfMonth(currentDate);
+        const monthEnd = dateHelpers.endOfMonth(monthStart);
+        const startDate = dateHelpers.startOfWeek(monthStart);
+        const endDate = dateHelpers.endOfWeek(monthEnd);
+
+        const days = dateHelpers.eachDayOfInterval(startDate, endDate);
+
+        // Filter categories
+        const getFilteredEventsForDay = (day) => {
+            return events.filter(e => {
+                const s = new Date(e.start);
+                if (!dateHelpers.isSameDay(s, day)) return false;
+                const cat = getEventCategory(e);
+                return categoryFilters[cat];
+            }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+        };
+
+        const handleCellClick = (e, day) => {
+            if (e.target.closest('.event-pill') || e.target.closest('.overflow-link')) return;
+            onCellClick(day, { x: e.clientX, y: e.clientY });
+        };
+
+        const categoryColors = {
+            admin: 'bg-[#1a73e8] text-[#e8eaed]',
+            exams: 'bg-[#7986cb] text-[#e8eaed]',
+            tasks: 'bg-[#0b8043] dark:bg-[#0f9d58] text-white',
+            holidays: 'bg-[#0f9d58] dark:bg-[#0d652d] text-white',
+            birthdays: 'bg-[#33b679] text-white'
+        };
+
+        return (
+            <div className="flex-1 flex flex-col h-full bg-white dark:bg-[#1a1a1a] select-none text-gray-800 dark:text-[#e8eaed]">
+                {/* Headers row */}
+                <div className="grid grid-cols-7 border-b border-[#dadce0] dark:border-[#3c3c3c] flex-shrink-0">
+                    {weekdayNamesShort.map((day, idx) => (
+                        <div key={idx} className="text-center py-2 text-[11px] font-medium text-gray-500 dark:text-[#9aa0a6] uppercase tracking-[0.8px]">
+                            {day}
+                        </div>
+                    ))}
+                </div>
+
+                {/* Month Days Grid */}
+                <div 
+                    className="grid grid-cols-7 flex-grow border-b border-r border-[#dadce0] dark:border-[#3c3c3c]"
+                    style={{ gridTemplateRows: `repeat(${Math.ceil(days.length / 7)}, minmax(0, 1fr))` }}
+                >
+                    {days.map((day, idx) => {
+                        const dayEvents = getFilteredEventsForDay(day);
+                        const isCurrMonth = dateHelpers.isSameMonth(day, currentDate);
+                        const isToday = dateHelpers.isToday(day);
+                        const dayConflicts = dayEvents.filter(e => conflictsMap[e.id]?.length > 0);
+                        const hasConflict = dayConflicts.length > 0;
+
+                        // Google Calendar month display rules: show day number or "1 Jul" style
+                        let dayDisplayStr = `${day.getDate()}`;
+                        if (day.getDate() === 1) {
+                            dayDisplayStr = `${day.getDate()} ${dateHelpers.format(day, 'MMM')}`;
+                        }
+
+                        // Stacking limit to 3 events; show rest as "+ N more"
+                        const displayEvents = dayEvents.slice(0, 3);
+                        const overflowCount = dayEvents.length - 3;
+
+                        return (
+                            <div
+                                key={idx}
+                                onClick={(e) => handleCellClick(e, day)}
+                                className={`
+                                    border-l border-t border-[#dadce0] dark:border-[#3c3c3c] p-1 flex flex-col min-h-0 relative hover:bg-gray-50/50 dark:hover:bg-[#2a2a2a] cursor-pointer transition-colors duration-75
+                                    ${!isCurrMonth ? 'bg-gray-50/30 dark:bg-[#1b1b1c]/10 text-gray-400 dark:text-[#5f6368]' : 'bg-white dark:bg-[#1e1e1e]'}
+                                `}
+                            >
+                                {/* Date number header */}
+                                <div className="flex items-center justify-between mb-1.5 pr-1.5">
+                                    <span 
+                                        className={`
+                                            text-[13px] font-medium h-[26px] w-[26px] flex items-center justify-center rounded-full mt-0.5 ml-0.5
+                                            ${!isCurrMonth ? 'text-gray-400 dark:text-[#5f6368]' : 'text-gray-800 dark:text-[#e8eaed]'}
+                                            ${isToday ? 'bg-[#1a73e8] text-white font-bold' : ''}
+                                            ${hasConflict && !isToday ? 'underline decoration-red-500 decoration-2' : ''}
+                                        `}
+                                    >
+                                        {dayDisplayStr}
+                                    </span>
+                                    {hasConflict && (
+                                        <span className="w-2 h-2 rounded-full bg-red-600 block animate-pulse" title="Schedule Warning" />
+                                    )}
+                                </div>
+
+                                {/* Event Pills list */}
+                                <div className="flex-1 overflow-y-hidden space-y-1 px-1">
+                                    {displayEvents.map(event => {
+                                        const conflicts = conflictsMap[event.id] || [];
+                                        const isConflicting = conflicts.length > 0;
+                                        const cat = getEventCategory(event);
+                                        const colorClass = categoryColors[cat] || 'bg-gray-500 text-white';
+
+                                        return (
+                                            <div
+                                                key={event.id}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onEventClick(event, { x: e.clientX, y: e.clientY });
+                                                }}
+                                                className={`
+                                                    event-pill h-[18px] px-2 rounded-[4px] text-[11px] font-medium flex items-center gap-1 select-none truncate cursor-pointer transition-opacity hover:opacity-90
+                                                    ${colorClass}
+                                                `}
+                                                title={event.title}
+                                            >
+                                                {isConflicting && (
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
+                                                )}
+                                                <span className="truncate">{event.title}</span>
+                                            </div>
+                                        );
+                                    })}
+
+                                    {/* Overflow Link */}
+                                    {overflowCount > 0 && (
+                                        <div 
+                                            className="overflow-link text-[10px] font-bold text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 px-1 py-0.5 cursor-pointer"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onCellClick(day, { x: e.clientX, y: e.clientY });
+                                            }}
+                                        >
+                                            {overflowCount} more
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    }
+
+    // --- COMPONENT: WEEKVIEW ---
+    function WeekView({
+        currentDate,
+        events,
+        categoryFilters,
+        conflictsMap,
+        onCellClick,
+        onEventClick
+    }) {
+        const startOfCurrWeek = dateHelpers.startOfWeek(currentDate);
+        const weekDays = dateHelpers.eachDayOfInterval(startOfCurrWeek, dateHelpers.addDays(startOfCurrWeek, 6));
+
+        const hours = Array.from({ length: 24 }, (_, i) => i);
+        const rowHeight = 60; // 60px per hour
+
+        // Time indicator details
+        const [currentTime, setCurrentTime] = useState(new Date());
+        useEffect(() => {
+            const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+            return () => clearInterval(timer);
+        }, []);
+
+        const getFilteredEventsForDay = (day) => {
+            return events.filter(e => {
+                const s = new Date(e.start);
+                if (!dateHelpers.isSameDay(s, day)) return false;
+                const cat = getEventCategory(e);
+                return categoryFilters[cat];
+            });
+        };
+
+        const computeEventPositions = (dayEvents) => {
+            const sorted = [...dayEvents].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+            const columns = [];
+            const positions = {};
+
+            sorted.forEach(event => {
+                const start = new Date(event.start);
+                const end = new Date(event.end);
+                
+                let colIndex = 0;
+                while (true) {
+                    if (!columns[colIndex]) {
+                        columns[colIndex] = [event];
+                        break;
+                    }
+                    
+                    const hasOverlap = columns[colIndex].some(other => {
+                        const otherStart = new Date(other.start);
+                        const otherEnd = new Date(other.end);
+                        return start < otherEnd && otherStart < end;
+                    });
+
+                    if (!hasOverlap) {
+                        columns[colIndex].push(event);
+                        break;
+                    }
+                    colIndex++;
+                }
+                positions[event.id] = { colIndex };
+            });
+
+            sorted.forEach(event => {
+                const start = new Date(event.start);
+                const end = new Date(event.end);
+
+                const overlapping = sorted.filter(other => {
+                    const otherStart = new Date(other.start);
+                    const otherEnd = new Date(other.end);
+                    return start < otherEnd && otherStart < end;
+                });
+
+                let maxColIndex = 0;
+                overlapping.forEach(other => {
+                    const pos = positions[other.id];
+                    if (pos.colIndex > maxColIndex) {
+                        maxColIndex = pos.colIndex;
+                    }
+                });
+
+                positions[event.id].totalCols = maxColIndex + 1;
+            });
+
+            return positions;
+        };
+
+        const handleCellClick = (e, day, hour) => {
+            if (e.target.closest('.event-block')) return;
+            const rect = e.currentTarget.getBoundingClientRect();
+            const clickY = e.clientY - rect.top;
+            const clickMinute = Math.floor((clickY / rowHeight) * 60);
+
+            const selectedDate = new Date(day.getFullYear(), day.getMonth(), day.getDate(), hour, clickMinute);
+            onCellClick(selectedDate, { x: e.clientX, y: e.clientY });
+        };
+
+        const categoryColors = {
+            admin: 'bg-[#1a73e8] border-l-4 border-blue-800 text-white',
+            exams: 'bg-[#7986cb] border-l-4 border-indigo-900 text-white',
+            tasks: 'bg-[#0b8043] dark:bg-[#0f9d58] border-l-4 border-green-800 text-white',
+            holidays: 'bg-[#0f9d58] dark:bg-[#0d652d] border-l-4 border-green-900 text-white'
+        };
+
+        return (
+            <div className="flex-1 flex flex-col h-full bg-white dark:bg-[#1a1a1a] overflow-hidden select-none text-gray-800 dark:text-[#e8eaed]">
+                {/* Header Row */}
+                <div className="flex border-b border-[#dadce0] dark:border-[#3c3c3c] flex-shrink-0">
+                    <div className="w-16 flex-shrink-0 border-r border-[#dadce0] dark:border-[#3c3c3c]" />
+                    <div className="flex-1 grid grid-cols-7">
+                        {weekDays.map((day, idx) => {
+                            const isToday = dateHelpers.isToday(day);
+                            return (
+                                <div key={idx} className="text-center py-2 border-r border-[#dadce0] dark:border-[#3c3c3c] flex flex-col items-center">
+                                    <span className="text-[11px] font-semibold text-gray-500 dark:text-[#9aa0a6] uppercase tracking-[0.8px]">
+                                        {dateHelpers.format(day, 'EEE')}
+                                    </span>
+                                    <span 
+                                        className={`
+                                            text-base font-semibold h-8 w-8 flex items-center justify-center rounded-full mt-0.5
+                                            ${isToday ? 'bg-[#1a73e8] text-white font-bold' : 'text-gray-700 dark:text-[#e8eaed]'}
+                                        `}
+                                    >
+                                        {day.getDate()}
+                                    </span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Hourly scroll panel */}
+                <div className="flex-grow overflow-y-auto flex relative">
+                    {/* Time Label Column */}
+                    <div className="w-16 flex-shrink-0 border-r border-[#dadce0] dark:border-[#3c3c3c] bg-gray-50/20 dark:bg-transparent">
+                        {hours.map(hour => (
+                            <div key={hour} className="relative text-right pr-2 text-[10px] font-medium text-gray-500 dark:text-gray-400" style={{ height: `${rowHeight}px` }}>
+                                {hour > 0 && (
+                                    <span className="absolute -top-2 right-2">
+                                        {hour > 12 ? `${hour - 12} PM` : hour === 12 ? '12 PM' : `${hour} AM`}
+                                    </span>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Columns grid */}
+                    <div className="flex-1 grid grid-cols-7 relative h-fit">
+                        {weekDays.map((day, dayIdx) => {
+                            const dayEvents = getFilteredEventsForDay(day);
+                            const positions = computeEventPositions(dayEvents);
+                            const isTodayColumn = dateHelpers.isToday(day);
+
+                            // Calculate Red Time Marker Position
+                            const currentHour = currentTime.getHours();
+                            const currentMin = currentTime.getMinutes();
+                            const timeIndicatorTop = (currentHour * rowHeight) + ((currentMin / 60) * rowHeight);
+
+                            return (
+                                <div key={dayIdx} className="relative border-r border-[#dadce0] dark:border-[#3c3c3c]" style={{ height: `${rowHeight * 24}px` }}>
+                                    {hours.map(hour => (
+                                        <div
+                                            key={hour}
+                                            onClick={(e) => handleCellClick(e, day, hour)}
+                                            className="border-b border-gray-100 dark:border-[#3c3c3c]/50 w-full hover:bg-gray-50/40 dark:hover:bg-[#2a2a2a]/20 cursor-pointer"
+                                            style={{ height: `${rowHeight}px` }}
+                                        />
+                                    ))}
+
+                                    {/* Red current time indicator line */}
+                                    {isTodayColumn && (
+                                        <div 
+                                            className="absolute left-0 right-0 border-t-2 border-red-500 z-10 pointer-events-none"
+                                            style={{ top: `${timeIndicatorTop}px` }}
+                                        >
+                                            <div className="w-2.5 h-2.5 rounded-full bg-red-500 absolute -left-1.5 -top-1" />
+                                        </div>
+                                    )}
+
+                                    {/* Absolutely Positioned Event Blocks */}
+                                    {dayEvents.map(event => {
+                                        const start = new Date(event.start);
+                                        const end = new Date(event.end);
+                                        
+                                        const startHour = start.getHours();
+                                        const startMin = start.getMinutes();
+                                        const durationMins = dateHelpers.differenceInMinutes(end, start);
+                                        
+                                        const top = (startHour * rowHeight) + ((startMin / 60) * rowHeight);
+                                        const height = Math.max((durationMins / 60) * rowHeight, 20);
+
+                                        const cat = getEventCategory(event);
+                                        const colorStyle = categoryColors[cat] || 'bg-gray-500 border-l-4 border-gray-800 text-white';
+
+                                        const pos = positions[event.id] || { colIndex: 0, totalCols: 1 };
+                                        const width = 100 / pos.totalCols;
+                                        const left = pos.colIndex * width;
+
+                                        const conflicts = conflictsMap[event.id] || [];
+                                        const hasConflict = conflicts.length > 0;
+
+                                        return (
+                                            <div
+                                                key={event.id}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onEventClick(event, { x: e.clientX, y: e.clientY });
+                                                }}
+                                                className={`
+                                                    event-block absolute p-1.5 rounded-[4px] text-[11px] font-medium leading-tight flex flex-col justify-between overflow-hidden cursor-pointer select-none transition-all duration-100 hover:scale-[1.01] hover:z-20
+                                                    ${colorStyle}
+                                                `}
+                                                style={{
+                                                    top: `${top}px`,
+                                                    height: `${height}px`,
+                                                    left: `${left}%`,
+                                                    width: `${width - 0.5}%`,
+                                                }}
+                                            >
+                                                <div className="truncate">
+                                                    <div className="flex items-center gap-1 select-none">
+                                                        <span className="opacity-80 text-[10px]">
+                                                            {dateHelpers.format(start, 'HH:mm')}
+                                                        </span>
+                                                        {hasConflict && (
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-red-600 inline-block" />
+                                                        )}
+                                                    </div>
+                                                    <div className="truncate font-sans font-semibold mt-0.5">{event.title}</div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // --- COMPONENT: DAYVIEW ---
+    function DayView({
+        currentDate,
+        events,
+        categoryFilters,
+        conflictsMap,
+        onCellClick,
+        onEventClick
+    }) {
+        const hours = Array.from({ length: 24 }, (_, i) => i);
+        const rowHeight = 60; // 60px per hour
+
+        const [currentTime, setCurrentTime] = useState(new Date());
+        useEffect(() => {
+            const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+            return () => clearInterval(timer);
+        }, []);
+
+        const getFilteredEventsForDay = () => {
+            return events.filter(e => {
+                const s = new Date(e.start);
+                if (!dateHelpers.isSameDay(s, currentDate)) return false;
+                const cat = getEventCategory(e);
+                return categoryFilters[cat];
+            });
+        };
+
+        const computeEventPositions = (dayEvents) => {
+            const sorted = [...dayEvents].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+            const columns = [];
+            const positions = {};
+
+            sorted.forEach(event => {
+                const start = new Date(event.start);
+                const end = new Date(event.end);
+                
+                let colIndex = 0;
+                while (true) {
+                    if (!columns[colIndex]) {
+                        columns[colIndex] = [event];
+                        break;
+                    }
+                    
+                    const hasOverlap = columns[colIndex].some(other => {
+                        const otherStart = new Date(other.start);
+                        const otherEnd = new Date(other.end);
+                        return start < otherEnd && otherStart < end;
+                    });
+
+                    if (!hasOverlap) {
+                        columns[colIndex].push(event);
+                        break;
+                    }
+                    colIndex++;
+                }
+                positions[event.id] = { colIndex };
+            });
+
+            sorted.forEach(event => {
+                const start = new Date(event.start);
+                const end = new Date(event.end);
+
+                const overlapping = sorted.filter(other => {
+                    const otherStart = new Date(other.start);
+                    const otherEnd = new Date(other.end);
+                    return start < otherEnd && otherStart < end;
+                });
+
+                let maxColIndex = 0;
+                overlapping.forEach(other => {
+                    const pos = positions[other.id];
+                    if (pos.colIndex > maxColIndex) {
+                        maxColIndex = pos.colIndex;
+                    }
+                });
+
+                positions[event.id].totalCols = maxColIndex + 1;
+            });
+
+            return positions;
+        };
+
+        const handleCellClick = (e, hour) => {
+            if (e.target.closest('.event-block')) return;
+            const rect = e.currentTarget.getBoundingClientRect();
+            const clickY = e.clientY - rect.top;
+            const clickMinute = Math.floor((clickY / rowHeight) * 60);
+
+            const selectedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), hour, clickMinute);
+            onCellClick(selectedDate, { x: e.clientX, y: e.clientY });
+        };
+
+        const categoryColors = {
+            admin: 'bg-[#1a73e8] border-l-4 border-blue-800 text-white',
+            exams: 'bg-[#7986cb] border-l-4 border-indigo-900 text-white',
+            tasks: 'bg-[#0b8043] dark:bg-[#0f9d58] border-l-4 border-green-800 text-white',
+            holidays: 'bg-[#0f9d58] dark:bg-[#0d652d] border-l-4 border-green-900 text-white'
+        };
+
+        const dayEvents = getFilteredEventsForDay();
+        const positions = computeEventPositions(dayEvents);
+        const isToday = dateHelpers.isToday(currentDate);
+
+        // Time Indicator Top position
+        const currentHour = currentTime.getHours();
+        const currentMin = currentTime.getMinutes();
+        const timeIndicatorTop = (currentHour * rowHeight) + ((currentMin / 60) * rowHeight);
+
+        return (
+            <div className="flex-1 flex flex-col h-full bg-white dark:bg-[#1a1a1a] overflow-hidden select-none text-gray-800 dark:text-[#e8eaed]">
+                {/* Header Row */}
+                <div className="flex border-b border-[#dadce0] dark:border-[#3c3c3c] flex-shrink-0">
+                    <div className="w-16 flex-shrink-0 border-r border-[#dadce0] dark:border-[#3c3c3c]" />
+                    <div className="flex-1 py-3 px-6 flex items-center gap-4">
+                        <div className="flex flex-col items-center">
+                            <span className="text-[11px] font-semibold text-gray-500 dark:text-[#9aa0a6] uppercase tracking-[0.8px]">
+                                {dateHelpers.format(currentDate, 'EEEE')}
+                            </span>
+                            <span 
+                                className={`
+                                    text-2xl font-bold h-12 w-12 flex items-center justify-center rounded-full mt-1
+                                    ${isToday ? 'bg-[#1a73e8] text-white' : 'text-gray-800 dark:text-[#e8eaed]'}
+                                `}
+                            >
+                                {currentDate.getDate()}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Hourly content panel */}
+                <div className="flex-grow overflow-y-auto flex relative">
+                    {/* Time labels column */}
+                    <div className="w-16 flex-shrink-0 border-r border-[#dadce0] dark:border-[#3c3c3c] bg-gray-50/20 dark:bg-transparent">
+                        {hours.map(hour => (
+                            <div key={hour} className="relative text-right pr-2 text-[10px] font-medium text-gray-500 dark:text-gray-400" style={{ height: `${rowHeight}px` }}>
+                                {hour > 0 && (
+                                    <span className="absolute -top-2 right-2">
+                                        {hour > 12 ? `${hour - 12} PM` : hour === 12 ? '12 PM' : `${hour} AM`}
+                                    </span>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Single Day grid area */}
+                    <div className="flex-1 relative h-fit">
+                        {hours.map(hour => (
+                            <div
+                                key={hour}
+                                onClick={(e) => handleCellClick(e, hour)}
+                                className="border-b border-gray-100 dark:border-[#3c3c3c]/50 w-full hover:bg-gray-50/40 dark:hover:bg-[#2a2a2a]/20 cursor-pointer"
+                                style={{ height: `${rowHeight}px` }}
+                            />
+                        ))}
+
+                        {/* Red Current Time Line Indicator */}
+                        {isToday && (
+                            <div 
+                                className="absolute left-0 right-0 border-t-2 border-red-500 z-10 pointer-events-none"
+                                style={{ top: `${timeIndicatorTop}px` }}
+                            >
+                                <div className="w-2.5 h-2.5 rounded-full bg-red-500 absolute -left-1.5 -top-1" />
+                            </div>
+                        )}
+
+                        {/* Events Blocks */}
+                        {dayEvents.map(event => {
+                            const start = new Date(event.start);
+                            const end = new Date(event.end);
+                            
+                            const startHour = start.getHours();
+                            const startMin = start.getMinutes();
+                            const durationMins = dateHelpers.differenceInMinutes(end, start);
+                            
+                            const top = (startHour * rowHeight) + ((startMin / 60) * rowHeight);
+                            const height = Math.max((durationMins / 60) * rowHeight, 20);
+
+                            const cat = event.category?.toLowerCase() || (event.eventType?.toLowerCase() === 'holiday' ? 'holidays' : (event.eventType?.toLowerCase() === 'exam' ? 'exams' : 'admin'));
+                            const colorStyle = categoryColors[cat] || 'bg-gray-500 border-l-4 border-gray-800 text-white';
+
+                            const pos = positions[event.id] || { colIndex: 0, totalCols: 1 };
+                            const width = 100 / pos.totalCols;
+                            const left = pos.colIndex * width;
+
+                            const conflicts = conflictsMap[event.id] || [];
+                            const hasConflict = conflicts.length > 0;
+
+                            return (
+                                <div
+                                    key={event.id}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onEventClick(event, { x: e.clientX, y: e.clientY });
+                                    }}
+                                    className={`
+                                        event-block absolute p-2 rounded-[4px] text-xs font-semibold leading-tight flex flex-col justify-between overflow-hidden cursor-pointer select-none transition-all duration-100 hover:scale-[1.01] hover:z-20
+                                        ${colorStyle}
+                                    `}
+                                    style={{
+                                        top: `${top}px`,
+                                        height: `${height}px`,
+                                        left: `${left}%`,
+                                        width: `${width - 0.5}%`,
+                                    }}
+                                >
+                                    <div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="opacity-80 text-[10px]">
+                                                {dateHelpers.format(start, 'hh:mm a')} - {dateHelpers.format(end, 'hh:mm a')}
+                                            </span>
+                                            {hasConflict && (
+                                                <i className="bi bi-exclamation-triangle-fill text-red-400 text-xs"></i>
+                                            )}
+                                        </div>
+                                        <div className="truncate font-semibold text-sm mt-0.5">{event.title}</div>
+                                    </div>
+                                    
+                                    {height > 60 && (
+                                        <div className="mt-1 space-y-0.5 text-[10px] font-normal opacity-85">
+                                            {event.room && <div>Room: {event.room}</div>}
+                                            {event.description && <div className="truncate italic">"{event.description}"</div>}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // --- COMPONENT: CREATEEVENTMODAL ---
+    function CreateEventModal({
+        isOpen,
+        onClose,
+        onSave,
+        selectedDate,
+        editEvent,
+        popoverCoords,
+        mode,
+        setMode,
+        allAdmins
+    }) {
+        const [title, setTitle] = useState('');
+        const [category, setCategory] = useState('admin');
+        const [dateStr, setDateStr] = useState('');
+        const [startTime, setStartTime] = useState('09:00');
+        const [endTime, setEndTime] = useState('10:00');
+        const [room, setRoom] = useState('');
+        const [description, setDescription] = useState('');
+        const [priority, setPriority] = useState('LOW');
+        const [visibility, setVisibility] = useState('SHARED');
+        const [assignedTo, setAssignedTo] = useState('');
+        const [eventType, setEventType] = useState('TASK');
+
+        useEffect(() => {
+            if (editEvent) {
+                setTitle(editEvent.title || '');
+                setCategory(editEvent.category || 'admin');
+                const start = new Date(editEvent.start);
+                const end = new Date(editEvent.end);
+                setDateStr(start.toISOString().split('T')[0]);
+                setStartTime(dateHelpers.format(start, 'HH:mm'));
+                setEndTime(dateHelpers.format(end, 'HH:mm'));
+                setRoom(editEvent.room || '');
+                setDescription(cleanDescription(editEvent.description) || '');
+                setPriority(editEvent.priority || 'LOW');
+                setVisibility(editEvent.visibility || 'SHARED');
+                setAssignedTo(editEvent.assignedTo || '');
+                setEventType(editEvent.eventType || 'TASK');
+            } else if (selectedDate) {
+                setTitle('');
+                setCategory('admin');
+                setDateStr(selectedDate.toISOString().split('T')[0]);
+                setStartTime(dateHelpers.format(selectedDate, 'HH:mm'));
+                const end = new Date(selectedDate.getTime() + 60 * 60 * 1000);
+                setEndTime(dateHelpers.format(end, 'HH:mm'));
+                setRoom('');
+                setDescription('');
+                setPriority('LOW');
+                setVisibility('SHARED');
+                setAssignedTo('');
+                setEventType('TASK');
+            }
+        }, [editEvent, selectedDate, isOpen]);
+
+        if (!isOpen) return null;
+
+        const handleSubmit = (e) => {
+            if (e) e.preventDefault();
+            if (!title.trim()) return;
+
+            onSave({
+                id: editEvent ? editEvent.id : null,
+                title,
+                description,
+                category,
+                eventType,
+                priority,
+                visibility,
+                assignedTo,
+                dateStr,
+                startTime,
+                endTime,
+                room
+            });
+            onClose();
+        };
+
+        const getPopoverStyle = () => {
+            if (!popoverCoords) return {};
+            const width = 360;
+            const height = 240;
+            const padding = 20;
+
+            let left = popoverCoords.x + 10;
+            let top = popoverCoords.y - 80;
+
+            if (typeof window !== 'undefined') {
+                if (left + width > window.innerWidth) {
+                    left = popoverCoords.x - width - 10;
+                }
+                if (top + height > window.innerHeight) {
+                    top = window.innerHeight - height - padding;
+                }
+                if (top < padding) {
+                    top = padding;
                 }
             }
 
-            fetch('/admin/calendar/event/add', {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    addEventModal.hide();
-                    form.reset();
-                    calendar.refetchEvents();
-                } else {
-                    alert('Error: ' + data.message);
+            return {
+                position: 'absolute',
+                left: `${left}px`,
+                top: `${top}px`,
+                zIndex: 50
+            };
+        };
+
+        // Render Quick popover mode
+        if (mode === 'quick') {
+            return (
+                <div 
+                    style={getPopoverStyle()} 
+                    className="w-[340px] bg-white dark:bg-[#2d2d2d] rounded-xl border border-gray-200 dark:border-[#3c3c3c] p-4 text-gray-800 dark:text-[#e8eaed] font-sans"
+                >
+                    <div className="flex justify-between items-center mb-2.5">
+                        <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Quick Add Event</span>
+                        <button onClick={onClose} className="text-gray-450 hover:text-gray-600 dark:hover:text-white"><i className="bi bi-x-lg"></i></button>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-3">
+                        <input
+                            type="text"
+                            placeholder="Add title"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            className="w-full text-sm font-medium border-b border-gray-300 dark:border-[#3c3c3c] focus:border-[#1a73e8] outline-none pb-1 bg-transparent text-gray-800 dark:text-[#e8eaed] placeholder-gray-450 dark:placeholder-gray-500"
+                            autoFocus
+                            required
+                        />
+
+                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                            <i className="bi bi-clock"></i>
+                            <span>
+                                {dateStr} • {startTime} - {endTime}
+                            </span>
+                        </div>
+
+                        {/* Quick Category selection */}
+                        <div className="flex items-center gap-1.5">
+                            {['admin', 'exams', 'tasks', 'holidays'].map(cat => (
+                                <button
+                                    key={cat}
+                                    type="button"
+                                    onClick={() => {
+                                        setCategory(cat);
+                                        if (cat === 'holidays') setEventType('HOLIDAY');
+                                        else if (cat === 'exams') setEventType('EXAM');
+                                        else setEventType('TASK');
+                                    }}
+                                    className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-all border ${category === cat ? 'bg-[#1a73e8] border-transparent text-white' : 'bg-transparent border-gray-300 dark:border-[#3c3c3c] text-gray-500 dark:text-gray-400'}`}
+                                >
+                                    {cat.toUpperCase()}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-[#3c3c3c]">
+                            <button
+                                type="button"
+                                onClick={() => setMode('full')}
+                                className="text-xs font-semibold text-[#1a73e8] hover:underline"
+                            >
+                                More options
+                            </button>
+                            <div className="flex gap-2">
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="px-3 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#3c3c3c] rounded"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-1 text-xs font-semibold bg-[#1a73e8] text-white hover:bg-blue-600 rounded"
+                                >
+                                    Save
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            );
+        }
+
+        // Full modal centered overlay mode
+        return (
+            <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 font-sans select-text">
+                <div className="w-full max-w-md bg-white dark:bg-[#2d2d2d] rounded-xl border border-gray-200 dark:border-[#3c3c3c] overflow-hidden text-gray-800 dark:text-[#e8eaed]">
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-200 dark:border-[#3c3c3c]">
+                        <h2 className="text-sm font-semibold">{editEvent ? 'Edit Event Details' : 'Create Event Entry'}</h2>
+                        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-white"><i className="bi bi-x-lg"></i></button>
+                    </div>
+
+                    {/* Form */}
+                    <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
+                        {/* Title */}
+                        <div>
+                            <input
+                                type="text"
+                                placeholder="Add title"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                className="w-full text-base font-semibold border-b border-gray-300 dark:border-[#3c3c3c] focus:border-[#1a73e8] outline-none pb-1.5 bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                                required
+                                autoFocus
+                            />
+                        </div>
+
+                        {/* Date & Time fields */}
+                        <div className="grid grid-cols-3 gap-2 items-center">
+                            <div className="col-span-1">
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Date</label>
+                                <input
+                                    type="date"
+                                    value={dateStr}
+                                    onChange={(e) => setDateStr(e.target.value)}
+                                    className="bg-transparent border border-gray-300 dark:border-[#3c3c3c] p-1.5 rounded text-xs w-full text-gray-800 dark:text-white outline-none"
+                                    required
+                                />
+                            </div>
+                            <div className="col-span-1">
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Start Time</label>
+                                <input
+                                    type="time"
+                                    value={startTime}
+                                    onChange={(e) => setStartTime(e.target.value)}
+                                    className="bg-transparent border border-gray-300 dark:border-[#3c3c3c] p-1.5 rounded text-xs w-full text-gray-800 dark:text-white outline-none"
+                                    required
+                                />
+                            </div>
+                            <div className="col-span-1">
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">End Time</label>
+                                <input
+                                    type="time"
+                                    value={endTime}
+                                    onChange={(e) => setEndTime(e.target.value)}
+                                    className="bg-transparent border border-gray-300 dark:border-[#3c3c3c] p-1.5 rounded text-xs w-full text-gray-800 dark:text-white outline-none"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        {/* Event Category & Type selection */}
+                        <div className="flex gap-2 items-center">
+                            <span className="text-xs text-gray-400 w-20">Category:</span>
+                            <select
+                                value={category}
+                                onChange={(e) => {
+                                    setCategory(e.target.value);
+                                    if (e.target.value === 'holidays') setEventType('HOLIDAY');
+                                    else if (e.target.value === 'exams') setEventType('EXAM');
+                                    else setEventType('TASK');
+                                }}
+                                className="flex-1 bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] p-1.5 rounded text-xs text-gray-800 dark:text-white outline-none"
+                            >
+                                <option value="admin">Admin (Blue)</option>
+                                <option value="exams">Exams (Purple)</option>
+                                <option value="tasks">Tasks (Red)</option>
+                                <option value="holidays">Holidays (Green)</option>
+                                <option value="birthdays">Birthdays (Light Green)</option>
+                            </select>
+                        </div>
+
+                        {/* Priority Selector */}
+                        <div className="flex gap-2 items-center">
+                            <span className="text-xs text-gray-400 w-20">Priority:</span>
+                            <select
+                                value={priority}
+                                onChange={(e) => setPriority(e.target.value)}
+                                className="flex-1 bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] p-1.5 rounded text-xs text-gray-800 dark:text-white outline-none"
+                            >
+                                <option value="LOW">Low</option>
+                                <option value="MEDIUM">Medium</option>
+                                <option value="HIGH">High</option>
+                            </select>
+                        </div>
+
+                        {/* Assigned To selector */}
+                        <div className="flex gap-2 items-center">
+                            <span className="text-xs text-gray-400 w-20">Assignee:</span>
+                            <select
+                                value={assignedTo}
+                                onChange={(e) => setAssignedTo(e.target.value)}
+                                className="flex-1 bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] p-1.5 rounded text-xs text-gray-800 dark:text-white outline-none"
+                            >
+                                <option value="">Assign to Me</option>
+                                <option value="Everyone">Everyone (Visible to all)</option>
+                                {allAdmins.map(admin => (
+                                    <option key={admin} value={admin}>{admin}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Room Location (Conflict Audit Target) */}
+                        <div className="flex gap-2 items-center">
+                            <span className="text-xs text-gray-400 w-20">Room:</span>
+                            <input
+                                type="text"
+                                placeholder="Conference A, Lab B (triggers checks)"
+                                value={room}
+                                onChange={(e) => setRoom(e.target.value)}
+                                className="flex-1 bg-transparent border border-gray-300 dark:border-[#3c3c3c] p-1.5 rounded text-xs text-gray-800 dark:text-white outline-none"
+                            />
+                        </div>
+
+                        {/* Notes / Description */}
+                        <div>
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Notes</label>
+                            <textarea
+                                placeholder="Add optional details..."
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                rows="3"
+                                className="w-full bg-transparent border border-gray-350 dark:border-[#3c3c3c] p-2 rounded text-xs text-gray-800 dark:text-white outline-none resize-none"
+                            />
+                        </div>
+
+                        {/* Footer buttons */}
+                        <div className="flex justify-end gap-2 pt-3 border-t border-gray-200 dark:border-[#3c3c3c]">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="px-4 py-1.5 border border-gray-300 dark:border-[#3c3c3c] text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#3c3c3c] text-xs font-semibold rounded"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                className="px-5 py-1.5 bg-[#1a73e8] text-white hover:bg-blue-600 text-xs font-semibold rounded"
+                            >
+                                Save
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        );
+    }
+
+    // --- COMPONENT: EVENTDETAILPOPOVER ---
+    function EventDetailPopover({
+        isOpen,
+        event,
+        coords,
+        onClose,
+        onEditClick,
+        onDeleteClick,
+        onToggleComplete,
+        conflicts = [],
+        adminName
+    }) {
+        if (!isOpen || !event) return null;
+
+        const start = new Date(event.start);
+        const end = new Date(event.end);
+
+        const categoryLabels = {
+            admin: 'Admin Event',
+            exams: 'Examination Session',
+            tasks: 'General Task',
+            holidays: 'Public Holiday',
+            birthdays: 'Birthday Reminder'
+        };
+
+        const catColors = {
+            admin: '#1a73e8',
+            exams: '#7986cb',
+            tasks: '#0b8043',
+            holidays: '#0f9d58',
+            birthdays: '#33b679'
+        };
+
+        const cat = getEventCategory(event);
+        const label = categoryLabels[cat] || 'Calendar Event';
+        const color = catColors[cat] || '#64748b';
+
+        const getStyle = () => {
+            if (!coords) return {};
+            const width = 340;
+            const height = 280;
+            const padding = 20;
+
+            let left = coords.x + 10;
+            let top = coords.y - 80;
+
+            if (typeof window !== 'undefined') {
+                if (left + width > window.innerWidth) {
+                    left = coords.x - width - 10;
                 }
-            })
-            .catch(err => {
-                console.error(err);
-                alert('An error occurred while saving.');
+                if (top + height > window.innerHeight) {
+                    top = window.innerHeight - height - padding;
+                }
+                if (top < padding) {
+                    top = padding;
+                }
+            }
+
+            return {
+                position: 'absolute',
+                left: `${left}px`,
+                top: `${top}px`,
+                zIndex: 40
+            };
+        };
+
+        const canDelete = (event.createdBy?.toLowerCase() === adminName?.toLowerCase() || event.createdBy === 'System') && event.eventType !== 'HOLIDAY';
+
+        return (
+            <div 
+                style={getStyle()} 
+                className="w-[330px] bg-white dark:bg-[#2d2d2d] rounded-xl border border-gray-205 dark:border-[#3c3c3c] text-gray-800 dark:text-[#e8eaed] font-sans overflow-hidden"
+            >
+                {/* Actions top bar */}
+                <div className="flex items-center justify-between px-3.5 py-1.5 bg-gray-50 dark:bg-[#202124] border-b border-gray-205 dark:border-[#3c3c3c]">
+                    <div className="flex items-center gap-2">
+                        <div className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: color }} />
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-450">
+                            {label}
+                        </span>
+                    </div>
+
+                    <div className="flex items-center gap-0.5">
+                        {event.eventType !== 'HOLIDAY' && (
+                            <button onClick={() => onEditClick(event)} className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-[#3c3c3c] text-gray-600 dark:text-gray-300" title="Edit">
+                                <i className="bi bi-pencil-fill text-xs"></i>
+                            </button>
+                        )}
+                        {canDelete && (
+                            <button onClick={() => onDeleteClick(event.id)} className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-[#3c3c3c] text-red-650 dark:text-red-400" title="Delete">
+                                <i className="bi bi-trash-fill text-xs"></i>
+                            </button>
+                        )}
+                        <button onClick={onClose} className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-[#3c3c3c] text-gray-450 dark:text-gray-400">
+                            <i className="bi bi-x-lg text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Details body */}
+                <div className="p-4 space-y-3">
+                    <h3 className="text-base font-bold text-gray-900 dark:text-white leading-snug">{event.title}</h3>
+
+                    <div className="flex items-start gap-2.5 text-xs text-gray-600 dark:text-gray-300">
+                        <i className="bi bi-clock text-gray-500 mt-0.5"></i>
+                        <div>
+                            <div className="font-semibold">{dateHelpers.format(start, 'EEEE, MMMM d, yyyy')}</div>
+                            <div className="text-gray-550 dark:text-gray-400 mt-0.5">{dateHelpers.format(start, 'hh:mm a')} - {dateHelpers.format(end, 'hh:mm a')}</div>
+                        </div>
+                    </div>
+
+                    {/* Room details */}
+                    {event.room && (
+                        <div className="flex items-start gap-2.5 text-xs text-gray-600 dark:text-gray-300">
+                            <i className="bi bi-geo-alt-fill text-gray-500 mt-0.5"></i>
+                            <div>
+                                <span className="font-semibold">Room: </span>
+                                <span className="text-gray-550 dark:text-gray-400">{event.room}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Status Badge */}
+                    <div className="flex gap-2 items-center text-xs">
+                        <span className="text-gray-550 dark:text-gray-400">Status:</span>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${event.status === 'Completed' ? 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-900/40' : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/40'}`}>
+                            {event.status}
+                        </span>
+                    </div>
+
+                    {/* Notes details */}
+                    {event.description && (
+                        <div className="flex items-start gap-2.5 text-xs text-gray-600 dark:text-gray-300 border-t border-gray-200 dark:border-[#3c3c3c] pt-2.5">
+                            <i className="bi bi-list-stars text-gray-500 mt-0.5"></i>
+                            <div className="italic text-gray-550 dark:text-gray-400 whitespace-pre-wrap select-text">
+                                "{cleanDescription(event.description)}"
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Task toggle complete btn */}
+                    {event.eventType === 'TASK' && (
+                        <div className="pt-2 border-t border-gray-200 dark:border-[#3c3c3c]">
+                            <button
+                                onClick={() => {
+                                    onToggleComplete(event.id);
+                                    onClose();
+                                }}
+                                className={`w-full py-1.5 rounded font-bold text-xs cursor-pointer transition-colors ${event.status === 'Completed' ? 'bg-gray-100 dark:bg-[#3c3c3c] text-gray-750 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#4c4c4c]' : 'bg-[#1a73e8] text-white hover:bg-blue-600'}`}
+                            >
+                                {event.status === 'Completed' ? '✓ Completed (Mark Pending)' : 'Mark Completed'}
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Conflicts warnings */}
+                    {conflicts.length > 0 && (
+                        <div className="border-t border-red-200 dark:border-red-900/40 pt-2.5">
+                            <div className="flex items-center gap-2 text-red-650 dark:text-red-400 text-xs font-bold mb-1.5">
+                                <i className="bi bi-exclamation-octagon-fill"></i>
+                                <span>Schedule Overlaps ({conflicts.length})</span>
+                            </div>
+                            <ul className="text-[10px] list-disc list-inside text-red-650 dark:text-red-400 bg-red-50 dark:bg-red-950/20 p-2 rounded border border-red-200 dark:border-red-900/20 space-y-1">
+                                {conflicts.map((c, idx) => (
+                                    <li key={idx} className="leading-normal">{c.message}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    // --- COMPONENT: CONFLICTPANEL ---
+    function ConflictPanel({
+        isOpen,
+        onClose,
+        globalConflicts,
+        onNavigateToDate
+    }) {
+        if (!isOpen) return null;
+
+        return (
+            <aside className="w-72 border-l flex flex-col bg-white dark:bg-[#1a1a1a] border-[#dadce0] dark:border-[#3c3c3c] h-full flex-shrink-0 select-none animate-in slide-in-from-right duration-150 z-20">
+                <div className="p-4 border-b border-[#dadce0] dark:border-[#3c3c3c] flex items-center justify-between bg-gray-50/50 dark:bg-[#202124]/50">
+                    <span className="font-bold text-gray-800 dark:text-[#e8eaed] text-xs uppercase tracking-wider">
+                        Conflict Auditor
+                    </span>
+                    <button onClick={onClose} className="text-gray-450 hover:text-gray-855 dark:hover:text-white"><i className="bi bi-x-lg text-xs"></i></button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                    {globalConflicts.length === 0 ? (
+                        <div className="text-center text-gray-400 dark:text-gray-600 py-12 px-2">
+                            <i className="bi bi-calendar-check text-3xl opacity-40 mb-2 block"></i>
+                            <p className="text-xs font-bold">No active conflicts detected!</p>
+                            <p className="text-[10px] mt-1">Schedules are verified, room double-bookings and exams separations are clean.</p>
+                        </div>
+                    ) : (
+                        globalConflicts.map(conf => (
+                            <div
+                                key={conf.id}
+                                onClick={() => onNavigateToDate(new Date(conf.date))}
+                                className="p-3 bg-red-50/20 dark:bg-red-950/10 border border-red-200/50 dark:border-red-900/20 rounded-lg hover:bg-red-50/40 dark:hover:bg-red-950/20 cursor-pointer transition-colors"
+                            >
+                                <span className="text-[9px] font-bold text-red-500 uppercase tracking-widest block mb-1">
+                                    {conf.type === 'room-booking' ? 'Room Clash' : (conf.type === 'exam-buffer' ? 'Exam Buffer' : 'Time Overlap')}
+                                </span>
+                                <p className="text-xs font-bold text-gray-900 dark:text-gray-100 select-text leading-tight mb-2">
+                                    {conf.description}
+                                </p>
+                                <div className="flex justify-between items-center text-[10px] text-gray-500 dark:text-gray-400">
+                                    <span>{dateHelpers.format(new Date(conf.date), 'MMM d, yyyy')}</span>
+                                    <span className="text-[#1a73e8] font-bold">Go To Date →</span>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </aside>
+        );
+    }
+
+    // --- MAIN REACT CONTAINER (App) ---
+    function App() {
+        const adminName = window.loggedInAdminName || 'Super Admin';
+        const allAdmins = window.allAdminsList || [];
+
+        const [currentDate, setCurrentDate] = useState(new Date());
+        const [currentView, setCurrentView] = useState('month');
+        const [events, setEvents] = useState([]);
+        const [categoryFilters, setCategoryFilters] = useState({
+            admin: true,
+            exams: true,
+            tasks: true,
+            holidays: true,
+            birthdays: true
+        });
+        const [searchQuery, setSearchQuery] = useState('');
+
+        const [sidebarOpen, setSidebarOpen] = useState(true);
+        const [conflictCheckOpen, setConflictCheckOpen] = useState(false);
+        const [darkMode, setDarkMode] = useState(document.body.classList.contains('dark-theme'));
+
+        // Synchronize dark-theme status with Tailwind's class-based mode
+        useEffect(() => {
+            if (darkMode) {
+                document.documentElement.classList.add('dark');
+                document.body.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.body.classList.remove('dark');
+            }
+        }, [darkMode]);
+
+        // Modals state
+        const [modalOpen, setModalOpen] = useState(false);
+        const [modalMode, setModalMode] = useState('quick');
+        const [selectedCellDate, setSelectedCellDate] = useState(null);
+        const [editEvent, setEditEvent] = useState(null);
+        const [popoverCoords, setPopoverCoords] = useState(null);
+
+        // Details Popover state
+        const [detailOpen, setDetailOpen] = useState(false);
+        const [detailEvent, setDetailEvent] = useState(null);
+        const [detailCoords, setDetailCoords] = useState(null);
+
+        // Fetch events from Spring Boot REST API
+        const loadAllEvents = useCallback(() => {
+            fetch('/admin/calendar/events')
+                .then(res => res.json())
+                .then(data => {
+                    // Map backend data model to React Calendar model
+                    const mapped = data.map(e => {
+                        const roomVal = parseRoomFromDescription(e.description);
+                        return {
+                            id: e.id,
+                            title: e.title,
+                            description: e.description,
+                            category: e.category,
+                            eventType: e.eventType,
+                            priority: e.priority,
+                            status: e.status,
+                            createdBy: e.createdBy,
+                            assignedTo: e.assignedTo,
+                            visibility: e.visibility,
+                            start: e.startDatetime,
+                            end: e.endDatetime,
+                            room: roomVal
+                        };
+                    });
+                    setEvents(mapped);
+                })
+                .catch(err => console.error("Failed to load events", err));
+        }, []);
+
+        useEffect(() => {
+            loadAllEvents();
+            // Sync with backend theme class on window listener
+            const handleTheme = () => {
+                setDarkMode(document.body.classList.contains('dark-theme'));
+            };
+            window.addEventListener('themeChanged', handleTheme);
+            return () => window.removeEventListener('themeChanged', handleTheme);
+        }, [loadAllEvents]);
+
+        // Conflicts Audits
+        const { conflictsMap, globalConflicts } = useMemo(() => {
+            return detectConflicts(events);
+        }, [events]);
+
+        // Filters applied to Grid render only
+        const filteredEvents = useMemo(() => {
+            return events.filter(e => {
+                // Exclude birthday events as per user's strict request
+                const isBday = e.title?.toLowerCase().includes('birthday') || e.category?.toLowerCase().includes('birthday');
+                if (isBday) return false;
+
+                if (searchQuery.trim()) {
+                    const q = searchQuery.toLowerCase();
+                    const match = e.title?.toLowerCase().includes(q) || e.description?.toLowerCase().includes(q) || e.room?.toLowerCase().includes(q);
+                    if (!match) return false;
+                }
+                return true;
             });
-        });
+        }, [events, searchQuery]);
 
-        // Toggle Task Complete action
-        document.getElementById('complete-task-btn').addEventListener('click', function() {
-            if (!selectedEventId) return;
-            const params = new URLSearchParams();
-            params.append('id', selectedEventId);
-
-            fetch('/admin/calendar/event/toggle-complete', {
-                method: 'POST',
-                body: params
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    eventDetailModal.hide();
-                    calendar.refetchEvents();
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(err => console.error(err));
-        });
-
-        // Delete Event action
-        document.getElementById('delete-event-btn').addEventListener('click', function() {
-            if (!selectedEventId) return;
-            if (!confirm('Are you sure you want to delete this event?')) return;
+        // Save event handler
+        const handleSaveEvent = (data) => {
+            const formData = new FormData();
             
+            // Format title
+            let finalTitle = data.title;
+            let finalDesc = data.description;
+            if (data.room) {
+                finalDesc = `${finalDesc}\n[Room: ${data.room}]`;
+            }
+
+            formData.append('title', finalTitle);
+            formData.append('description', finalDesc);
+            formData.append('category', data.category);
+            formData.append('eventType', data.eventType);
+            formData.append('priority', data.priority);
+            
+            // Determine visibility dynamically based on assignment
+            let finalVisibility = 'PRIVATE';
+            if (data.assignedTo === 'Everyone' || data.eventType === 'HOLIDAY' || data.eventType === 'EXAM') {
+                finalVisibility = 'SHARED';
+            }
+            formData.append('visibility', finalVisibility);
+            
+            formData.append('assignedTo', data.assignedTo);
+            formData.append('date', data.dateStr);
+            formData.append('startTime', data.startTime);
+            formData.append('endTime', data.endTime);
+
+            const performAdd = () => {
+                fetch('/admin/calendar/event/add', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(response => {
+                    if (response.status === 'success') {
+                        loadAllEvents();
+                    } else {
+                        alert('Error saving event: ' + response.message);
+                    }
+                })
+                .catch(err => console.error(err));
+            };
+
+            // If editing an existing event: delete old one first, then add updated one
+            if (data.id) {
+                const params = new URLSearchParams();
+                params.append('id', data.id);
+
+                fetch('/admin/calendar/event/delete', {
+                    method: 'POST',
+                    body: params
+                })
+                .then(res => res.json())
+                .then(response => {
+                    if (response.status === 'success') {
+                        performAdd();
+                    } else {
+                        alert('Could not update event: ' + response.message);
+                    }
+                })
+                .catch(err => console.error(err));
+            } else {
+                performAdd();
+            }
+        };
+
+        // Delete event handler
+        const handleDeleteEvent = (id) => {
             const params = new URLSearchParams();
-            params.append('id', selectedEventId);
+            params.append('id', id);
 
             fetch('/admin/calendar/event/delete', {
                 method: 'POST',
@@ -1654,15 +2158,190 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success') {
-                    eventDetailModal.hide();
-                    calendar.refetchEvents();
+                    loadAllEvents();
                 } else {
                     alert('Error: ' + data.message);
                 }
             })
             .catch(err => console.error(err));
-        });
-    });
+        };
+
+        // Toggle task completion
+        const handleToggleComplete = (id) => {
+            const params = new URLSearchParams();
+            params.append('id', id);
+
+            fetch('/admin/calendar/event/toggle-complete', {
+                method: 'POST',
+                body: params
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    loadAllEvents();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(err => console.error(err));
+        };
+
+        // Navigation controls
+        const handleNavigateToday = () => setCurrentDate(new Date());
+        const handleNavigatePrev = () => {
+            if (currentView === 'month') setCurrentDate(prev => dateHelpers.subMonths(prev, 1));
+            else if (currentView === 'week') setCurrentDate(prev => dateHelpers.subWeeks(prev, 1));
+            else setCurrentDate(prev => dateHelpers.subDays(prev, 1));
+        };
+        const handleNavigateNext = () => {
+            if (currentView === 'month') setCurrentDate(prev => dateHelpers.addMonths(prev, 1));
+            else if (currentView === 'week') setCurrentDate(prev => dateHelpers.addWeeks(prev, 1));
+            else setCurrentDate(prev => dateHelpers.addDays(prev, 1));
+        };
+
+        const handleCellClick = (date, coords) => {
+            setDetailOpen(false);
+            setEditEvent(null);
+            setSelectedCellDate(date);
+            setPopoverCoords(coords);
+            setModalMode('quick');
+            setModalOpen(true);
+        };
+
+        const handleEventClick = (event, coords) => {
+            setModalOpen(false);
+            setDetailEvent(event);
+            setDetailCoords(coords);
+            setDetailOpen(true);
+        };
+
+        const handleEditClickFromDetail = (event) => {
+            setEditEvent(event);
+            setModalMode('full');
+            setModalOpen(true);
+        };
+
+        const handleCreateButtonClick = () => {
+            setDetailOpen(false);
+            setEditEvent(null);
+            setSelectedCellDate(new Date(currentDate));
+            setPopoverCoords(null);
+            setModalMode('full');
+            setModalOpen(true);
+        };
+
+        const handleConflictNavigate = (date) => {
+            setCurrentDate(date);
+            setCurrentView('day');
+        };
+
+        return (
+            <div className="flex flex-col h-full w-full bg-white dark:bg-[#1a1a1a] text-gray-800 dark:text-[#e8eaed] overflow-hidden">
+                <Topbar
+                    currentDate={currentDate}
+                    onNavigateToday={handleNavigateToday}
+                    onNavigatePrev={handleNavigatePrev}
+                    onNavigateNext={handleNavigateNext}
+                    currentView={currentView}
+                    setCurrentView={setCurrentView}
+                    sidebarOpen={sidebarOpen}
+                    setSidebarOpen={setSidebarOpen}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    darkMode={darkMode}
+                    setDarkMode={setDarkMode}
+                />
+
+                <div className="flex flex-1 overflow-hidden relative">
+                    {sidebarOpen && (
+                        <Sidebar
+                            currentDate={currentDate}
+                            setCurrentDate={setCurrentDate}
+                            categoryFilters={categoryFilters}
+                            setCategoryFilters={setCategoryFilters}
+                            conflictCheckOpen={conflictCheckOpen}
+                            setConflictCheckOpen={setConflictCheckOpen}
+                            globalConflicts={globalConflicts}
+                            onCreateEventClick={handleCreateButtonClick}
+                            adminName={adminName}
+                        />
+                    )}
+
+                    <main className="flex-grow-1 flex flex-col min-w-0 h-full relative overflow-hidden bg-white dark:bg-[#1e1e1e]">
+                        {currentView === 'month' && (
+                            <MonthView
+                                currentDate={currentDate}
+                                events={filteredEvents}
+                                categoryFilters={categoryFilters}
+                                conflictsMap={conflictsMap}
+                                onCellClick={handleCellClick}
+                                onEventClick={handleEventClick}
+                            />
+                        )}
+                        {currentView === 'week' && (
+                            <WeekView
+                                currentDate={currentDate}
+                                events={filteredEvents}
+                                categoryFilters={categoryFilters}
+                                conflictsMap={conflictsMap}
+                                onCellClick={handleCellClick}
+                                onEventClick={handleEventClick}
+                            />
+                        )}
+                        {currentView === 'day' && (
+                            <DayView
+                                currentDate={currentDate}
+                                events={filteredEvents}
+                                categoryFilters={categoryFilters}
+                                conflictsMap={conflictsMap}
+                                onCellClick={handleCellClick}
+                                onEventClick={handleEventClick}
+                            />
+                        )}
+                    </main>
+
+                    <ConflictPanel
+                        isOpen={conflictCheckOpen}
+                        onClose={() => setConflictCheckOpen(false)}
+                        globalConflicts={globalConflicts}
+                        onNavigateToDate={handleConflictNavigate}
+                    />
+
+                    <CreateEventModal
+                        isOpen={modalOpen}
+                        onClose={() => setModalOpen(false)}
+                        onSave={handleSaveEvent}
+                        selectedDate={selectedCellDate}
+                        editEvent={editEvent}
+                        popoverCoords={popoverCoords}
+                        mode={modalMode}
+                        setMode={setModalMode}
+                        allAdmins={allAdmins}
+                    />
+
+                    <EventDetailPopover
+                        isOpen={detailOpen}
+                        event={detailEvent}
+                        coords={detailCoords}
+                        onClose={() => setDetailOpen(false)}
+                        onEditClick={handleEditClickFromDetail}
+                        onDeleteClick={handleDeleteEvent}
+                        onToggleComplete={handleToggleComplete}
+                        conflicts={detailEvent ? conflictsMap[detailEvent.id] : []}
+                        adminName={adminName}
+                    />
+                </div>
+            </div>
+        );
+    }
+
+    // --- Mount application ---
+    const rootEl = document.getElementById('react-calendar-root');
+    if (rootEl) {
+        const root = ReactDOM.createRoot(rootEl);
+        root.render(<App />);
+    }
+/*]]>*/
 </script>
 </body>
 </html>
