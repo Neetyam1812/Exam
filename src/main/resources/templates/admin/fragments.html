@@ -378,7 +378,8 @@
             background-color: #374151;
         }
 
-        .toggle-switch-input:checked {
+        .toggle-switch-input:checked,
+        body.dark-theme .toggle-switch-input:checked {
             background-color: var(--primary);
         }
 
@@ -445,6 +446,18 @@
                 <a th:href="@{/admin/results}" class="menu-item-link" th:classappend="${activeMenu == 'results'} ? 'active' : ''">
                     <i class="bi bi-bar-chart-steps"></i>
                     <span>Results</span>
+                </a>
+            </li>
+            <li>
+                <a th:href="@{/admin/sessions}" class="menu-item-link" th:classappend="${activeMenu == 'sessions'} ? 'active' : ''">
+                    <i class="bi bi-shield-lock-fill"></i>
+                    <span>🔐 Session Monitoring</span>
+                </a>
+            </li>
+            <li>
+                <a th:href="@{/admin/live-monitor}" class="menu-item-link" th:classappend="${activeMenu == 'live-monitor'} ? 'active' : ''">
+                    <i class="bi bi-display"></i>
+                    <span>📺 Live Monitor</span>
                 </a>
             </li>
             <li>

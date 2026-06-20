@@ -38,6 +38,15 @@ public class StudentExamRestController {
     @Autowired
     private ExamPasteLogRepository examPasteLogRepository;
 
+    @Autowired
+    private StudentActiveSessionRepository studentActiveSessionRepository;
+
+    @Autowired
+    private ExamViolationRepository examViolationRepository;
+
+    @Autowired
+    private University.exam.service.StudentExamActivityService studentExamActivityService;
+
     @GetMapping("/exam/{id}/status")
     public ResponseEntity<?> getExamStatus(@PathVariable("id") Long id, @RequestParam(name = "type", required = false) String type) {
         String status = "DRAFT";
@@ -291,6 +300,21 @@ public class StudentExamRestController {
         return ResponseEntity.ok(Collections.singletonMap("status", "logged"));
     }
 
+    @PostMapping("/exam/log-violation")
+    public ResponseEntity<?> logViolation(@RequestBody Map<String, Object> payload, HttpSession session) {
+        String enrollmentNo = (String) session.getAttribute("loggedInStudent");
+        if (enrollmentNo == null) return ResponseEntity.status(401).body("Unauthorized");
+
+        String eventType = payload.get("eventType") != null ? payload.get("eventType").toString() : "UNKNOWN";
+        Long examId = (Long) session.getAttribute("currentExamId");
+        String type = (String) session.getAttribute("currentExamType");
+
+        ExamViolation violation = new ExamViolation(enrollmentNo, LocalDateTime.now(), eventType, examId, type);
+        examViolationRepository.save(violation);
+
+        return ResponseEntity.ok(Collections.singletonMap("status", "logged"));
+    }
+
     @PostMapping("/exam/submit")
     public ResponseEntity<?> submitExam(@RequestBody Map<String, Object> payload, HttpSession session) {
         String enrollmentNo = (String) session.getAttribute("loggedInStudent");
@@ -354,6 +378,19 @@ public class StudentExamRestController {
                 attempt.setStatus("Submitted");
                 attempt.setEndTime(LocalDateTime.now());
                 examAttemptRepository.save(attempt);
+
+                studentActiveSessionRepository.findByStudentIdAndStatus(enrollmentNo, "ACTIVE").ifPresent(activeSession -> {
+                    activeSession.setStatus("COMPLETED");
+                    activeSession.setLogoutTime(LocalDateTime.now());
+                    studentActiveSessionRepository.save(activeSession);
+                });
+
+                try {
+                    studentExamActivityService.updateActivity(enrollmentNo, attempt.getExam() != null ? attempt.getExam().getId() : null, null, null, "00:00:00", "Submitted");
+                } catch (Exception e) {
+                    System.err.println("Failed to update activity to Submitted: " + e.getMessage());
+                }
+
                 return ResponseEntity.ok(Collections.singletonMap("status", "submitted"));
             }
         } else if (submissionId != null) {
@@ -391,6 +428,19 @@ public class StudentExamRestController {
                 submission.setStatus("Submitted");
                 submission.setSubmittedAt(LocalDateTime.now());
                 submissionRepository.save(submission);
+
+                studentActiveSessionRepository.findByStudentIdAndStatus(enrollmentNo, "ACTIVE").ifPresent(activeSession -> {
+                    activeSession.setStatus("COMPLETED");
+                    activeSession.setLogoutTime(LocalDateTime.now());
+                    studentActiveSessionRepository.save(activeSession);
+                });
+
+                try {
+                    studentExamActivityService.updateActivity(enrollmentNo, submission.getPaper() != null ? submission.getPaper().getId() : null, null, null, "00:00:00", "Submitted");
+                } catch (Exception e) {
+                    System.err.println("Failed to update activity to Submitted: " + e.getMessage());
+                }
+
                 return ResponseEntity.ok(Collections.singletonMap("status", "submitted"));
             }
         }

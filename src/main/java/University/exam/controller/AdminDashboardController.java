@@ -68,6 +68,9 @@ public class AdminDashboardController {
     @Autowired
     private CalendarEventRepository calendarEventRepository;
 
+    @Autowired
+    private University.exam.repository.StudentLoginAttemptRepository studentLoginAttemptRepository;
+
 
     // Helper method to simulate/retrieve a logged-in admin
     private void addAdminAttributes(HttpSession session, Model model) {
@@ -306,6 +309,27 @@ public class AdminDashboardController {
 
         // Build notifications list
         List<Map<String, Object>> notifications = new ArrayList<>();
+
+        // Add blocked login attempts notifications
+        List<University.exam.Entity.StudentLoginAttempt> blockedAttempts = studentLoginAttemptRepository.findByResultOrderByAttemptTimeDesc("BLOCKED");
+        if (blockedAttempts != null) {
+            for (University.exam.Entity.StudentLoginAttempt attempt : blockedAttempts) {
+                Map<String, Object> notif = new HashMap<>();
+                notif.put("message", "⚠ Multiple Login Attempt Detected");
+                
+                String studentName = "Unknown Student";
+                Optional<Student> stOpt = studentRepository.findByEnrollmentNo(attempt.getStudentId());
+                if (stOpt.isPresent()) {
+                    studentName = stOpt.get().getStudentName();
+                }
+                
+                notif.put("details", "Student: " + studentName + " | Enrollment: " + attempt.getStudentId());
+                notif.put("icon", "bi-exclamation-triangle-fill text-warning");
+                notif.put("timestamp", attempt.getAttemptTime());
+                notif.put("timeAgo", formatTimeAgo(attempt.getAttemptTime()));
+                notifications.add(notif);
+            }
+        }
         // 1. New task assigned to logged-in admin (Pending, created by someone else)
         for (CalendarEvent e : allVisibleEvents) {
             if ("TASK".equals(e.getEventType()) && 
@@ -617,6 +641,7 @@ public class AdminDashboardController {
             @RequestParam("semester") String semester,
             @RequestParam("duration") Integer duration,
             @RequestParam("totalMarks") Double totalMarks,
+            @RequestParam("examDate") String examDateStr,
             HttpSession session) {
 
         Admin admin = getLoggedInAdmin(session);
@@ -632,6 +657,9 @@ public class AdminDashboardController {
             paper.setUploadedAt(LocalDateTime.now());
             paper.setExamDuration(duration);
             paper.setTotalMarks(totalMarks);
+            if (examDateStr != null && !examDateStr.isEmpty()) {
+                paper.setExamDate(java.time.LocalDate.parse(examDateStr));
+            }
             paper.setAdmin(admin);
 
             boolean isManual = (manualContent != null && !manualContent.trim().isEmpty());

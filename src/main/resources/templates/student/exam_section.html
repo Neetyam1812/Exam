@@ -497,16 +497,19 @@
 </footer>
 
 <!-- Logic & Metadata -->
+<input type="hidden" id="examId" th:value="${exam.id}">
 <input type="hidden" id="attemptId" th:value="${attemptId}">
 <input type="hidden" id="type" th:value="${type}">
 <input type="hidden" id="remainingSeconds" th:value="${remainingSeconds}">
 <input type="hidden" id="currentIndex" th:value="${currentIndex}">
+<input type="hidden" id="tabTerminationEnabled" th:value="${tabTerminationEnabled}">
 
 <script>
     const attemptId = document.getElementById('attemptId').value;
     const type = document.getElementById('type').value;
     let remainingSeconds = parseInt(document.getElementById('remainingSeconds').value);
     const currentIndex = parseInt(document.getElementById('currentIndex').value);
+    const tabTerminationEnabled = document.getElementById('tabTerminationEnabled').value === 'true';
     
     function selectORChoice(card) {
         const pairId = card.getAttribute('data-pair-id');
@@ -600,6 +603,55 @@
 
     window.lastActiveQuestionId = null;
 
+    async function updateActivityStatus(customStatus) {
+        try {
+            const examIdVal = document.getElementById('examId') ? document.getElementById('examId').value : null;
+            const currentIndexVal = document.getElementById('currentIndex') ? parseInt(document.getElementById('currentIndex').value) : 0;
+            const currentSectionLabel = "Q" + (currentIndexVal + 1);
+
+            let activeQNo = 1;
+            if (window.lastActiveQuestionId) {
+                const answerAreas = Array.from(document.querySelectorAll('.answer-area'));
+                const idx = answerAreas.findIndex(ta => ta.getAttribute('data-qid') === window.lastActiveQuestionId);
+                if (idx !== -1) {
+                    activeQNo = idx + 1;
+                }
+            }
+
+            let remSecs = typeof remainingSeconds !== 'undefined' ? remainingSeconds : 0;
+            let hrs = Math.floor(remSecs / 3600);
+            let mins = Math.floor((remSecs % 3600) / 60);
+            let secs = remSecs % 60;
+            let timeString = (hrs < 10 ? "0"+hrs : hrs) + ":" + 
+                             (mins < 10 ? "0"+mins : mins) + ":" + 
+                             (secs < 10 ? "0"+secs : secs);
+
+            const payload = {
+                examId: examIdVal,
+                currentSection: currentSectionLabel,
+                currentQuestionNo: activeQNo,
+                timeRemaining: timeString,
+                status: customStatus || "Active"
+            };
+
+            await fetch('/student/update-activity', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+        } catch (e) {
+            console.error("Failed to post activity update:", e);
+        }
+    }
+
+    // Initial activity report on page load
+    updateActivityStatus("Active");
+
+    // Periodic activity reporting every 10 seconds
+    setInterval(() => {
+        updateActivityStatus("Active");
+    }, 10000);
+
     // Auto-save
     setInterval(saveAllAnswers, 5000);
 
@@ -611,10 +663,12 @@
             window.lastActiveQuestionId = this.getAttribute('data-qid');
             updateCharCount(this);
             debouncedSave(this.getAttribute('data-qid'), this.value);
+            updateActivityStatus("Active");
         });
 
         textarea.addEventListener('focus', function() {
             window.lastActiveQuestionId = this.getAttribute('data-qid');
+            updateActivityStatus("Active");
         });
     });
 
@@ -778,6 +832,14 @@
         }, 200);
     });
 
+    function logViolationEvent(eventType) {
+        fetch('/api/exam/log-violation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ eventType: eventType })
+        }).catch(err => console.error("Logging violation failed:", err));
+    }
+
     function handleViolation(reason) {
         if (window.isNavigating || window.isDisplayingModal) return;
 
@@ -785,12 +847,24 @@
         sessionStorage.setItem("examWarningCount", warningCount);
         console.warn("Violation detected: " + reason + ". Warning count: " + warningCount);
 
-        if (warningCount === 1) {
-            window.isDisplayingModal = true;
-            alert("⚠️ WARNING: Do not switch tabs or leave the exam window. This is your ONLY warning. Another violation will terminate your exam instantly.");
-            window.isDisplayingModal = false;
+        let eventType = "TAB_SWITCH";
+        if (reason === "window_blur") {
+            eventType = "FOCUS_LOST";
+        } else if (reason === "window_switch") {
+            eventType = "WINDOW_SWITCH";
+        }
+        logViolationEvent(eventType);
+
+        if (tabTerminationEnabled) {
+            if (warningCount === 1) {
+                window.isDisplayingModal = true;
+                alert("⚠️ WARNING: Do not switch tabs or leave the exam window. This is your ONLY warning. Another violation will terminate your exam instantly.");
+                window.isDisplayingModal = false;
+            } else {
+                terminateExamDueToViolation();
+            }
         } else {
-            terminateExamDueToViolation();
+            showWarningToast("Activity recorded.");
         }
     }
 

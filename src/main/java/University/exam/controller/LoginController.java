@@ -30,6 +30,9 @@ public class LoginController {
     @org.springframework.beans.factory.annotation.Autowired
     private University.exam.repository.SubmissionRepository submissionRepository;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private University.exam.repository.StudentLoginAttemptRepository studentLoginAttemptRepository;
+
     @GetMapping("/")
     public String login() {
         return "auth/student_login";
@@ -41,7 +44,7 @@ public class LoginController {
     }
 
     @org.springframework.web.bind.annotation.PostMapping("/login")
-    public String performLogin(String enrollmentNo, String password, jakarta.servlet.http.HttpSession session) {
+    public String performLogin(String enrollmentNo, String password, jakarta.servlet.http.HttpSession session, jakarta.servlet.http.HttpServletRequest request) {
         if (enrollmentNo == null || password == null) {
             return "redirect:/?error=invalid_credentials";
         }
@@ -62,58 +65,30 @@ public class LoginController {
             return "redirect:/?error=invalid_credentials";
         }
 
-        // Enforce single active session per student account
+        // Get request details
+        String ipAddress = request.getRemoteAddr();
+        String userAgent = request.getHeader("User-Agent");
+        String browserInfo = getBrowserInfo(userAgent);
+        String deviceInfo = getDeviceInfo(userAgent);
+
+        // Enforce single active session per student account: Check if an ACTIVE session already exists
         java.util.Optional<University.exam.Entity.StudentActiveSession> activeSessionOpt = 
-            studentActiveSessionRepository.findByStudentIdAndIsActiveTrue(trimmedEnrollment);
+            studentActiveSessionRepository.findByStudentIdAndStatus(trimmedEnrollment, "ACTIVE");
              
         if (activeSessionOpt.isPresent()) {
-            University.exam.Entity.StudentActiveSession activeSession = activeSessionOpt.get();
-            // If there's an active session under a different session ID
-            if (!activeSession.getSessionId().equals(session.getId())) {
-                java.time.LocalDateTime lastAct = activeSession.getLastActivity();
-                if (lastAct != null) {
-                    // Pause traditional ongoing attempts
-                    java.util.List<University.exam.Entity.ExamAttempt> studentAttempts = examAttemptRepository.findByStudentEnrollmentNo(trimmedEnrollment);
-                    if (studentAttempts != null) {
-                        for (University.exam.Entity.ExamAttempt attempt : studentAttempts) {
-                            if ("Ongoing".equals(attempt.getStatus())) {
-                                attempt.setIsPaused(true);
-                                attempt.setPausedAt(lastAct);
-                                attempt.setPauseCount((attempt.getPauseCount() != null ? attempt.getPauseCount() : 0) + 1);
-                                
-                                long totalSeconds = attempt.getExam().getExamDuration() != null ? attempt.getExam().getExamDuration() * 60 : 3600;
-                                long elapsed = java.time.Duration.between(attempt.getStartTime(), lastAct).getSeconds();
-                                int remaining = (int) Math.max(0, totalSeconds - elapsed);
-                                attempt.setRemainingTimeSeconds(remaining);
-                                
-                                examAttemptRepository.save(attempt);
-                            }
-                        }
-                    }
-                    // Pause PDF-based ongoing submissions
-                    java.util.List<University.exam.Entity.Submission> studentSubmissions = submissionRepository.findByStudentEnrollmentNo(trimmedEnrollment);
-                    if (studentSubmissions != null) {
-                        for (University.exam.Entity.Submission sub : studentSubmissions) {
-                            if ("Ongoing".equals(sub.getStatus())) {
-                                sub.setIsPaused(true);
-                                sub.setPausedAt(lastAct);
-                                sub.setPauseCount((sub.getPauseCount() != null ? sub.getPauseCount() : 0) + 1);
-
-                                long totalSeconds = (sub.getPaper().getExamDuration() != null ? sub.getPaper().getExamDuration() : 120) * 60;
-                                long elapsed = java.time.Duration.between(sub.getSubmittedAt(), lastAct).getSeconds();
-                                int remaining = (int) Math.max(0, totalSeconds - elapsed);
-                                sub.setRemainingTimeSeconds(remaining);
-
-                                submissionRepository.save(sub);
-                            }
-                        }
-                    }
-                }
-                // Delete the old active session to allow the new login
-                studentActiveSessionRepository.delete(activeSession);
-                studentActiveSessionRepository.flush();
-            }
+            // Block login immediately since an active session already exists
+            University.exam.Entity.StudentLoginAttempt attempt = new University.exam.Entity.StudentLoginAttempt(
+                trimmedEnrollment, ipAddress, browserInfo, deviceInfo, "BLOCKED"
+            );
+            studentLoginAttemptRepository.save(attempt);
+            return "redirect:/?error=already_logged_in";
         }
+
+        // Log successful login attempt
+        University.exam.Entity.StudentLoginAttempt attempt = new University.exam.Entity.StudentLoginAttempt(
+            trimmedEnrollment, ipAddress, browserInfo, deviceInfo, "SUCCESS"
+        );
+        studentLoginAttemptRepository.save(attempt);
 
         // Clean up any existing session record with the same session ID to prevent unique constraint violation
         studentActiveSessionRepository.findBySessionId(session.getId()).ifPresent(s -> {
@@ -121,25 +96,41 @@ public class LoginController {
             studentActiveSessionRepository.flush();
         });
 
-        // Clean up any orphaned session records for this student before starting a new one
-        java.util.List<University.exam.Entity.StudentActiveSession> existing = studentActiveSessionRepository.findByStudentId(trimmedEnrollment);
-        if (existing != null && !existing.isEmpty()) {
-            studentActiveSessionRepository.deleteAll(existing);
-            studentActiveSessionRepository.flush();
-        }
-
         // Register the new active session
-        University.exam.Entity.StudentActiveSession newSession = new University.exam.Entity.StudentActiveSession(trimmedEnrollment, session.getId());
+        University.exam.Entity.StudentActiveSession newSession = new University.exam.Entity.StudentActiveSession(
+            trimmedEnrollment, session.getId(), ipAddress, browserInfo, deviceInfo
+        );
+        newSession.setStatus("ACTIVE");
         studentActiveSessionRepository.save(newSession);
 
         // Mock authentication
         session.setAttribute("loggedInStudent", trimmedEnrollment);
         session.setAttribute("enrollment_no", trimmedEnrollment);
         
-
-        
         // Redirect to smart routing page which validates semester and redirects appropriately
         return "redirect:/student/rules";
+    }
+
+    private String getBrowserInfo(String userAgent) {
+        if (userAgent == null) return "Unknown";
+        String ua = userAgent.toLowerCase();
+        if (ua.contains("edg")) return "Edge";
+        if (ua.contains("chrome") && !ua.contains("chromium")) return "Chrome";
+        if (ua.contains("safari") && !ua.contains("chrome")) return "Safari";
+        if (ua.contains("firefox")) return "Firefox";
+        if (ua.contains("opr") || ua.contains("opera")) return "Opera";
+        return "Browser";
+    }
+
+    private String getDeviceInfo(String userAgent) {
+        if (userAgent == null) return "Unknown";
+        String ua = userAgent.toLowerCase();
+        if (ua.contains("android")) return "Android Device";
+        if (ua.contains("iphone") || ua.contains("ipad")) return "iOS Device";
+        if (ua.contains("windows")) return "Windows PC";
+        if (ua.contains("macintosh") || ua.contains("mac os x")) return "macOS Device";
+        if (ua.contains("linux")) return "Linux PC";
+        return "Mobile/Desktop";
     }
 
     @GetMapping("/student/logout")

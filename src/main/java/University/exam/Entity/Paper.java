@@ -85,6 +85,12 @@ public class Paper {
     public LocalDateTime getActivatedTime() { return activatedTime; }
     public void setActivatedTime(LocalDateTime activatedTime) { this.activatedTime = activatedTime; }
 
+    @jakarta.persistence.Column(name = "exam_date")
+    private java.time.LocalDate examDate;
+
+    public java.time.LocalDate getExamDate() { return examDate; }
+    public void setExamDate(java.time.LocalDate examDate) { this.examDate = examDate; }
+
     public Admin getAdmin() { return admin; }
     public void setAdmin(Admin admin) { this.admin = admin; }
 }

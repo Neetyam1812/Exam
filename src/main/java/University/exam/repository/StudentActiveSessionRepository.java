@@ -9,6 +9,8 @@ import java.util.List;
 @Repository
 public interface StudentActiveSessionRepository extends JpaRepository<StudentActiveSession, Long> {
     Optional<StudentActiveSession> findByStudentIdAndIsActiveTrue(String studentId);
+    Optional<StudentActiveSession> findByStudentIdAndStatus(String studentId, String status);
     Optional<StudentActiveSession> findBySessionId(String sessionId);
     List<StudentActiveSession> findByStudentId(String studentId);
+    List<StudentActiveSession> findByStatus(String status);
 }

@@ -3,31 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Calendar - Admin Portal & AI Conflict Auditor</title>
+    <title>ExamDB Calendar &amp; Scheduler — Admin Portal</title>
     <!-- Bootstrap 5.3 CSS for layout compatibility -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     
     <!-- React & ReactDOM UMD -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     
     <!-- Babel compiler for inline JSX compiling -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+    <script>
+        Babel.registerPreset("custom-react", {
+            presets: [
+                [Babel.availablePresets["react"], { runtime: "classic" }],
+                Babel.availablePresets["env"]
+            ]
+        });
+    </script>
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Inter + DM Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <style>
-        /* Exact color mappings and layout definitions */
+        /* ===== PREMIUM DARK DESIGN SYSTEM ===== */
         :root {
             --sidebar-width: 270px;
-            --font-sans: 'Outfit', 'Roboto', 'Inter', system-ui, sans-serif;
+            --font-sans: 'Inter', system-ui, sans-serif;
+            --font-mono: 'DM Mono', monospace;
+
+            /* Brand colors */
+            --c-bg:          #0a0a0f;
+            --c-surface-1:   #0f0f1a;
+            --c-surface-2:   #141428;
+            --c-surface-3:   #1a1a35;
+            --c-border:      rgba(99,102,241,0.12);
+            --c-border-bright: rgba(99,102,241,0.28);
+            --c-accent:      #6366f1;
+            --c-accent-2:    #8b5cf6;
+            --c-accent-glow: rgba(99,102,241,0.18);
+            --c-text-1:      #f0f0ff;
+            --c-text-2:      #a5a8d4;
+            --c-text-3:      #5a5d80;
+
+            /* Event category colors */
+            --c-exams:       #6366f1;
+            --c-admin:       #3b82f6;
+            --c-holidays:    #10b981;
+            --c-tasks:       #f59e0b;
+            --c-birthdays:   #ec4899;
         }
+
+        *, *::before, *::after { box-sizing: border-box; }
 
         body {
             font-family: var(--font-sans);
@@ -35,38 +67,37 @@
             padding: 0;
             overflow: hidden;
             height: 100vh;
-            background-color: #ffffff;
-            color: #3c4043;
+            background-color: #f8f9fa;
+            color: #1e2030;
+            -webkit-font-smoothing: antialiased;
         }
 
         body.dark-theme {
-            background-color: #1a1a1a;
-            color: #e8eaed;
+            background-color: var(--c-bg);
+            color: var(--c-text-1);
         }
 
-        /* Prevent Bootstrap button text color overrides inside React calendar */
+        /* ---- Prevent Bootstrap button color overrides ---- */
         #react-calendar-root button:not([class*="text-"]) {
             color: inherit;
         }
 
-        /* Make date and time input picker icons visible in dark mode */
+        /* ---- Calendar picker indicators in dark mode ---- */
         .dark-theme input[type="date"]::-webkit-calendar-picker-indicator,
         .dark-theme input[type="time"]::-webkit-calendar-picker-indicator,
         .dark input[type="date"]::-webkit-calendar-picker-indicator,
         .dark input[type="time"]::-webkit-calendar-picker-indicator {
             filter: invert(1);
-            opacity: 0.8;
+            opacity: 0.7;
             cursor: pointer;
             transition: opacity 0.15s ease;
         }
         .dark-theme input[type="date"]::-webkit-calendar-picker-indicator:hover,
-        .dark-theme input[type="time"]::-webkit-calendar-picker-indicator:hover,
-        .dark input[type="date"]::-webkit-calendar-picker-indicator:hover,
-        .dark input[type="time"]::-webkit-calendar-picker-indicator:hover {
+        .dark-theme input[type="time"]::-webkit-calendar-picker-indicator:hover {
             opacity: 1;
         }
 
-        /* Spring Boot Global Sidebar styling integration */
+        /* ---- Spring Boot sidebar integration ---- */
         .sidebar {
             width: var(--sidebar-width) !important;
             min-width: var(--sidebar-width) !important;
@@ -74,36 +105,108 @@
             flex-shrink: 0;
         }
 
-        /* Custom scrollbars matching Google Calendar style */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
+        /* ---- Premium thin scrollbar ---- */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb {
-            background: #dadce0;
-            border-radius: 4px;
-        }
-        .dark-theme ::-webkit-scrollbar-thumb {
-            background: #5f6368;
+            background: rgba(99,102,241,0.2);
+            border-radius: 99px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #bdc1c6;
-        }
-        .dark-theme ::-webkit-scrollbar-thumb:hover {
-            background: #70757a;
+            background: rgba(99,102,241,0.4);
         }
 
-        /* Remove all box shadows globally as requested */
-        * {
-            box-shadow: none !important;
+        /* ---- Glassmorphism card base ---- */
+        .glass {
+            background: rgba(20,20,40,0.6);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid var(--c-border-bright);
+        }
+        .glass-light {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid rgba(0,0,0,0.08);
         }
 
-        /* Dynamic tailwind config */
-        input[type="checkbox"] {
+        /* ---- Accent glow ring for today ---- */
+        .today-ring {
+            background: var(--c-accent);
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.35);
+        }
+
+        /* ---- Event pill animations ---- */
+        .event-pill {
+            transition: opacity 0.15s ease, transform 0.1s ease;
+        }
+        .event-pill:hover {
+            opacity: 0.88;
+            transform: translateY(-1px);
+        }
+
+        /* ---- Cell hover glow ---- */
+        .day-cell:hover {
+            background: rgba(99,102,241,0.04);
+        }
+        .dark-theme .day-cell:hover {
+            background: rgba(99,102,241,0.07);
+        }
+
+        /* ---- Smooth modal backdrop ---- */
+        .modal-backdrop-premium {
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(6px);
+        }
+
+        /* ---- View toggle button group ---- */
+        .view-btn {
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
             cursor: pointer;
+            transition: all 0.18s ease;
+            border: 1px solid transparent;
+        }
+        .view-btn.active {
+            background: var(--c-accent);
+            color: white;
+            box-shadow: 0 0 14px rgba(99,102,241,0.5);
+        }
+        .view-btn:not(.active) {
+            color: #6b7280;
+        }
+        .dark-theme .view-btn:not(.active) {
+            color: #6b7280;
+        }
+        .view-btn:not(.active):hover {
+            background: rgba(99,102,241,0.1);
+            color: var(--c-accent);
+        }
+
+        /* ---- Input checkbox cursor ---- */
+        input[type="checkbox"] { cursor: pointer; }
+
+        /* ---- Animate fade-in for modals ---- */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .animate-modal { animation: fadeInUp 0.2s ease forwards; }
+
+        /* ---- Accent gradient text ---- */
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ---- Header glow line ---- */
+        .topbar-glow {
+            border-bottom: 1px solid rgba(99,102,241,0.15);
+            box-shadow: 0 1px 24px rgba(99,102,241,0.08);
         }
     </style>
 
@@ -113,47 +216,35 @@
             theme: {
                 extend: {
                     colors: {
-                        gcal: {
-                            bg: {
-                                light: '#ffffff',
-                                dark: '#1a1a1a',
-                            },
-                            cell: {
-                                light: '#ffffff',
-                                dark: '#1e1e1e',
-                                hoverLight: '#f1f3f4',
-                                hoverDark: '#2a2a2a',
-                            },
-                            border: {
-                                light: '#dadce0',
-                                dark: '#3c3c3c',
-                            },
-                            text: {
-                                primaryLight: '#3c4043',
-                                primaryDark: '#e8eaed',
-                                secondaryLight: '#70757a',
-                                secondaryDark: '#9aa0a6',
-                                otherLight: '#dadce0',
-                                otherDark: '#5f6368',
-                            },
-                            blue: '#1a73e8',
-                            createBg: '#303030',
-                            createBorder: '#5f6368',
-                            category: {
-                                admin: '#1a73e8',
-                                exams: '#7986cb',
-                                tasks: '#f4511e',
-                                holidays: '#0d652d',
-                                holidaysText: '#81c995',
-                                birthdays: '#33b679',
-                            }
+                        cal: {
+                            bg:       '#0a0a0f',
+                            s1:       '#0f0f1a',
+                            s2:       '#141428',
+                            s3:       '#1a1a35',
+                            border:   'rgba(99,102,241,0.12)',
+                            borderHi: 'rgba(99,102,241,0.28)',
+                            accent:   '#6366f1',
+                            accent2:  '#8b5cf6',
+                            glow:     'rgba(99,102,241,0.18)',
+                            t1:       '#f0f0ff',
+                            t2:       '#a5a8d4',
+                            t3:       '#5a5d80',
+                            exams:    '#6366f1',
+                            admin:    '#3b82f6',
+                            holidays: '#10b981',
+                            tasks:    '#f59e0b',
+                            births:   '#ec4899',
                         }
                     },
                     fontFamily: {
-                        sans: ['Outfit', 'Roboto', 'Inter', 'system-ui', 'sans-serif'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['DM Mono', 'monospace'],
                     },
-                    borderWidth: {
-                        '0.5': '0.5px',
+                    borderWidth: { '0.5': '0.5px' },
+                    boxShadow: {
+                        'glow-sm': '0 0 12px rgba(99,102,241,0.25)',
+                        'glow-md': '0 0 24px rgba(99,102,241,0.35)',
+                        'glow-lg': '0 0 48px rgba(99,102,241,0.4)',
                     }
                 }
             }
@@ -167,9 +258,33 @@
     <div th:replace="~{admin/fragments :: sidebar('calendar')}"></div>
 
     <!-- Main Workspace where our React application mounts -->
-    <main class="flex-grow-1 p-0" style="margin-left: var(--sidebar-width); height: 100vh; overflow: hidden;">
+    <main class="flex-grow-1 p-0" style="margin-left: var(--sidebar-width); height: 100vh; overflow: hidden; position: relative;">
         <div id="react-calendar-root" class="h-100 w-100"></div>
+        <div id="error-fallback" class="p-5 font-monospace text-danger bg-white dark:bg-[#1a1a1a]" style="display:none; white-space:pre-wrap; z-index:9999; position:absolute; top:0; left:0; right:0; bottom:0; overflow:auto;">
+            <h3 class="mb-3 text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Application Load Error</h3>
+            <p class="text-secondary mb-4">A JavaScript error occurred while rendering the Google Calendar application:</p>
+            <pre id="error-details" class="p-3 bg-light text-dark rounded border"></pre>
+        </div>
     </main>
+    <script>
+        window.onerror = function(message, source, lineno, colno, error) {
+            const fallback = document.getElementById('error-fallback');
+            const details = document.getElementById('error-details');
+            if (fallback && details) {
+                fallback.style.display = 'block';
+                details.textContent += `\nError: ${message}\nSource: ${source}:${lineno}:${colno}\nStack: ${error ? error.stack : 'N/A'}\n`;
+            }
+            return false;
+        };
+        window.addEventListener('unhandledrejection', function(event) {
+            const fallback = document.getElementById('error-fallback');
+            const details = document.getElementById('error-details');
+            if (fallback && details) {
+                fallback.style.display = 'block';
+                details.textContent += `\nUnhandled Promise Rejection: ${event.reason}\nStack: ${event.reason ? event.reason.stack : 'N/A'}\n`;
+            }
+        });
+    </script>
 </div>
 
 <!-- Inline Thymeleaf variables injected into window globals -->
@@ -179,7 +294,7 @@
 </script>
 
 <!-- React Main Application Code (using Babel standalone for JSX wrapped in CDATA for Thymeleaf parser protection) -->
-<script type="text/babel">
+<script type="text/babel" data-presets="custom-react">
 /*<![CDATA[*/
     const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
@@ -407,133 +522,139 @@
         setCategoryFilters
     }) {
         const handleThemeToggle = () => {
-            const body = document.body;
-            if (body.classList.contains('dark-theme')) {
-                body.classList.remove('dark-theme');
-                setDarkMode(false);
-            } else {
-                body.classList.add('dark-theme');
-                setDarkMode(true);
-            }
-            window.dispatchEvent(new Event('themeChanged'));
+            setDarkMode(prev => !prev);
         };
 
         return (
-            <header className="h-16 flex items-center justify-between px-3 border-b select-none z-30 flex-shrink-0 bg-white dark:bg-[#1a1a1a] border-[#dadce0] dark:border-[#3c3c3c]">
-                {/* Left section: Hamburger & Logo */}
-                <div className="flex items-center gap-1.5">
+            <header className={`h-[60px] flex items-center justify-between px-4 select-none z-30 flex-shrink-0 topbar-glow ${darkMode ? 'bg-[#0a0a0f]' : 'bg-white border-b border-gray-100'}`}>
+                {/* Left: Hamburger + Logo */}
+                <div className="flex items-center gap-3">
                     <button
                         onClick={() => setSidebarOpen(!sidebarOpen)}
-                        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-gray-600 dark:text-[#e8eaed]"
+                        className={`p-2 rounded-lg transition-all duration-150 cursor-pointer ${darkMode ? 'hover:bg-white/5 text-[#a5a8d4]' : 'hover:bg-gray-100 text-gray-500'}`}
                     >
-                        <i className="bi bi-list fs-5"></i>
+                        <i className="bi bi-list" style={{fontSize:'18px'}}></i>
                     </button>
 
-                    <div className="flex items-center gap-2 ml-1">
-                        {/* Google Calendar Logo Style */}
-                        <div className="relative w-10 h-10 flex items-center justify-center bg-[#1a73e8] text-white rounded-lg">
-                            <span className="text-[10px] font-bold uppercase absolute top-1 leading-none">
+                    <div className="flex items-center gap-2.5">
+                        {/* Premium gradient logo badge */}
+                        <div className="relative w-9 h-9 flex items-center justify-center rounded-xl overflow-hidden" style={{background:'linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%)',boxShadow:'0 0 16px rgba(99,102,241,0.45)'}}>
+                            <span className="text-[9px] font-bold uppercase absolute top-[5px] leading-none text-white/90">
                                 {dateHelpers.format(currentDate, 'MMM')}
                             </span>
-                            <span className="text-base font-bold absolute bottom-0.5 leading-none">
+                            <span className="text-[15px] font-extrabold absolute bottom-[3px] leading-none text-white">
                                 {dateHelpers.format(currentDate, 'd')}
                             </span>
                         </div>
-                        <span className="text-[18px] font-normal tracking-tight text-gray-800 dark:text-[#e8eaed]">
-                            Calendar
-                        </span>
+                        <div className="flex flex-col leading-tight">
+                            <span className={`text-[15px] font-semibold tracking-tight ${darkMode ? 'text-[#f0f0ff]' : 'text-gray-900'}`}>
+                                Calendar
+                            </span>
+                            <span className={`text-[10px] font-medium ${darkMode ? 'text-[#5a5d80]' : 'text-gray-400'}`}>
+                                Admin Scheduler
+                            </span>
+                        </div>
                     </div>
                 </div>
 
-                {/* Center-Left: Navigation */}
-                <div className="flex items-center gap-2 ml-4">
+                {/* Center: Nav + Title */}
+                <div className="flex items-center gap-3">
                     <button
                         onClick={onNavigateToday}
-                        className="px-4 py-1.5 border rounded-full text-sm font-medium transition-colors text-gray-700 dark:text-[#e8eaed] border-[#dadce0] dark:border-[#3c3c3c] hover:bg-gray-50 dark:hover:bg-[#2a2a2a]"
+                        className={`px-4 py-1.5 rounded-lg text-[13px] font-semibold transition-all duration-150 cursor-pointer border ${
+                            darkMode
+                                ? 'border-[rgba(99,102,241,0.3)] text-[#a5a8d4] hover:bg-[rgba(99,102,241,0.1)] hover:text-[#f0f0ff] hover:border-[rgba(99,102,241,0.5)]'
+                                : 'border-gray-200 text-gray-600 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200'
+                        }`}
                     >
                         Today
                     </button>
 
-                    <div className="flex items-center ml-1">
+                    <div className={`flex items-center gap-0.5 rounded-lg p-0.5 ${darkMode ? 'bg-white/5' : 'bg-gray-100'}`}>
                         <button
                             onClick={onNavigatePrev}
-                            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-gray-600 dark:text-[#e8eaed]"
+                            className={`p-1.5 rounded-md transition-all duration-150 cursor-pointer ${darkMode ? 'hover:bg-white/8 text-[#a5a8d4] hover:text-[#f0f0ff]' : 'hover:bg-white text-gray-500 hover:text-gray-800'}`}
                         >
-                            <i className="bi bi-chevron-left"></i>
+                            <i className="bi bi-chevron-left text-sm"></i>
                         </button>
                         <button
                             onClick={onNavigateNext}
-                            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-gray-600 dark:text-[#e8eaed]"
+                            className={`p-1.5 rounded-md transition-all duration-150 cursor-pointer ${darkMode ? 'hover:bg-white/8 text-[#a5a8d4] hover:text-[#f0f0ff]' : 'hover:bg-white text-gray-500 hover:text-gray-800'}`}
                         >
-                            <i className="bi bi-chevron-right"></i>
+                            <i className="bi bi-chevron-right text-sm"></i>
                         </button>
                     </div>
 
-                    <h1 className="text-[22px] font-normal text-gray-800 dark:text-[#e8eaed] pl-2">
+                    <h1 className={`text-[20px] font-bold tracking-tight min-w-[200px] ${darkMode ? 'text-[#f0f0ff]' : 'text-gray-900'}`}>
                         {dateHelpers.format(currentDate, 'MMMM yyyy')}
                     </h1>
                 </div>
 
-                {/* Search query box */}
-                <div className="flex-1 max-w-lg mx-6">
-                    <div className="relative flex items-center bg-gray-100 dark:bg-[#2a2a2a] border border-transparent rounded-lg focus-within:bg-white dark:focus-within:bg-[#1e1e1e] focus-within:border-gray-200 dark:focus-within:border-[#3c3c3c] transition-all duration-150">
-                        <i className="bi bi-search text-gray-500 absolute left-3"></i>
+                {/* Search */}
+                <div className="flex-1 max-w-sm mx-6">
+                    <div className={`relative flex items-center rounded-xl transition-all duration-200 ${
+                        darkMode
+                            ? 'bg-white/5 border border-[rgba(99,102,241,0.15)] focus-within:border-[rgba(99,102,241,0.45)] focus-within:bg-white/8'
+                            : 'bg-gray-50 border border-gray-200 focus-within:border-indigo-300 focus-within:bg-white'
+                    }`}>
+                        <i className={`bi bi-search absolute left-3 text-sm ${darkMode ? 'text-[#5a5d80]' : 'text-gray-400'}`}></i>
                         <input
                             type="text"
-                            placeholder="Search tasks, exams..."
+                            placeholder="Search exams, events..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full h-9 pl-10 pr-4 bg-transparent outline-none text-sm text-gray-800 dark:text-[#e8eaed]"
+                            className={`w-full h-9 pl-9 pr-4 bg-transparent outline-none text-[13px] ${darkMode ? 'text-[#f0f0ff] placeholder-[#5a5d80]' : 'text-gray-800 placeholder-gray-400'}`}
                         />
                     </div>
                 </div>
 
                 {/* Right actions */}
                 <div className="flex items-center gap-1.5">
-                    {/* Theme switcher */}
-                    <button
-                        onClick={handleThemeToggle}
-                        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-gray-600 dark:text-[#e8eaed]"
-                        title={darkMode ? 'Light Theme' : 'Dark Theme'}
-                    >
-                        {darkMode ? <i className="bi bi-sun text-yellow-500"></i> : <i className="bi bi-moon"></i>}
-                    </button>
-
-                    <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-gray-600 dark:text-[#e8eaed]" title="Help">
-                        <i className="bi bi-question-circle"></i>
-                    </button>
-
-                    <a href="/admin/settings" className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-gray-600 dark:text-[#e8eaed]" title="Settings">
-                        <i className="bi bi-gear"></i>
-                    </a>
-
-                    {/* View selector dropdown */}
-                    <div className="relative flex items-center">
-                        <select
-                            value={currentView}
-                            onChange={(e) => setCurrentView(e.target.value)}
-                            className="bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] text-gray-700 dark:text-[#e8eaed] text-sm rounded-full pl-4 pr-9 py-1.5 outline-none hover:bg-gray-50 dark:hover:bg-[#2a2a2a] cursor-pointer min-w-[120px] appearance-none"
-                        >
-                            <option value="month">Month</option>
-                            <option value="week">Week</option>
-                            <option value="day">Day</option>
-                        </select>
-                        <i className="bi bi-chevron-down absolute right-3.5 text-xs text-gray-500 dark:text-gray-400 pointer-events-none"></i>
+                    {/* View selector as pill buttons */}
+                    <div className={`flex items-center rounded-xl p-1 gap-0.5 ${darkMode ? 'bg-white/5 border border-[rgba(99,102,241,0.12)]' : 'bg-gray-100'}`}>
+                        {['month','week','day'].map(v => (
+                            <button
+                                key={v}
+                                onClick={() => setCurrentView(v)}
+                                className={`view-btn capitalize ${currentView === v ? 'active' : ''} cursor-pointer`}
+                            >
+                                {v}
+                            </button>
+                        ))}
                     </div>
 
-
-                    <button 
-                        className={`p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#2a2a2a] ${categoryFilters.tasks ? 'text-[#0b8043] dark:text-[#0f9d58]' : 'text-gray-400 dark:text-gray-650'}`}
-                        onClick={() => {
-                            setCategoryFilters(prev => ({
-                                ...prev,
-                                tasks: !prev.tasks
-                            }));
-                        }}
+                    {/* Tasks toggle */}
+                    <button
+                        className={`p-2 rounded-lg transition-all duration-150 cursor-pointer ${
+                            categoryFilters.tasks
+                                ? 'text-amber-400 bg-amber-400/10'
+                                : darkMode ? 'text-[#5a5d80] hover:text-[#a5a8d4] hover:bg-white/5' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                        }`}
+                        onClick={() => setCategoryFilters(prev => ({ ...prev, tasks: !prev.tasks }))}
                         title="Toggle Tasks Visibility"
                     >
-                        <i className="bi bi-check2-circle"></i>
+                        <i className="bi bi-check2-circle" style={{fontSize:'16px'}}></i>
                     </button>
+
+                    {/* Theme toggle */}
+                    <button
+                        onClick={handleThemeToggle}
+                        className={`p-2 rounded-lg transition-all duration-150 cursor-pointer ${darkMode ? 'text-amber-400 bg-amber-400/10 hover:bg-amber-400/15' : 'text-slate-500 hover:bg-gray-100'}`}
+                        title={darkMode ? 'Light Mode' : 'Dark Mode'}
+                    >
+                        {darkMode
+                            ? <i className="bi bi-sun-fill" style={{fontSize:'15px'}}></i>
+                            : <i className="bi bi-moon-fill" style={{fontSize:'14px'}}></i>
+                        }
+                    </button>
+
+                    <a
+                        href="/admin/settings"
+                        className={`p-2 rounded-lg transition-all duration-150 cursor-pointer ${darkMode ? 'text-[#5a5d80] hover:text-[#a5a8d4] hover:bg-white/5' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+                        title="Settings"
+                    >
+                        <i className="bi bi-sliders" style={{fontSize:'15px'}}></i>
+                    </a>
                 </div>
             </header>
         );
@@ -541,6 +662,7 @@
 
     // --- COMPONENT: SIDEBAR ---
     function Sidebar({
+        events = [],
         currentDate,
         setCurrentDate,
         categoryFilters,
@@ -577,242 +699,189 @@
             }));
         };
 
+        // --- Helper for category color dot ---
+        const catColors = {
+            admin:     { on: '#3b82f6', off: 'transparent' },
+            birthdays: { on: '#ec4899', off: 'transparent' },
+            tasks:     { on: '#f59e0b', off: 'transparent' },
+            holidays:  { on: '#10b981', off: 'transparent' },
+            exams:     { on: '#6366f1', off: 'transparent' },
+        };
+        const CheckBox = ({ checked, color, onChange, label }) => (
+            <label className="flex items-center gap-3 px-2 py-1.5 rounded-lg cursor-pointer group transition-all duration-150 hover:bg-[rgba(99,102,241,0.06)]">
+                <input type="checkbox" checked={checked} onChange={onChange} className="sr-only" />
+                <div className="relative w-3.5 h-3.5 rounded-[3px] flex-shrink-0 flex items-center justify-center border-2 transition-all duration-150"
+                    style={{
+                        borderColor: checked ? color : 'rgba(100,100,120,0.4)',
+                        background: checked ? color : 'transparent',
+                    }}>
+                    {checked && <i className="bi bi-check-lg text-white" style={{fontSize:'8px'}}></i>}
+                </div>
+                <span className="text-[13px] font-medium text-gray-700 dark:text-[#c4c7e8] group-hover:text-gray-900 dark:group-hover:text-[#f0f0ff] transition-colors">{label}</span>
+            </label>
+        );
+
         return (
-            <aside className="w-64 border-r flex flex-col h-full bg-white dark:bg-[#1a1a1a] border-[#dadce0] dark:border-[#3c3c3c] flex-shrink-0 select-none pb-4 overflow-y-auto">
-                {/* Create Dropdown button */}
-                <div className="p-4">
+            <aside className={`w-64 flex flex-col h-full flex-shrink-0 select-none pb-4 overflow-y-auto border-r transition-colors ${
+                'bg-white dark:bg-[#0f0f1a] border-[#e8e9f0] dark:border-[rgba(99,102,241,0.12)]'
+            }`}>
+                {/* CREATE button */}
+                <div className="p-4 pt-5">
                     <button
                         onClick={onCreateEventClick}
-                        className="flex items-center gap-3 px-6 py-3.5 bg-white dark:bg-[#303030] hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-gray-700 dark:text-[#e8eaed] rounded-full border border-[#dadce0] dark:border-[#5f6368] transition-shadow duration-150 font-medium text-sm cursor-pointer"
+                        className="w-full flex items-center justify-center gap-2.5 px-5 py-2.5 rounded-xl font-semibold text-[13px] cursor-pointer transition-all duration-200"
+                        style={{
+                            background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                            color: 'white',
+                            boxShadow: '0 0 20px rgba(99,102,241,0.4)',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.boxShadow='0 0 28px rgba(99,102,241,0.6)'}
+                        onMouseLeave={e => e.currentTarget.style.boxShadow='0 0 20px rgba(99,102,241,0.4)'}
                     >
-                        <i className="bi bi-plus-lg text-[#1a73e8] dark:text-[#e8eaed] text-lg"></i>
-                        <span>Create</span>
-                        <i className="bi bi-chevron-down text-xs text-gray-400"></i>
+                        <i className="bi bi-plus-circle-fill text-white/90" style={{fontSize:'14px'}}></i>
+                        <span>New Event</span>
                     </button>
                 </div>
 
                 {/* Mini Calendar */}
-                <div className="px-4 py-1">
+                <div className="px-3 py-1">
+                    {/* Mini cal header */}
                     <div className="flex items-center justify-between px-1 mb-2">
-                        <span className="text-xs font-semibold text-gray-700 dark:text-[#e8eaed]">
+                        <span className="text-[12px] font-bold text-gray-700 dark:text-[#a5a8d4] tracking-wide">
                             {dateHelpers.format(miniMonth, 'MMMM yyyy')}
                         </span>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-0.5">
                             <button
                                 onClick={() => setMiniMonth(dateHelpers.subMonths(miniMonth, 1))}
-                                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-gray-600 dark:text-gray-400"
+                                className="p-1 rounded-lg hover:bg-[rgba(99,102,241,0.1)] text-gray-500 dark:text-[#5a5d80] transition-colors cursor-pointer"
                             >
                                 <i className="bi bi-chevron-left text-xs"></i>
                             </button>
                             <button
                                 onClick={() => setMiniMonth(dateHelpers.addMonths(miniMonth, 1))}
-                                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-gray-600 dark:text-gray-400"
+                                className="p-1 rounded-lg hover:bg-[rgba(99,102,241,0.1)] text-gray-500 dark:text-[#5a5d80] transition-colors cursor-pointer"
                             >
                                 <i className="bi bi-chevron-right text-xs"></i>
                             </button>
                         </div>
                     </div>
 
-                    {/* Day short headers */}
-                    <div className="grid grid-cols-7 text-center text-[10px] font-semibold text-gray-500 dark:text-gray-400 mb-1">
-                        <span>S</span>
-                        <span>M</span>
-                        <span>T</span>
-                        <span>W</span>
-                        <span>T</span>
-                        <span>F</span>
-                        <span>S</span>
+                    {/* Day headers */}
+                    <div className="grid grid-cols-7 text-center text-[10px] font-bold text-gray-400 dark:text-[#5a5d80] mb-1 tracking-wider">
+                        {['S','M','T','W','T','F','S'].map((d,i) => <span key={i}>{d}</span>)}
                     </div>
 
-                    {/* Mini grid days */}
-                    <div className="grid grid-cols-7 text-center gap-y-1 text-[12px]">
+                    {/* Mini grid */}
+                    <div className="grid grid-cols-7 text-center gap-y-0.5 text-[12px]">
                         {miniCalDays.map((day, idx) => {
                             const isCurr = dateHelpers.isSameMonth(day, miniMonth);
                             const isSelected = dateHelpers.isSameDay(day, currentDate);
                             const isToday = dateHelpers.isToday(day);
-
+                            const hasExams = events.some(e => {
+                                const s = new Date(e.start);
+                                return dateHelpers.isSameDay(s, day) && getEventCategory(e) === 'exams';
+                            });
                             return (
-                                <button
-                                    key={idx}
-                                    onClick={() => setCurrentDate(day)}
-                                    className={`
-                                        h-7 w-7 mx-auto flex items-center justify-center rounded-full transition-colors font-medium cursor-pointer
-                                        ${!isCurr ? 'text-gray-300 dark:text-[#5f6368]' : 'text-gray-700 dark:text-[#e8eaed]'}
-                                        ${isToday && !isSelected ? 'text-[#1a73e8] border border-[#1a73e8]' : ''}
-                                        ${isSelected ? 'bg-[#1a73e8] text-white' : 'hover:bg-gray-100 dark:hover:bg-[#2a2a2a]'}
-                                    `}
-                                >
-                                    {day.getDate()}
-                                </button>
+                                <div key={idx} className="relative flex flex-col items-center py-0.5">
+                                    <button
+                                        onClick={() => setCurrentDate(day)}
+                                        className="h-7 w-7 mx-auto flex items-center justify-center rounded-full font-medium cursor-pointer text-[11px] transition-all duration-100"
+                                        style={{
+                                            color: !isCurr ? 'rgba(120,120,140,0.4)' : isSelected ? 'white' : isToday ? '#6366f1' : undefined,
+                                            background: isSelected ? '#6366f1' : 'transparent',
+                                            boxShadow: isSelected ? '0 0 10px rgba(99,102,241,0.5)' : isToday && !isSelected ? 'inset 0 0 0 1.5px #6366f1' : 'none',
+                                        }}
+                                    >
+                                        {day.getDate()}
+                                    </button>
+                                    {hasExams && (
+                                        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
+                                            style={{background: isSelected ? 'white' : '#8b5cf6'}} />
+                                    )}
+                                </div>
                             );
                         })}
                     </div>
                 </div>
 
-                {/* People Finder Decoration */}
-                <div className="mt-4 px-4">
-                    <div className="flex items-center gap-2 py-1.5 border-b border-[#dadce0] dark:border-[#3c3c3c]">
-                        <i className="bi bi-people text-gray-500"></i>
-                        <input
-                            type="text"
-                            placeholder="Search for people"
-                            className="bg-transparent border-0 outline-none text-xs text-gray-600 dark:text-[#9aa0a6] placeholder-gray-400 dark:placeholder-gray-600 w-full"
-                        />
-                    </div>
-                </div>
+                {/* Divider */}
+                <div className="mx-4 my-3 h-px bg-gradient-to-r from-transparent via-[rgba(99,102,241,0.2)] to-transparent" />
 
-                {/* Checkbox: My Calendars */}
-                <div className="mt-5 px-4">
-                    <div 
+                {/* My Calendars */}
+                <div className="px-3">
+                    <div
                         onClick={() => setMyCalsExpanded(!myCalsExpanded)}
-                        className="flex items-center justify-between text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2.5 px-1 cursor-pointer"
+                        className="flex items-center justify-between px-1 mb-1.5 cursor-pointer group"
                     >
-                        <span>My Calendars</span>
-                        <i className={`bi ${myCalsExpanded ? 'bi-chevron-up' : 'bi-chevron-down'}`}></i>
+                        <span className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 dark:text-[#5a5d80] group-hover:text-[#6366f1] transition-colors">
+                            My Calendars
+                        </span>
+                        <i className={`bi ${myCalsExpanded ? 'bi-chevron-up' : 'bi-chevron-down'} text-gray-400 dark:text-[#5a5d80] text-xs`}></i>
                     </div>
-
                     {myCalsExpanded && (
-                        <div className="space-y-1.5">
-                            {/* Neetyam Patel */}
-                            <label className="flex items-center gap-3 px-1.5 py-1 rounded hover:bg-gray-50 dark:hover:bg-[#2a2a2a] cursor-pointer text-[13px] text-gray-700 dark:text-[#e8eaed]">
-                                <input
-                                    type="checkbox"
-                                    checked={categoryFilters.admin}
-                                    onChange={() => handleCategoryToggle('admin')}
-                                    className="sr-only"
-                                />
-                                <div 
-                                    className={`w-3.5 h-3.5 rounded-[3px] flex items-center justify-center border transition-all ${categoryFilters.admin ? 'border-transparent text-white bg-[#1a73e8]' : 'border-gray-400 dark:border-gray-650 bg-transparent'}`}
-                                >
-                                    {categoryFilters.admin && <i className="bi bi-check-lg text-[10px]"></i>}
-                                </div>
-                                <span>{adminName || 'Super Admin'}</span>
-                            </label>
-
-                            {/* Birthdays */}
-                            <label className="flex items-center gap-3 px-1.5 py-1 rounded hover:bg-gray-50 dark:hover:bg-[#2a2a2a] cursor-pointer text-[13px] text-gray-700 dark:text-[#e8eaed]">
-                                <input
-                                    type="checkbox"
-                                    checked={categoryFilters.birthdays}
-                                    onChange={() => handleCategoryToggle('birthdays')}
-                                    className="sr-only"
-                                />
-                                <div 
-                                    className={`w-3.5 h-3.5 rounded-[3px] flex items-center justify-center border transition-all ${categoryFilters.birthdays ? 'border-transparent text-white bg-[#33b679]' : 'border-gray-400 dark:border-gray-650 bg-transparent'}`}
-                                >
-                                    {categoryFilters.birthdays && <i className="bi bi-check-lg text-[10px]"></i>}
-                                </div>
-                                <span>Birthdays</span>
-                            </label>
-
-                            {/* Tasks */}
-                            <label className="flex items-center gap-3 px-1.5 py-1 rounded hover:bg-gray-50 dark:hover:bg-[#2a2a2a] cursor-pointer text-[13px] text-gray-700 dark:text-[#e8eaed]">
-                                <input
-                                    type="checkbox"
-                                    checked={categoryFilters.tasks}
-                                    onChange={() => handleCategoryToggle('tasks')}
-                                    className="sr-only"
-                                />
-                                <div 
-                                    className={`w-3.5 h-3.5 rounded-[3px] flex items-center justify-center border transition-all ${categoryFilters.tasks ? 'border-transparent text-white bg-[#0b8043]' : 'border-gray-400 dark:border-gray-650 bg-transparent'}`}
-                                >
-                                    {categoryFilters.tasks && <i className="bi bi-check-lg text-[10px]"></i>}
-                                </div>
-                                <span>Tasks</span>
-                            </label>
+                        <div className="space-y-0.5">
+                            <CheckBox checked={categoryFilters.admin} color={catColors.admin.on} onChange={() => handleCategoryToggle('admin')} label={adminName || 'Super Admin'} />
+                            <CheckBox checked={categoryFilters.birthdays} color={catColors.birthdays.on} onChange={() => handleCategoryToggle('birthdays')} label="Birthdays" />
+                            <CheckBox checked={categoryFilters.tasks} color={catColors.tasks.on} onChange={() => handleCategoryToggle('tasks')} label="Tasks" />
                         </div>
                     )}
                 </div>
 
-                {/* Checkbox: Other Calendars */}
-                <div className="mt-5 px-4">
-                    <div 
+                {/* Other Calendars */}
+                <div className="px-3 mt-4">
+                    <div
                         onClick={() => setOtherCalsExpanded(!otherCalsExpanded)}
-                        className="flex items-center justify-between text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2.5 px-1 cursor-pointer"
+                        className="flex items-center justify-between px-1 mb-1.5 cursor-pointer group"
                     >
-                        <div className="flex items-center gap-1">
-                            <span>Other Calendars</span>
-                        </div>
-                        <i className={`bi ${otherCalsExpanded ? 'bi-chevron-up' : 'bi-chevron-down'}`}></i>
+                        <span className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 dark:text-[#5a5d80] group-hover:text-[#6366f1] transition-colors">
+                            Other Calendars
+                        </span>
+                        <i className={`bi ${otherCalsExpanded ? 'bi-chevron-up' : 'bi-chevron-down'} text-gray-400 dark:text-[#5a5d80] text-xs`}></i>
                     </div>
-
                     {otherCalsExpanded && (
-                        <div className="space-y-1.5">
-                            {/* Holidays in India */}
-                            <label className="flex items-center gap-3 px-1.5 py-1 rounded hover:bg-gray-50 dark:hover:bg-[#2a2a2a] cursor-pointer text-[13px] text-gray-700 dark:text-[#e8eaed]">
-                                <input
-                                    type="checkbox"
-                                    checked={categoryFilters.holidays}
-                                    onChange={() => handleCategoryToggle('holidays')}
-                                    className="sr-only"
-                                />
-                                <div 
-                                    className={`w-3.5 h-3.5 rounded-[3px] flex items-center justify-center border transition-all ${categoryFilters.holidays ? 'border-transparent text-white bg-[#0f9d58]' : 'border-gray-400 dark:border-gray-650 bg-transparent'}`}
-                                >
-                                    {categoryFilters.holidays && <i className="bi bi-check-lg text-[10px]"></i>}
-                                </div>
-                                <span>Holidays in India</span>
-                            </label>
-                            
-                            {/* Exams */}
-                            <label className="flex items-center gap-3 px-1.5 py-1 rounded hover:bg-gray-50 dark:hover:bg-[#2a2a2a] cursor-pointer text-[13px] text-gray-700 dark:text-[#e8eaed]">
-                                <input
-                                    type="checkbox"
-                                    checked={categoryFilters.exams}
-                                    onChange={() => handleCategoryToggle('exams')}
-                                    className="sr-only"
-                                />
-                                <div 
-                                    className={`w-3.5 h-3.5 rounded-[3px] flex items-center justify-center border transition-all ${categoryFilters.exams ? 'border-transparent text-white bg-[#7986cb]' : 'border-gray-400 dark:border-gray-650 bg-transparent'}`}
-                                >
-                                    {categoryFilters.exams && <i className="bi bi-check-lg text-[10px]"></i>}
-                                </div>
-                                <span>Exams</span>
-                            </label>
-
-                            {/* Other admins dynamic checkboxes */}
+                        <div className="space-y-0.5">
+                            <CheckBox checked={categoryFilters.holidays} color={catColors.holidays.on} onChange={() => handleCategoryToggle('holidays')} label="Holidays in India" />
+                            <CheckBox checked={categoryFilters.exams} color={catColors.exams.on} onChange={() => handleCategoryToggle('exams')} label="Exams" />
                             {allAdmins.filter(name => name.toLowerCase() !== adminName.toLowerCase()).map(name => {
                                 const isChecked = visibleAdmins[name] !== false;
                                 return (
-                                    <label key={name} className="flex items-center gap-3 px-1.5 py-1 rounded hover:bg-gray-50 dark:hover:bg-[#2a2a2a] cursor-pointer text-[13px] text-gray-700 dark:text-[#e8eaed]">
-                                        <input
-                                            type="checkbox"
-                                            checked={isChecked}
-                                            onChange={() => {
-                                                setVisibleAdmins(prev => ({
-                                                    ...prev,
-                                                    [name]: !isChecked
-                                                }));
-                                            }}
-                                            className="sr-only"
-                                        />
-                                        <div 
-                                            className={`w-3.5 h-3.5 rounded-[3px] flex items-center justify-center border transition-all ${isChecked ? 'border-transparent text-white bg-[#1a73e8]' : 'border-gray-400 dark:border-gray-650 bg-transparent'}`}
-                                        >
-                                            {isChecked && <i className="bi bi-check-lg text-[10px]"></i>}
-                                        </div>
-                                        <span>{name}</span>
-                                    </label>
+                                    <CheckBox key={name} checked={isChecked} color={catColors.admin.on}
+                                        onChange={() => setVisibleAdmins(prev => ({ ...prev, [name]: !isChecked }))}
+                                        label={name} />
                                 );
                             })}
                         </div>
                     )}
                 </div>
 
-                <hr className="my-4 border-[#dadce0] dark:border-[#3c3c3c]" />
+                {/* Divider */}
+                <div className="mx-4 my-3 h-px bg-gradient-to-r from-transparent via-[rgba(99,102,241,0.2)] to-transparent" />
 
-                {/* Smart conflict check shortcut */}
-                <div className="px-4">
+                {/* Conflict Auditor */}
+                <div className="px-3">
                     <button
                         onClick={() => setConflictCheckOpen(!conflictCheckOpen)}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold tracking-wide transition-colors cursor-pointer ${conflictCheckOpen ? 'bg-red-50 text-red-700 dark:bg-red-950/20 dark:text-red-400 border border-red-200 dark:border-red-900/30' : 'bg-transparent text-gray-700 dark:text-[#e8eaed] border border-gray-200 dark:border-[#3c3c3c] hover:bg-gray-50 dark:hover:bg-[#2a2a2a]'}`}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[12px] font-bold tracking-wide transition-all duration-150 cursor-pointer ${
+                            conflictCheckOpen
+                                ? 'text-red-500 dark:text-red-400'
+                                : 'text-gray-600 dark:text-[#a5a8d4]'
+                        }`}
+                        style={{
+                            background: conflictCheckOpen
+                                ? 'rgba(239,68,68,0.08)'
+                                : 'rgba(99,102,241,0.05)',
+                            border: conflictCheckOpen
+                                ? '1px solid rgba(239,68,68,0.2)'
+                                : '1px solid rgba(99,102,241,0.12)',
+                        }}
                     >
-                        <span className="flex items-center gap-2">
-                            <i className="bi bi-shield-fill-exclamation text-red-500 text-sm"></i>
-                            Conflict Auditor
+                        <span className="flex items-center gap-2.5">
+                            <i className="bi bi-shield-exclamation" style={{fontSize:'14px', color: globalConflicts.length > 0 ? '#ef4444' : undefined}}></i>
+                            <span>Conflict Auditor</span>
                         </span>
                         {globalConflicts.length > 0 && (
-                            <span className="px-1.5 py-0.5 bg-red-600 text-white rounded-full text-[9px] font-bold">
+                            <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black text-white"
+                                style={{background:'#ef4444', boxShadow:'0 0 8px rgba(239,68,68,0.5)'}}>
                                 {globalConflicts.length}
                             </span>
                         )}
@@ -829,7 +898,9 @@
         categoryFilters,
         conflictsMap,
         onCellClick,
-        onEventClick
+        onEventClick,
+        darkMode,
+        onMoreClick
     }) {
         const monthStart = dateHelpers.startOfMonth(currentDate);
         const monthEnd = dateHelpers.endOfMonth(monthStart);
@@ -854,28 +925,40 @@
         };
 
         const categoryColors = {
-            admin: 'bg-[#1a73e8] text-[#e8eaed]',
-            exams: 'bg-[#7986cb] text-[#e8eaed]',
-            tasks: 'bg-[#0b8043] dark:bg-[#0f9d58] text-white',
-            holidays: 'bg-[#0f9d58] dark:bg-[#0d652d] text-white',
-            birthdays: 'bg-[#33b679] text-white'
+            admin:     { bg: 'rgba(59,130,246,0.15)',  text: '#93c5fd', border: '#3b82f6' },
+            exams:     { bg: 'rgba(99,102,241,0.15)',  text: '#a5b4fc', border: '#6366f1' },
+            tasks:     { bg: 'rgba(245,158,11,0.15)',  text: '#fcd34d', border: '#f59e0b' },
+            holidays:  { bg: 'rgba(16,185,129,0.15)',  text: '#6ee7b7', border: '#10b981' },
+            birthdays: { bg: 'rgba(236,72,153,0.15)',  text: '#f9a8d4', border: '#ec4899' },
+        };
+        const lightCategoryColors = {
+            admin:     { bg: '#EEF2FF', text: '#4338CA', border: '#818cf8' },
+            exams:     { bg: '#EDE9FE', text: '#6D28D9', border: '#7c3aed' },
+            tasks:     { bg: '#FFFBEB', text: '#92400E', border: '#d97706' },
+            holidays:  { bg: '#D1FAE5', text: '#065F46', border: '#059669' },
+            birthdays: { bg: '#FCE7F3', text: '#9D174D', border: '#db2777' },
         };
 
         return (
-            <div className="flex-1 flex flex-col h-full bg-white dark:bg-[#1a1a1a] select-none text-gray-800 dark:text-[#e8eaed]">
+            <div className="flex-1 flex flex-col h-full select-none" style={{background: darkMode ? '#0a0a0f' : '#f8f9fa'}}>
                 {/* Headers row */}
-                <div className="grid grid-cols-7 border-b border-[#dadce0] dark:border-[#3c3c3c] flex-shrink-0">
+                <div className="grid grid-cols-7 flex-shrink-0" style={{borderBottom: darkMode ? '1px solid rgba(99,102,241,0.12)' : '1px solid #e5e7eb'}}>
                     {weekdayNamesShort.map((day, idx) => (
-                        <div key={idx} className="text-center py-2 text-[11px] font-medium text-gray-500 dark:text-[#9aa0a6] uppercase tracking-[0.8px]">
+                        <div key={idx} className="text-center py-3 text-[11px] font-bold uppercase tracking-widest"
+                            style={{color: darkMode ? '#5a5d80' : '#9ca3af'}}>
                             {day}
                         </div>
                     ))}
                 </div>
 
                 {/* Month Days Grid */}
-                <div 
-                    className="grid grid-cols-7 flex-grow border-b border-r border-[#dadce0] dark:border-[#3c3c3c]"
-                    style={{ gridTemplateRows: `repeat(${Math.ceil(days.length / 7)}, minmax(0, 1fr))` }}
+                <div
+                    className="grid grid-cols-7 flex-grow"
+                    style={{
+                        gridTemplateRows: `repeat(${Math.ceil(days.length / 7)}, minmax(0, 1fr))`,
+                        borderBottom: darkMode ? '1px solid rgba(99,102,241,0.1)' : '1px solid #e5e7eb',
+                        borderRight:  darkMode ? '1px solid rgba(99,102,241,0.1)' : '1px solid #e5e7eb',
+                    }}
                 >
                     {days.map((day, idx) => {
                         const dayEvents = getFilteredEventsForDay(day);
@@ -883,14 +966,13 @@
                         const isToday = dateHelpers.isToday(day);
                         const dayConflicts = dayEvents.filter(e => conflictsMap[e.id]?.length > 0);
                         const hasConflict = dayConflicts.length > 0;
+                        const examCount = dayEvents.filter(e => getEventCategory(e) === 'exams').length;
 
-                        // Google Calendar month display rules: show day number or "1 Jul" style
                         let dayDisplayStr = `${day.getDate()}`;
                         if (day.getDate() === 1) {
                             dayDisplayStr = `${day.getDate()} ${dateHelpers.format(day, 'MMM')}`;
                         }
 
-                        // Stacking limit to 3 events; show rest as "+ N more"
                         const displayEvents = dayEvents.slice(0, 3);
                         const overflowCount = dayEvents.length - 3;
 
@@ -898,35 +980,55 @@
                             <div
                                 key={idx}
                                 onClick={(e) => handleCellClick(e, day)}
-                                className={`
-                                    border-l border-t border-[#dadce0] dark:border-[#3c3c3c] p-1 flex flex-col min-h-0 relative hover:bg-gray-50/50 dark:hover:bg-[#2a2a2a] cursor-pointer transition-colors duration-75
-                                    ${!isCurrMonth ? 'bg-gray-50/30 dark:bg-[#1b1b1c]/10 text-gray-400 dark:text-[#5f6368]' : 'bg-white dark:bg-[#1e1e1e]'}
-                                `}
+                                className="day-cell p-1.5 flex flex-col min-h-0 relative cursor-pointer transition-colors duration-75"
+                                style={{
+                                    borderLeft:  darkMode ? '1px solid rgba(99,102,241,0.1)' : '1px solid #e5e7eb',
+                                    borderTop:   darkMode ? '1px solid rgba(99,102,241,0.1)' : '1px solid #e5e7eb',
+                                    background:  !isCurrMonth
+                                        ? (darkMode ? 'rgba(10,10,16,0.6)' : 'rgba(248,249,250,0.6)')
+                                        : (darkMode ? '#0f0f1a' : '#ffffff'),
+                                }}
                             >
                                 {/* Date number header */}
-                                <div className="flex items-center justify-between mb-1.5 pr-1.5">
-                                    <span 
-                                        className={`
-                                            text-[13px] font-medium h-[26px] w-[26px] flex items-center justify-center rounded-full mt-0.5 ml-0.5
-                                            ${!isCurrMonth ? 'text-gray-400 dark:text-[#5f6368]' : 'text-gray-800 dark:text-[#e8eaed]'}
-                                            ${isToday ? 'bg-[#1a73e8] text-white font-bold' : ''}
-                                            ${hasConflict && !isToday ? 'underline decoration-red-500 decoration-2' : ''}
-                                        `}
-                                    >
-                                        {dayDisplayStr}
-                                    </span>
+                                <div className="flex items-center justify-between mb-1.5 pr-1">
+                                    <div className="flex items-center gap-1.5">
+                                        <span
+                                            className="text-[12px] font-bold h-[26px] min-w-[26px] px-1 flex items-center justify-center rounded-full mt-0.5 ml-0.5"
+                                            style={{
+                                                color: isToday ? 'white'
+                                                    : !isCurrMonth ? (darkMode ? '#3a3d5c' : '#cbd5e1')
+                                                    : (darkMode ? '#a5a8d4' : '#374151'),
+                                                background: isToday ? '#6366f1' : 'transparent',
+                                                boxShadow: isToday ? '0 0 12px rgba(99,102,241,0.5)' : 'none',
+                                                fontWeight: isToday ? '800' : '600',
+                                            }}
+                                        >
+                                            {dayDisplayStr}
+                                        </span>
+                                        {examCount > 0 && (
+                                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                                                style={{
+                                                    background: darkMode ? 'rgba(99,102,241,0.15)' : '#EDE9FE',
+                                                    color: darkMode ? '#a5b4fc' : '#6D28D9',
+                                                    border: darkMode ? '1px solid rgba(99,102,241,0.25)' : '1px solid #c4b5fd',
+                                                }}>
+                                                {examCount} {examCount === 1 ? 'Exam' : 'Exams'}
+                                            </span>
+                                        )}
+                                    </div>
                                     {hasConflict && (
-                                        <span className="w-2 h-2 rounded-full bg-red-600 block animate-pulse" title="Schedule Warning" />
+                                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 block animate-pulse flex-shrink-0" title="Schedule Warning"
+                                            style={{boxShadow:'0 0 6px rgba(239,68,68,0.6)'}} />
                                     )}
                                 </div>
 
-                                {/* Event Pills list */}
-                                <div className="flex-1 overflow-y-hidden space-y-1 px-1">
+                                {/* Event Pills */}
+                                <div className="flex-1 overflow-y-hidden space-y-0.5 px-0.5">
                                     {displayEvents.map(event => {
                                         const conflicts = conflictsMap[event.id] || [];
                                         const isConflicting = conflicts.length > 0;
                                         const cat = getEventCategory(event);
-                                        const colorClass = categoryColors[cat] || 'bg-gray-500 text-white';
+                                        const colors = darkMode ? categoryColors[cat] : lightCategoryColors[cat];
 
                                         return (
                                             <div
@@ -935,14 +1037,16 @@
                                                     e.stopPropagation();
                                                     onEventClick(event, { x: e.clientX, y: e.clientY });
                                                 }}
-                                                className={`
-                                                    event-pill h-[18px] px-2 rounded-[4px] text-[11px] font-medium flex items-center gap-1 select-none truncate cursor-pointer transition-opacity hover:opacity-90
-                                                    ${colorClass}
-                                                `}
+                                                className="event-pill h-[18px] px-1.5 rounded-[5px] text-[11px] font-semibold flex items-center gap-1 select-none truncate cursor-pointer"
+                                                style={{
+                                                    background: colors?.bg || 'rgba(99,102,241,0.15)',
+                                                    color: colors?.text || '#a5b4fc',
+                                                    borderLeft: `2.5px solid ${colors?.border || '#6366f1'}`,
+                                                }}
                                                 title={event.title}
                                             >
                                                 {isConflicting && (
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
+                                                    <span className="w-1 h-1 rounded-full bg-red-400 flex-shrink-0" />
                                                 )}
                                                 <span className="truncate">{event.title}</span>
                                             </div>
@@ -951,14 +1055,19 @@
 
                                     {/* Overflow Link */}
                                     {overflowCount > 0 && (
-                                        <div 
-                                            className="overflow-link text-[10px] font-bold text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 px-1 py-0.5 cursor-pointer"
+                                        <div
+                                            className="overflow-link text-[10px] font-bold px-1 py-0.5 cursor-pointer transition-colors rounded"
+                                            style={{color: darkMode ? '#6366f1' : '#4f46e5'}}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                onCellClick(day, { x: e.clientX, y: e.clientY });
+                                                if (onMoreClick) {
+                                                    onMoreClick(day, { x: e.clientX, y: e.clientY });
+                                                } else {
+                                                    onCellClick(day, { x: e.clientX, y: e.clientY });
+                                                }
                                             }}
                                         >
-                                            {overflowCount} more
+                                            +{overflowCount} more
                                         </div>
                                     )}
                                 </div>
@@ -1081,8 +1190,10 @@
                     <div className="flex-1 grid grid-cols-7">
                         {weekDays.map((day, idx) => {
                             const isToday = dateHelpers.isToday(day);
+                            const dayEvents = getFilteredEventsForDay(day);
+                            const examCount = dayEvents.filter(e => getEventCategory(e) === 'exams').length;
                             return (
-                                <div key={idx} className="text-center py-2 border-r border-[#dadce0] dark:border-[#3c3c3c] flex flex-col items-center">
+                                <div key={idx} className="text-center py-2 border-r border-[#dadce0] dark:border-[#3c3c3c] flex flex-col items-center justify-center min-h-[64px]">
                                     <span className="text-[11px] font-semibold text-gray-500 dark:text-[#9aa0a6] uppercase tracking-[0.8px]">
                                         {dateHelpers.format(day, 'EEE')}
                                     </span>
@@ -1094,6 +1205,11 @@
                                     >
                                         {day.getDate()}
                                     </span>
+                                    {examCount > 0 && (
+                                        <span className="text-[9px] font-semibold mt-1 px-1.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-300 border border-indigo-150 dark:border-indigo-900/30">
+                                            {examCount} {examCount === 1 ? 'Exam' : 'Exams'}
+                                        </span>
+                                    )}
                                 </div>
                             );
                         })}
@@ -1324,19 +1440,26 @@
                 {/* Header Row */}
                 <div className="flex border-b border-[#dadce0] dark:border-[#3c3c3c] flex-shrink-0">
                     <div className="w-16 flex-shrink-0 border-r border-[#dadce0] dark:border-[#3c3c3c]" />
-                    <div className="flex-1 py-3 px-6 flex items-center gap-4">
-                        <div className="flex flex-col items-center">
-                            <span className="text-[11px] font-semibold text-gray-500 dark:text-[#9aa0a6] uppercase tracking-[0.8px]">
-                                {dateHelpers.format(currentDate, 'EEEE')}
-                            </span>
-                            <span 
-                                className={`
-                                    text-2xl font-bold h-12 w-12 flex items-center justify-center rounded-full mt-1
-                                    ${isToday ? 'bg-[#1a73e8] text-white' : 'text-gray-800 dark:text-[#e8eaed]'}
-                                `}
-                            >
-                                {currentDate.getDate()}
-                            </span>
+                    <div className="flex-1 py-3 px-6 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="flex flex-col items-center">
+                                <span className="text-[11px] font-semibold text-gray-500 dark:text-[#9aa0a6] uppercase tracking-[0.8px]">
+                                    {dateHelpers.format(currentDate, 'EEEE')}
+                                </span>
+                                <span 
+                                    className={`
+                                        text-2xl font-bold h-12 w-12 flex items-center justify-center rounded-full mt-1
+                                        ${isToday ? 'bg-[#1a73e8] text-white' : 'text-gray-800 dark:text-[#e8eaed]'}
+                                    `}
+                                >
+                                    {currentDate.getDate()}
+                                </span>
+                            </div>
+                            {dayEvents.filter(e => getEventCategory(e) === 'exams').length > 0 && (
+                                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-300 border border-indigo-150 dark:border-indigo-900/30">
+                                    {dayEvents.filter(e => getEventCategory(e) === 'exams').length} {dayEvents.filter(e => getEventCategory(e) === 'exams').length === 1 ? 'Exam' : 'Exams'} Scheduled
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -1583,60 +1706,80 @@
             };
         };
 
-        // Render Quick popover mode
         if (mode === 'quick') {
             return (
-                <div 
-                    style={getPopoverStyle()} 
-                    className="w-[340px] bg-white dark:bg-[#2d2d2d] rounded-xl border border-gray-200 dark:border-[#3c3c3c] p-4 text-gray-800 dark:text-[#e8eaed] font-sans"
+                <div
+                    style={{
+                        ...getPopoverStyle(),
+                        background: 'linear-gradient(135deg, #0f0f1a 0%, #141428 100%)',
+                        border: '1px solid rgba(99,102,241,0.3)',
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.6), 0 0 30px rgba(99,102,241,0.15)',
+                        borderRadius: '16px',
+                        padding: '18px',
+                        width: '320px',
+                        zIndex: 50,
+                    }}
+                    className="animate-modal"
                 >
-                    <div className="flex justify-between items-center mb-2.5">
-                        <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Quick Add Event</span>
-                        <button onClick={onClose} className="text-gray-450 hover:text-gray-600 dark:hover:text-white"><i className="bi bi-x-lg"></i></button>
+                    <div className="flex justify-between items-center mb-3">
+                        <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{color:'#5a5d80'}}>Quick Add Event</span>
+                        <button onClick={onClose} className="cursor-pointer transition-colors" style={{color:'#5a5d80'}} onMouseEnter={e=>e.currentTarget.style.color='#f0f0ff'} onMouseLeave={e=>e.currentTarget.style.color='#5a5d80'}>
+                            <i className="bi bi-x-lg text-sm"></i>
+                        </button>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-3">
                         <input
                             type="text"
-                            placeholder="Add title"
+                            placeholder="Event title..."
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            className="w-full text-sm font-medium border-b border-gray-300 dark:border-[#3c3c3c] focus:border-[#1a73e8] outline-none pb-1 bg-transparent text-gray-800 dark:text-[#e8eaed] placeholder-gray-450 dark:placeholder-gray-500"
+                            className="w-full text-[14px] font-semibold outline-none bg-transparent pb-2"
+                            style={{borderBottom:'1px solid rgba(99,102,241,0.3)', color:'#f0f0ff'}}
                             autoFocus
                             required
                         />
 
-                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                        <div className="flex items-center gap-2 text-[11px]" style={{color:'#5a5d80'}}>
                             <i className="bi bi-clock"></i>
-                            <span>
-                                {dateStr} • {startTime} - {endTime}
-                            </span>
+                            <span>{dateStr} • {startTime} – {endTime}</span>
                         </div>
 
-                        {/* Quick Category selection */}
-                        <div className="flex items-center gap-1.5">
-                            {['admin', 'exams', 'tasks', 'holidays'].map(cat => (
-                                <button
-                                    key={cat}
-                                    type="button"
-                                    onClick={() => {
-                                        setCategory(cat);
-                                        if (cat === 'holidays') setEventType('HOLIDAY');
-                                        else if (cat === 'exams') setEventType('EXAM');
-                                        else setEventType('TASK');
-                                    }}
-                                    className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-all border ${category === cat ? 'bg-[#1a73e8] border-transparent text-white' : 'bg-transparent border-gray-300 dark:border-[#3c3c3c] text-gray-500 dark:text-gray-400'}`}
-                                >
-                                    {cat.toUpperCase()}
-                                </button>
-                            ))}
+                        {/* Category quick pills */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                            {['admin', 'exams', 'tasks', 'holidays'].map(cat => {
+                                const catBg = {admin:'#3b82f6',exams:'#6366f1',tasks:'#f59e0b',holidays:'#10b981'};
+                                const isActive = category === cat;
+                                return (
+                                    <button
+                                        key={cat}
+                                        type="button"
+                                        onClick={() => {
+                                            setCategory(cat);
+                                            if (cat === 'holidays') setEventType('HOLIDAY');
+                                            else if (cat === 'exams') setEventType('EXAM');
+                                            else setEventType('TASK');
+                                        }}
+                                        className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer"
+                                        style={{
+                                            background: isActive ? catBg[cat] : 'rgba(255,255,255,0.05)',
+                                            color: isActive ? 'white' : '#5a5d80',
+                                            border: isActive ? `1px solid ${catBg[cat]}` : '1px solid rgba(255,255,255,0.08)',
+                                            boxShadow: isActive ? `0 0 10px ${catBg[cat]}60` : 'none',
+                                        }}
+                                    >
+                                        {cat}
+                                    </button>
+                                );
+                            })}
                         </div>
 
-                        <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-[#3c3c3c]">
+                        <div className="flex items-center justify-between pt-2" style={{borderTop:'1px solid rgba(99,102,241,0.12)'}}>
                             <button
                                 type="button"
                                 onClick={() => setMode('full')}
-                                className="text-xs font-semibold text-[#1a73e8] hover:underline"
+                                className="text-[11px] font-semibold cursor-pointer transition-colors"
+                                style={{color:'#6366f1'}}
                             >
                                 More options
                             </button>
@@ -1644,13 +1787,15 @@
                                 <button
                                     type="button"
                                     onClick={onClose}
-                                    className="px-3 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#3c3c3c] rounded"
+                                    className="px-3 py-1 text-[11px] font-semibold rounded-lg cursor-pointer transition-all"
+                                    style={{color:'#5a5d80', background:'rgba(255,255,255,0.05)'}}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-1 text-xs font-semibold bg-[#1a73e8] text-white hover:bg-blue-600 rounded"
+                                    className="px-4 py-1 text-[11px] font-bold rounded-lg cursor-pointer"
+                                    style={{background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'white', boxShadow:'0 0 12px rgba(99,102,241,0.5)'}}
                                 >
                                     Save
                                 </button>
@@ -1663,12 +1808,26 @@
 
         // Full modal centered overlay mode
         return (
-            <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 font-sans select-text">
-                <div className="w-full max-w-md bg-white dark:bg-[#2d2d2d] rounded-xl border border-gray-200 dark:border-[#3c3c3c] overflow-hidden text-gray-800 dark:text-[#e8eaed]">
+            <div className="fixed inset-0 flex items-center justify-center z-50 p-4 font-sans select-text modal-backdrop-premium animate-modal">
+                <div className="w-full max-w-md rounded-2xl overflow-hidden"
+                    style={{
+                        background:'linear-gradient(135deg,#0f0f1a 0%,#141428 100%)',
+                        border:'1px solid rgba(99,102,241,0.3)',
+                        boxShadow:'0 30px 80px rgba(0,0,0,0.7), 0 0 40px rgba(99,102,241,0.15)',
+                        color:'#f0f0ff',
+                    }}
+                >
                     {/* Header */}
-                    <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-200 dark:border-[#3c3c3c]">
-                        <h2 className="text-sm font-semibold">{editEvent ? 'Edit Event Details' : 'Create Event Entry'}</h2>
-                        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-white"><i className="bi bi-x-lg"></i></button>
+                    <div className="flex items-center justify-between px-5 py-4" style={{borderBottom:'1px solid rgba(99,102,241,0.15)'}}>
+                        <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded-md flex items-center justify-center" style={{background:'linear-gradient(135deg,#6366f1,#8b5cf6)'}}>
+                                <i className="bi bi-calendar-plus text-white" style={{fontSize:'10px'}}></i>
+                            </div>
+                            <h2 className="text-[13px] font-bold" style={{color:'#f0f0ff'}}>{editEvent ? 'Edit Event' : 'New Event'}</h2>
+                        </div>
+                        <button onClick={onClose} className="cursor-pointer transition-colors rounded-lg p-1" style={{color:'#5a5d80'}} onMouseEnter={e=>e.currentTarget.style.color='#f0f0ff'} onMouseLeave={e=>e.currentTarget.style.color='#5a5d80'}>
+                            <i className="bi bi-x-lg text-sm"></i>
+                        </button>
                     </div>
 
                     {/* Form */}
@@ -1923,13 +2082,15 @@
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-4 py-1.5 border border-gray-300 dark:border-[#3c3c3c] text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#3c3c3c] text-xs font-semibold rounded"
+                                className="px-4 py-1.5 text-xs font-semibold rounded-lg cursor-pointer transition-all"
+                                style={{color:'#a5a8d4', background:'rgba(99,102,241,0.08)', border:'1px solid rgba(99,102,241,0.2)'}}
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
-                                className="px-5 py-1.5 bg-[#1a73e8] text-white hover:bg-blue-600 text-xs font-semibold rounded"
+                                className="px-5 py-1.5 text-xs font-bold rounded-lg cursor-pointer"
+                                style={{background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'white', boxShadow:'0 0 14px rgba(99,102,241,0.5)'}}
                             >
                                 Save
                             </button>
@@ -2203,6 +2364,167 @@
         );
     }
 
+    // --- COMPONENT: DAYEVENTSPOPOVER ---
+    function DayEventsPopover({
+        isOpen,
+        date,
+        events,
+        categoryFilters,
+        conflictsMap,
+        coords,
+        onClose,
+        onEventClick,
+        darkMode
+    }) {
+        const popoverRef = useRef(null);
+
+        useEffect(() => {
+            function handleClickOutside(event) {
+                if (popoverRef.current && !popoverRef.current.contains(event.target)) {
+                    if (!event.target.closest('.overflow-link')) {
+                        onClose();
+                    }
+                }
+            }
+            if (isOpen) {
+                document.addEventListener('mousedown', handleClickOutside);
+            }
+            return () => {
+                document.removeEventListener('mousedown', handleClickOutside);
+            };
+        }, [isOpen, onClose]);
+
+        if (!isOpen || !date) return null;
+
+        const dayEvents = events.filter(e => {
+            const s = new Date(e.start);
+            if (!dateHelpers.isSameDay(s, date)) return false;
+            const cat = getEventCategory(e);
+            return categoryFilters[cat];
+        }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+
+        const getStyle = () => {
+            if (!coords) return {};
+            const width = 320;
+            const height = 300;
+            const padding = 20;
+
+            let left = coords.x - width / 2;
+            let top = coords.y - 100;
+
+            if (typeof window !== 'undefined') {
+                if (left + width > window.innerWidth) {
+                    left = window.innerWidth - width - padding;
+                }
+                if (left < padding) {
+                    left = padding;
+                }
+                if (top + height > window.innerHeight) {
+                    top = window.innerHeight - height - padding;
+                }
+                if (top < padding) {
+                    top = padding;
+                }
+            }
+
+            return {
+                position: 'absolute',
+                left: `${left}px`,
+                top: `${top}px`,
+                zIndex: 45
+            };
+        };
+
+        const categoryColors = {
+            admin:     { bg: 'rgba(59,130,246,0.15)',  text: '#93c5fd', border: '#3b82f6' },
+            exams:     { bg: 'rgba(99,102,241,0.15)',  text: '#a5b4fc', border: '#6366f1' },
+            tasks:     { bg: 'rgba(245,158,11,0.15)',  text: '#fcd34d', border: '#f59e0b' },
+            holidays:  { bg: 'rgba(16,185,129,0.15)',  text: '#6ee7b7', border: '#10b981' },
+            birthdays: { bg: 'rgba(236,72,153,0.15)',  text: '#f9a8d4', border: '#ec4899' },
+        };
+        const lightCategoryColors = {
+            admin:     { bg: '#EEF2FF', text: '#4338CA', border: '#818cf8' },
+            exams:     { bg: '#EDE9FE', text: '#6D28D9', border: '#7c3aed' },
+            tasks:     { bg: '#FFFBEB', text: '#92400E', border: '#d97706' },
+            holidays:  { bg: '#D1FAE5', text: '#065F46', border: '#059669' },
+            birthdays: { bg: '#FCE7F3', text: '#9D174D', border: '#db2777' },
+        };
+
+        const formattedDate = dateHelpers.format(date, 'EEEE, MMMM d');
+
+        return (
+            <div 
+                ref={popoverRef}
+                style={getStyle()} 
+                className="w-[320px] max-h-[360px] bg-white dark:bg-[#181824] rounded-xl border border-gray-200 dark:border-indigo-950/40 text-gray-800 dark:text-[#e8eaed] font-sans flex flex-col overflow-hidden shadow-2xl animate-modal"
+            >
+                {/* Header */}
+                <div className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-[#202124] border-b border-gray-200 dark:border-[#3c3c3c]">
+                    <span className="text-xs font-bold text-gray-550 dark:text-gray-450 uppercase tracking-wider">
+                        {formattedDate}
+                    </span>
+                    <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-white/5 text-gray-450 dark:text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors">
+                        <i className="bi bi-x-lg text-xs"></i>
+                    </button>
+                </div>
+
+                {/* Event list */}
+                <div className="flex-1 overflow-y-auto p-3 space-y-2 max-h-[300px]">
+                    {dayEvents.length === 0 ? (
+                        <div className="text-center py-6 text-xs text-gray-400 dark:text-gray-500 italic">
+                            No events today
+                        </div>
+                    ) : (
+                        dayEvents.map(event => {
+                            const conflicts = conflictsMap[event.id] || [];
+                            const isConflicting = conflicts.length > 0;
+                            const cat = getEventCategory(event);
+                            const colors = darkMode ? categoryColors[cat] : lightCategoryColors[cat];
+                            const start = new Date(event.start);
+                            const end = new Date(event.end);
+                            const timeStr = `${dateHelpers.format(start, 'hh:mm a')} – ${dateHelpers.format(end, 'hh:mm a')}`;
+
+                            return (
+                                <div
+                                    key={event.id}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onEventClick(event, { x: e.clientX, y: e.clientY });
+                                    }}
+                                    className="p-2.5 rounded-lg border text-xs font-semibold flex flex-col gap-1 cursor-pointer transition-all hover:translate-x-0.5 hover:shadow-md"
+                                    style={{
+                                        background: colors?.bg || 'rgba(99,102,241,0.15)',
+                                        color: colors?.text || '#a5b4fc',
+                                        border: `1px solid ${colors?.border || '#6366f1'}33`,
+                                        borderLeft: `3px solid ${colors?.border || '#6366f1'}`,
+                                    }}
+                                >
+                                    <div className="flex items-center justify-between gap-2">
+                                        <span className="truncate text-[12px] font-bold">{event.title}</span>
+                                        {isConflicting && (
+                                            <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0 animate-pulse" />
+                                        )}
+                                    </div>
+                                    <div className="text-[10px] font-medium opacity-80 flex items-center gap-1">
+                                        <i className="bi bi-clock"></i>
+                                        <span>{timeStr}</span>
+                                        {event.room && (
+                                            <>
+                                                <span>•</span>
+                                                <i className="bi bi-geo-alt"></i>
+                                                <span className="truncate">{event.room}</span>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })
+                    )}
+                </div>
+            </div>
+        );
+    }
+
     // --- MAIN REACT CONTAINER (App) ---
     function App() {
         const adminName = window.loggedInAdminName || 'Super Admin';
@@ -2235,17 +2557,29 @@
 
         const [sidebarOpen, setSidebarOpen] = useState(true);
         const [conflictCheckOpen, setConflictCheckOpen] = useState(false);
-        const [darkMode, setDarkMode] = useState(document.body.classList.contains('dark-theme'));
-
-        // Synchronize dark-theme status with Tailwind's class-based mode
-        useEffect(() => {
-            if (darkMode) {
-                document.documentElement.classList.add('dark');
-                document.body.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-                document.body.classList.remove('dark');
+        const [darkMode, setDarkMode] = useState(() => {
+            const savedTheme = localStorage.getItem("theme");
+            if (savedTheme) {
+                return savedTheme === "dark";
             }
+            return document.body.classList.contains('dark-theme');
+        });
+
+        // Synchronize dark-theme status with Tailwind's class-based mode and global classes
+        useEffect(() => {
+            const themeSwitch = document.getElementById("theme-toggle-switch");
+            if (darkMode) {
+                document.documentElement.classList.add('dark', 'dark-theme');
+                document.body.classList.add('dark', 'dark-theme');
+                localStorage.setItem("theme", "dark");
+                if (themeSwitch) themeSwitch.checked = true;
+            } else {
+                document.documentElement.classList.remove('dark', 'dark-theme');
+                document.body.classList.remove('dark', 'dark-theme');
+                localStorage.setItem("theme", "light");
+                if (themeSwitch) themeSwitch.checked = false;
+            }
+            window.dispatchEvent(new Event('themeChanged'));
         }, [darkMode]);
 
         // Modals state
@@ -2259,6 +2593,11 @@
         const [detailOpen, setDetailOpen] = useState(false);
         const [detailEvent, setDetailEvent] = useState(null);
         const [detailCoords, setDetailCoords] = useState(null);
+
+        // Day Events Popover state
+        const [dayEventsOpen, setDayEventsOpen] = useState(false);
+        const [dayEventsDate, setDayEventsDate] = useState(null);
+        const [dayEventsCoords, setDayEventsCoords] = useState(null);
 
         // Fetch events from Spring Boot REST API
         const loadAllEvents = useCallback(() => {
@@ -2448,19 +2787,25 @@
         };
 
         // Navigation controls
-        const handleNavigateToday = () => setCurrentDate(new Date());
+        const handleNavigateToday = () => {
+            setDayEventsOpen(false);
+            setCurrentDate(new Date());
+        };
         const handleNavigatePrev = () => {
+            setDayEventsOpen(false);
             if (currentView === 'month') setCurrentDate(prev => dateHelpers.subMonths(prev, 1));
             else if (currentView === 'week') setCurrentDate(prev => dateHelpers.subWeeks(prev, 1));
             else setCurrentDate(prev => dateHelpers.subDays(prev, 1));
         };
         const handleNavigateNext = () => {
+            setDayEventsOpen(false);
             if (currentView === 'month') setCurrentDate(prev => dateHelpers.addMonths(prev, 1));
             else if (currentView === 'week') setCurrentDate(prev => dateHelpers.addWeeks(prev, 1));
             else setCurrentDate(prev => dateHelpers.addDays(prev, 1));
         };
 
         const handleCellClick = (date, coords) => {
+            setDayEventsOpen(false);
             setDetailOpen(false);
             setEditEvent(null);
             setSelectedCellDate(date);
@@ -2470,10 +2815,19 @@
         };
 
         const handleEventClick = (event, coords) => {
+            setDayEventsOpen(false);
             setModalOpen(false);
             setDetailEvent(event);
             setDetailCoords(coords);
             setDetailOpen(true);
+        };
+
+        const handleMoreClick = (date, coords) => {
+            setModalOpen(false);
+            setDetailOpen(false);
+            setDayEventsDate(date);
+            setDayEventsCoords(coords);
+            setDayEventsOpen(true);
         };
 
         const handleEditClickFromDetail = (event) => {
@@ -2497,7 +2851,7 @@
         };
 
         return (
-            <div className="flex flex-col h-full w-full bg-white dark:bg-[#1a1a1a] text-gray-800 dark:text-[#e8eaed] overflow-hidden">
+            <div className="flex flex-col h-full w-full overflow-hidden" style={{background: darkMode ? '#0a0a0f' : '#f8f9fa', color: darkMode ? '#f0f0ff' : '#1e2030'}}>
                 <Topbar
                     currentDate={currentDate}
                     onNavigateToday={handleNavigateToday}
@@ -2518,6 +2872,7 @@
                 <div className="flex flex-1 overflow-hidden relative">
                     {sidebarOpen && (
                         <Sidebar
+                            events={filteredEvents}
                             currentDate={currentDate}
                             setCurrentDate={setCurrentDate}
                             categoryFilters={categoryFilters}
@@ -2533,7 +2888,7 @@
                         />
                     )}
 
-                    <main className="flex-grow-1 flex flex-col min-w-0 h-full relative overflow-hidden bg-white dark:bg-[#1e1e1e]">
+                    <main className="flex-grow-1 flex flex-col min-w-0 h-full relative overflow-hidden" style={{background: darkMode ? '#0a0a0f' : '#f8f9fa'}}>
                         {currentView === 'month' && (
                             <MonthView
                                 currentDate={currentDate}
@@ -2542,6 +2897,8 @@
                                 conflictsMap={conflictsMap}
                                 onCellClick={handleCellClick}
                                 onEventClick={handleEventClick}
+                                darkMode={darkMode}
+                                onMoreClick={handleMoreClick}
                             />
                         )}
                         {currentView === 'week' && (
@@ -2598,6 +2955,21 @@
                         conflicts={detailEvent ? conflictsMap[detailEvent.id] : []}
                         adminName={adminName}
                         usersList={usersList}
+                    />
+
+                    <DayEventsPopover
+                        isOpen={dayEventsOpen}
+                        date={dayEventsDate}
+                        events={filteredEvents}
+                        categoryFilters={categoryFilters}
+                        conflictsMap={conflictsMap}
+                        coords={dayEventsCoords}
+                        onClose={() => setDayEventsOpen(false)}
+                        onEventClick={(event, coords) => {
+                            setDayEventsOpen(false);
+                            handleEventClick(event, coords);
+                        }}
+                        darkMode={darkMode}
                     />
                 </div>
             </div>

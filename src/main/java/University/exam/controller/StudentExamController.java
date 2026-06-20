@@ -46,6 +46,15 @@ public class StudentExamController {
     @Autowired
     private ResultRepository resultRepository;
 
+    @Autowired
+    private StudentActiveSessionRepository studentActiveSessionRepository;
+
+    @Autowired
+    private University.exam.service.StudentExamActivityService studentExamActivityService;
+
+    @org.springframework.beans.factory.annotation.Value("${exam.security.tabTermination:false}")
+    private boolean tabTerminationEnabled;
+
     @GetMapping("/dashboard")
     public String dashboard(HttpSession session, Model model) {
         // Since we are mocking login during dev, fallback to a mock student if null
@@ -95,7 +104,11 @@ public class StudentExamController {
             if ("already_submitted".equals(error)) {
                 model.addAttribute("error", "You have already completed and submitted this exam.");
             } else if ("terminated_violation".equals(error)) {
-                model.addAttribute("error", "This exam session was automatically terminated due to a window switch or tab escape violation.");
+                if (tabTerminationEnabled) {
+                    model.addAttribute("error", "This exam session was automatically terminated due to a window switch or tab escape violation.");
+                } else {
+                    model.addAttribute("error", "Activity recorded.");
+                }
             } else {
                 model.addAttribute("error", error);
             }
@@ -193,7 +206,11 @@ public class StudentExamController {
             if ("already_submitted".equals(error)) {
                 model.addAttribute("error", "You have already completed and submitted this exam.");
             } else if ("terminated_violation".equals(error)) {
-                model.addAttribute("error", "This exam session was automatically terminated due to a window switch or tab escape violation.");
+                if (tabTerminationEnabled) {
+                    model.addAttribute("error", "This exam session was automatically terminated due to a window switch or tab escape violation.");
+                } else {
+                    model.addAttribute("error", "Activity recorded.");
+                }
             } else {
                 model.addAttribute("error", error);
             }
@@ -415,6 +432,7 @@ public class StudentExamController {
         model.addAttribute("currentIndex", index);
         model.addAttribute("totalPages", sections.size());
         model.addAttribute("savedAnswers", savedAnswers);
+        model.addAttribute("tabTerminationEnabled", tabTerminationEnabled);
 
         return "student/exam_section";
     }
@@ -601,6 +619,18 @@ public class StudentExamController {
                 submissionRepository.save(submission);
                 System.out.println("Submission status marked as Terminated: " + attemptId);
 
+                studentActiveSessionRepository.findByStudentIdAndStatus(enrollmentNo, "ACTIVE").ifPresent(activeSession -> {
+                    activeSession.setStatus("TERMINATED");
+                    activeSession.setLogoutTime(LocalDateTime.now());
+                    studentActiveSessionRepository.save(activeSession);
+                });
+
+                try {
+                    studentExamActivityService.updateActivity(enrollmentNo, submission.getPaper() != null ? submission.getPaper().getId() : null, null, null, "00:00:00", "Terminated");
+                } catch (Exception e) {
+                    System.err.println("Failed to update activity to Terminated: " + e.getMessage());
+                }
+
                 // Auto-create Result record for terminated paper exam
                 Result result = resultRepository.findBySubmissionId(submission.getId()).orElse(new Result());
                 result.setSubmission(submission);
@@ -661,6 +691,18 @@ public class StudentExamController {
                 attempt.setEndTime(LocalDateTime.now());
                 examAttemptRepository.save(attempt);
                 System.out.println("ExamAttempt status marked as Terminated: " + attemptId);
+
+                studentActiveSessionRepository.findByStudentIdAndStatus(enrollmentNo, "ACTIVE").ifPresent(activeSession -> {
+                    activeSession.setStatus("TERMINATED");
+                    activeSession.setLogoutTime(LocalDateTime.now());
+                    studentActiveSessionRepository.save(activeSession);
+                });
+
+                try {
+                    studentExamActivityService.updateActivity(enrollmentNo, attempt.getExam() != null ? attempt.getExam().getId() : null, null, null, "00:00:00", "Terminated");
+                } catch (Exception e) {
+                    System.err.println("Failed to update activity to Terminated: " + e.getMessage());
+                }
             }
         }
 

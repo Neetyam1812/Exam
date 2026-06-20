@@ -74,6 +74,7 @@
     </div>
 </div>
 
+<input type="hidden" id="examId" th:value="${paper.id}">
 <input type="hidden" id="submissionId" th:value="${submissionId}">
 <input type="hidden" id="remainingSeconds" th:value="${remainingSeconds}">
 
@@ -85,9 +86,42 @@
     
     window.onbeforeunload = function() { if(remainingSeconds > 0 && !window.isNavigating) return "Exam in progress!"; };
 
+    async function updateActivityStatus(customStatus) {
+        try {
+            const examIdVal = document.getElementById('examId') ? document.getElementById('examId').value : null;
+
+            let remSecs = typeof remainingSeconds !== 'undefined' ? remainingSeconds : 0;
+            let hrs = Math.floor(remSecs / 3600);
+            let mins = Math.floor((remSecs % 3600) / 60);
+            let secs = remSecs % 60;
+            let timeString = (hrs < 10 ? "0"+hrs : hrs) + ":" + 
+                             (mins < 10 ? "0"+mins : mins) + ":" + 
+                             (secs < 10 ? "0"+secs : secs);
+
+            const payload = {
+                examId: examIdVal,
+                currentSection: "Q1",
+                currentQuestionNo: 1,
+                timeRemaining: timeString,
+                status: customStatus || "Active"
+            };
+
+            await fetch('/student/update-activity', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+        } catch (e) {
+            console.error("Failed to post activity update:", e);
+        }
+    }
+
     // Auto-save logic
     setInterval(saveAnswer, 5000); 
     textarea.addEventListener('input', debounce(saveAnswer, 3000));
+    textarea.addEventListener('input', function() {
+        updateActivityStatus("Active");
+    });
 
     async function saveAnswer() {
         const statusEl = document.getElementById('saveStatus');
@@ -174,7 +208,17 @@
         }
     });
 
-    window.onload = startTimer;
+    window.onload = function() {
+        startTimer();
+        try {
+            updateActivityStatus("Active");
+            setInterval(() => {
+                updateActivityStatus("Active");
+            }, 10000);
+        } catch (e) {
+            console.error(e);
+        }
+    };
 </script>
 
 <!-- Drawing Canvas JS Engine -->

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import University.exam.Entity.StudentActiveSession;
 import University.exam.repository.StudentActiveSessionRepository;
+import University.exam.service.StudentExamActivityService;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -24,6 +25,9 @@ public class ActiveSessionInterceptor implements HandlerInterceptor {
     @Autowired
     private University.exam.repository.SubmissionRepository submissionRepository;
 
+    @Autowired
+    private StudentExamActivityService studentExamActivityService;
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         HttpSession session = request.getSession(false);
@@ -36,10 +40,18 @@ public class ActiveSessionInterceptor implements HandlerInterceptor {
             return true;
         }
 
+        // Auto-register/refresh exam activity
+        try {
+            Long currentExamId = (Long) session.getAttribute("currentExamId");
+            studentExamActivityService.updateActivity(enrollmentNo, currentExamId, null, null, null, null);
+        } catch (Exception e) {
+            System.err.println("Failed to update student activity in interceptor: " + e.getMessage());
+        }
+
         String uri = request.getRequestURI();
         if (uri.contains("/student/exam/resume") || uri.contains("/student/logout") || uri.contains("/logout") || uri.contains("/api/drawing/save")) {
             if (uri.contains("/student/exam/resume") || uri.contains("/api/drawing/save")) {
-                studentActiveSessionRepository.findByStudentIdAndIsActiveTrue(enrollmentNo).ifPresent(activeSession -> {
+                studentActiveSessionRepository.findByStudentIdAndStatus(enrollmentNo, "ACTIVE").ifPresent(activeSession -> {
                     if (activeSession.getSessionId().equals(session.getId())) {
                         activeSession.setLastActivity(LocalDateTime.now());
                         studentActiveSessionRepository.save(activeSession);
@@ -86,7 +98,7 @@ public class ActiveSessionInterceptor implements HandlerInterceptor {
 
             // Check for inactivity/offline gap since last request
             Optional<StudentActiveSession> activeSessionOpt = 
-                studentActiveSessionRepository.findByStudentIdAndIsActiveTrue(enrollmentNo);
+                studentActiveSessionRepository.findByStudentIdAndStatus(enrollmentNo, "ACTIVE");
 
             if (activeSessionOpt.isPresent()) {
                 StudentActiveSession activeSession = activeSessionOpt.get();
@@ -133,7 +145,7 @@ public class ActiveSessionInterceptor implements HandlerInterceptor {
         }
 
         Optional<StudentActiveSession> activeSessionOpt = 
-            studentActiveSessionRepository.findByStudentIdAndIsActiveTrue(enrollmentNo);
+            studentActiveSessionRepository.findByStudentIdAndStatus(enrollmentNo, "ACTIVE");
 
         if (activeSessionOpt.isPresent()) {
             StudentActiveSession activeSession = activeSessionOpt.get();

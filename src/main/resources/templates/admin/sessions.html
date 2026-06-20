@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Monitoring - Control Center</title>
+    <!-- Bootstrap CSS, Icons, and Google Fonts -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #ff6b00;
+            --primary-hover: #ea580c;
+            --primary-light: rgba(255, 107, 0, 0.05);
+            --primary-gradient: linear-gradient(135deg, #ff8a3d 0%, #ff6b00 100%);
+            --bg-canvas: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: rgba(0, 0, 0, 0.05);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --purple: #8b5cf6;
+            --sidebar-width: 260px;
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
+            --card-shadow-hover: 0 12px 20px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+        }
+
+        body.dark-theme {
+            --bg-canvas: #090d16;
+            --card-bg: rgba(17, 24, 39, 0.85);
+            --border-color: rgba(255, 255, 255, 0.06);
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
+            --card-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.1);
+            --card-shadow-hover: 0 20px 40px -12px rgba(0, 0, 0, 0.4), 0 1px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, h4, h5, h6, .btn, .saas-table thead th, .status-badge-premium {
+            font-family: 'Outfit', sans-serif !important;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2.5rem;
+            transition: var(--transition-smooth);
+            background-color: var(--bg-canvas);
+        }
+
+        @media (max-width: 991.98px) {
+            .main-content {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+        }
+
+        /* Metric Stats Card */
+        .stat-card {
+            border: 1px solid var(--border-color) !important;
+            border-radius: 20px !important;
+            box-shadow: var(--card-shadow) !important;
+            transition: var(--transition-smooth);
+            background: var(--card-bg);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--card-shadow-hover) !important;
+        }
+
+        .icon-box-saas {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition-smooth);
+        }
+
+        /* SaaS Table */
+        .saas-table-card {
+            border: 1px solid var(--border-color) !important;
+            border-radius: 20px !important;
+            overflow: hidden;
+            box-shadow: var(--card-shadow) !important;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            transition: var(--transition-smooth);
+            padding: 8px;
+        }
+
+        .saas-table {
+            margin-bottom: 0 !important;
+        }
+
+        .saas-table thead th {
+            background-color: transparent !important;
+            color: var(--text-primary) !important;
+            font-weight: 700 !important;
+            font-size: 11px !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.75px !important;
+            padding: 1.25rem 1.5rem !important;
+            border-bottom: 2px solid var(--border-color) !important;
+        }
+
+        .saas-table tbody tr {
+            transition: var(--transition-smooth);
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+
+        .saas-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .saas-table tbody tr:hover {
+            background-color: rgba(255, 107, 0, 0.015) !important;
+        }
+
+        .saas-table tbody td {
+            padding: 1.25rem 1.5rem !important;
+            vertical-align: middle !important;
+        }
+
+        /* Status badges */
+        .status-badge-premium {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0.45rem 0.95rem;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 50px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-completed {
+            background-color: rgba(139, 92, 246, 0.1);
+            color: var(--purple);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .status-terminated {
+            background-color: rgba(239, 64, 64, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 64, 64, 0.2);
+        }
+
+        .status-none {
+            background-color: rgba(148, 163, 184, 0.1);
+            color: var(--text-muted);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .status-pulse-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+            background-color: currentColor;
+            animation: pulse-animation 2s infinite;
+        }
+
+        @keyframes pulse-animation {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        /* Alert Panel Style */
+        .alert-card-scrollable {
+            max-height: 520px;
+            overflow-y: auto;
+        }
+
+        .alert-item-premium {
+            background-color: var(--bg-canvas);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1rem;
+            transition: var(--transition-smooth);
+        }
+
+        .alert-item-premium:hover {
+            transform: translateX(-3px);
+            border-color: rgba(239, 68, 68, 0.2);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.04);
+        }
+
+        /* Premium Modal Styling */
+        .premium-modal .modal-content {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .premium-modal .modal-header {
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.75rem 2rem;
+        }
+
+        .premium-modal .modal-body {
+            padding: 2rem;
+        }
+
+        .premium-modal .nav-pills .nav-link {
+            border-radius: 12px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            padding: 0.6rem 1.2rem;
+            color: var(--text-secondary);
+            transition: var(--transition-smooth);
+        }
+
+        .premium-modal .nav-pills .nav-link.active {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .detail-card-premium {
+            background-color: var(--bg-canvas);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.25rem;
+        }
+
+        .detail-item-log {
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem("theme") || "light";
+            if (savedTheme === "dark") {
+                document.documentElement.classList.add("dark-theme");
+            }
+        })();
+    </script>
+</head>
+<body>
+
+    <!-- Include Sidebar Fragment -->
+    <div th:replace="~{admin/fragments :: sidebar('sessions')}"></div>
+
+    <main class="main-content">
+        <!-- Sticky Header Area -->
+        <header class="d-flex flex-wrap align-items-center justify-content-between pb-4 mb-4 border-bottom" style="border-bottom-color: var(--border-color) !important;">
+            <div>
+                <h1 class="h2 mb-1" style="color: var(--text-primary) !important; font-weight: 800; font-size: 26px; letter-spacing: -0.5px;">🔐 Session Monitoring</h1>
+                <p class="text-secondary small mb-0" style="font-weight: 500;">
+                    Monitor active exam sessions, inspect multiple login attempts, and enforce examination integrity.
+                </p>
+            </div>
+            <div class="d-flex align-items-center gap-3 mt-3 mt-md-0">
+                <div class="profile-avatar bg-primary text-white" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-weight: 700; font-family: 'Outfit';" th:text="${#strings.substring(adminName, 0, 1)}">A</div>
+            </div>
+        </header>
+
+        <!-- Flash messages -->
+        <div th:if="${successMessage}" class="alert alert-success border-0 shadow-sm p-3 mb-4 rounded-3 d-flex align-items-center gap-2" style="background: rgba(16, 185, 129, 0.08); color: var(--success); border-left: 4px solid var(--success) !important;">
+            <i class="bi bi-check-circle-fill fs-5"></i>
+            <span class="fw-semibold small" th:text="${successMessage}">Success message</span>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger border-0 shadow-sm p-3 mb-4 rounded-3 d-flex align-items-center gap-2" style="background: rgba(239, 68, 68, 0.08); color: var(--danger); border-left: 4px solid var(--danger) !important;">
+            <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+            <span class="fw-semibold small" th:text="${errorMessage}">Error message</span>
+        </div>
+
+        <!-- split layout -->
+        <div class="row g-4">
+            <!-- Left Side: Main Sessions Table -->
+            <div class="col-xl-8">
+                <div class="d-flex flex-column gap-2 mb-3">
+                    <h3 class="fw-bold mb-0" style="font-size: 18px !important; letter-spacing: -0.3px; color: var(--text-primary) !important;">
+                        <i class="bi bi-people-fill text-primary me-2"></i>Active Exam Sessions
+                    </h3>
+                    <p class="text-muted small mb-0">List of all registered students, their active examination logins, and connection safety status.</p>
+                </div>
+
+                <div class="card border-0 saas-table-card">
+                    <div class="table-responsive">
+                        <table class="table align-middle saas-table">
+                            <thead>
+                                <tr>
+                                    <th>Student Details</th>
+                                    <th>Active Session</th>
+                                    <th class="text-center">Login Attempts</th>
+                                    <th>Last Attempt</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="student : ${studentSessions}" th:data-enrollment="${student.enrollmentNo}" onclick="showStudentDetail(this.getAttribute('data-enrollment'))">
+                                    <!-- Name & Enrollment -->
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2.5">
+                                            <div class="profile-avatar bg-primary-subtle text-primary" style="width: 36px; height: 36px; font-size: 13px; font-weight: 700; border-radius: 8px; display: flex; align-items: center; justify-content: center;" th:text="${#strings.toUpperCase(#strings.substring(student.studentName, 0, 1))}">S</div>
+                                            <div>
+                                                <span class="fw-bold d-block text-truncate" style="font-size: 13.5px; color: var(--text-primary); max-width: 150px;" th:text="${student.studentName}">Raj Patel</span>
+                                                <span class="text-meta small d-block" th:text="${student.enrollmentNo}">24004501210260</span>
+                                                <span class="small d-block text-danger" th:if="${student.violationCount != null && student.violationCount > 0}">
+                                                    Tab Switches: <span th:text="${student.violationCount}">0</span>
+                                                </span>
+                                                <span class="small d-block text-muted" th:if="${student.lastViolationTime != null && student.lastViolationTime != 'N/A'}">
+                                                    Last Event: <span th:text="${student.lastViolationTime}">11:42 AM</span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <!-- Active Session status -->
+                                    <td>
+                                        <span th:if="${student.activeSession == 'ACTIVE'}" class="status-badge-premium status-active">
+                                            <span class="status-pulse-dot"></span> ACTIVE
+                                        </span>
+                                        <span th:if="${student.activeSession == 'COMPLETED'}" class="status-badge-premium status-completed">
+                                            COMPLETED
+                                        </span>
+                                        <span th:if="${student.activeSession == 'TERMINATED'}" class="status-badge-premium status-terminated">
+                                            TERMINATED
+                                        </span>
+                                        <span th:if="${student.activeSession == 'No Session'}" class="status-badge-premium status-none">
+                                            None
+                                        </span>
+                                    </td>
+                                    <!-- Attempts -->
+                                    <td class="text-center">
+                                        <span class="fw-bold" th:classappend="${student.blockedAttemptsCount > 0 ? 'text-danger' : 'text-secondary'}" th:text="${student.loginAttempts}">0</span>
+                                    </td>
+                                    <!-- Last attempt -->
+                                    <td class="text-secondary small fw-medium" th:text="${student.lastAttempt}">N/A</td>
+                                    <!-- Security status -->
+                                    <td>
+                                        <span th:if="${student.status == '⚠ Suspicious'}" class="badge bg-danger bg-opacity-10 text-danger border px-2 py-1" style="font-size: 11px; border-color: rgba(239, 68, 68, 0.15) !important;">
+                                            ⚠ Suspicious
+                                        </span>
+                                        <span th:if="${student.status == 'SECURE'}" class="badge bg-success bg-opacity-10 text-success border px-2 py-1" style="font-size: 11px; border-color: rgba(16, 185, 129, 0.15) !important;">
+                                            SECURE
+                                        </span>
+                                    </td>
+                                    <!-- Action button -->
+                                    <td class="text-end" onclick="event.stopPropagation();">
+                                        <form th:if="${student.activeSession == 'ACTIVE'}" th:action="@{/admin/sessions/terminate/{enrollmentNo}(enrollmentNo=${student.enrollmentNo})}" method="post">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1.5" style="font-size: 11px; font-weight: 700;">Terminate</button>
+                                        </form>
+                                        <button th:unless="${student.activeSession == 'ACTIVE'}" class="btn btn-sm btn-light rounded-pill px-3 py-1.5" style="font-size: 11px; font-weight: 700;" disabled>Inactive</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Suspicious Attempts Alerts log -->
+            <div class="col-xl-4">
+                <div class="d-flex flex-column gap-2 mb-3">
+                    <h3 class="fw-bold mb-0" style="font-size: 18px !important; letter-spacing: -0.3px; color: var(--text-primary) !important;">
+                        <i class="bi bi-shield-fill-exclamation text-danger me-2"></i>Security Alerts
+                    </h3>
+                    <p class="text-muted small mb-0">Latest multiple login attempts blocked by the single-session active security filter.</p>
+                </div>
+
+                <div class="card border-0 p-4" style="border-radius: 20px !important; background: var(--card-bg);">
+                    <div class="alert-card-scrollable d-flex flex-column gap-3">
+                        <div th:if="${#lists.isEmpty(suspiciousAlerts)}" class="p-4 rounded-3 border text-center text-muted small" style="border-color: var(--border-color) !important; background: var(--bg-canvas);">
+                            <i class="bi bi-shield-check fs-2 text-success d-block mb-2"></i>
+                            No duplicate login attempts detected. System is secure.
+                        </div>
+                        
+                        <!-- Loop suspicious attempts -->
+                        <div th:each="alert : ${suspiciousAlerts}" class="alert-item-premium">
+                            <div class="d-flex align-items-start gap-2.5">
+                                <div class="bg-danger bg-opacity-10 text-danger rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; flex-shrink: 0;">
+                                    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                                </div>
+                                <div class="w-100">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="fw-bold text-danger" style="font-size: 12px; letter-spacing: 0.25px; text-transform: uppercase;">Multiple Login Attempt</span>
+                                        <span class="text-meta" style="font-size: 10.5px;" th:text="${alert.time}">12:45 PM</span>
+                                    </div>
+                                    <span class="d-block fw-bold text-dark-adjust" style="font-size: 13.5px; color: var(--text-primary);" th:text="${alert.studentName}">Raj Patel</span>
+                                    <span class="d-block text-secondary small" th:text="'Enrollment: ' + ${alert.enrollment}">Enrollment</span>
+                                    
+                                    <hr class="my-2" style="border-top: 1px dashed var(--border-color);">
+                                    
+                                    <div class="row g-1 text-meta" style="font-size: 11px;">
+                                        <div class="col-6">
+                                            <i class="bi bi-phone me-1"></i><span th:text="${alert.device}">Device</span>
+                                        </div>
+                                        <div class="col-6">
+                                            <i class="bi bi-browser-chrome me-1"></i><span th:text="${alert.browser}">Browser</span>
+                                        </div>
+                                        <div class="col-12 mt-1">
+                                            <i class="bi bi-globe me-1"></i><span th:text="'IP: ' + ${alert.ip}">IP</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Student Session Detail Popup Modal -->
+    <div class="modal fade premium-modal" id="studentDetailModal" tabindex="-1" aria-labelledby="studentDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header d-flex align-items-center justify-content-between">
+                    <div>
+                        <h4 class="modal-title fw-bold mb-1" id="modalStudentName" style="color: var(--text-primary);">Student Session History</h4>
+                        <p class="text-muted small mb-0" id="modalStudentEnrollment">Enrollment: </p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: var(--close-filter);"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Nav tabs pills -->
+                    <ul class="nav nav-pills gap-2 mb-4" id="pills-tab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="pills-sessions-tab" data-bs-toggle="pill" data-bs-target="#pills-sessions" type="button" role="tab" aria-controls="pills-sessions" aria-selected="true"><i class="bi bi-activity me-1.5"></i>Login & Active Sessions</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="pills-attempts-tab" data-bs-toggle="pill" data-bs-target="#pills-attempts" type="button" role="tab" aria-controls="pills-attempts" aria-selected="false"><i class="bi bi-shield-exclamation me-1.5"></i>Login Attempts</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="pills-metadata-tab" data-bs-toggle="pill" data-bs-target="#pills-metadata" type="button" role="tab" aria-controls="pills-metadata" aria-selected="false"><i class="bi bi-laptop me-1.5"></i>Device & IP History</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="pills-violations-tab" data-bs-toggle="pill" data-bs-target="#pills-violations" type="button" role="tab" aria-controls="pills-violations" aria-selected="false"><i class="bi bi-exclamation-triangle me-1.5"></i>Proctoring Violations</button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab content -->
+                    <div class="tab-content" id="pills-tabContent">
+                        <!-- Tab 1: Login & Active Sessions -->
+                        <div class="tab-pane fade show active" id="pills-sessions" role="tabpanel" aria-labelledby="pills-sessions-tab">
+                            <div class="table-responsive">
+                                <table class="table align-middle">
+                                    <thead>
+                                        <tr class="text-meta" style="font-size: 11px;">
+                                            <th>Login Time</th>
+                                            <th>Logout Time</th>
+                                            <th>IP Address</th>
+                                            <th>Browser / Device</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="modalLoginHistoryBody">
+                                        <!-- Javascript Populated -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Tab 2: Login Attempts -->
+                        <div class="tab-pane fade" id="pills-attempts" role="tabpanel" aria-labelledby="pills-attempts-tab">
+                            <div class="table-responsive">
+                                <table class="table align-middle">
+                                    <thead>
+                                        <tr class="text-meta" style="font-size: 11px;">
+                                            <th>Attempt Time</th>
+                                            <th>IP Address</th>
+                                            <th>Browser / Device</th>
+                                            <th>Result</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="modalAttemptHistoryBody">
+                                        <!-- Javascript Populated -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Tab 3: Device & IP Logs -->
+                        <div class="tab-pane fade" id="pills-metadata" role="tabpanel" aria-labelledby="pills-metadata-tab">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <h5 class="fw-bold mb-2.5 text-uppercase text-muted" style="font-size: 11px; letter-spacing: 0.5px;">Registered Devices & User Agents</h5>
+                                    <ul class="list-group list-group-flush detail-card-premium" id="modalDeviceList">
+                                        <!-- Javascript Populated -->
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5 class="fw-bold mb-2.5 text-uppercase text-muted" style="font-size: 11px; letter-spacing: 0.5px;">Registered Connection IPs</h5>
+                                    <ul class="list-group list-group-flush detail-card-premium" id="modalIpList">
+                                        <!-- Javascript Populated -->
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab 4: Proctoring Violations -->
+                        <div class="tab-pane fade" id="pills-violations" role="tabpanel" aria-labelledby="pills-violations-tab">
+                            <div class="table-responsive">
+                                <table class="table align-middle">
+                                    <thead>
+                                        <tr class="text-meta" style="font-size: 11px;">
+                                            <th>Time</th>
+                                            <th>Event Type</th>
+                                            <th>Details</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="modalViolationHistoryBody">
+                                        <!-- Javascript Populated -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script th:inline="javascript">
+        let modalObj = null;
+
+        document.addEventListener("DOMContentLoaded", function() {
+            modalObj = new bootstrap.Modal(document.getElementById('studentDetailModal'));
+        });
+
+        function showStudentDetail(enrollmentNo) {
+            // Show spinner/loader states or fetch directly
+            const url = "/admin/sessions/detail/" + enrollmentNo;
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error("HTTP error " + response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    // Fill header details
+                    document.getElementById("modalStudentName").innerText = data.studentName;
+                    document.getElementById("modalStudentEnrollment").innerText = "Enrollment: " + data.enrollmentNo;
+
+                    // Fill Login & Active Sessions
+                    const loginBody = document.getElementById("modalLoginHistoryBody");
+                    loginBody.innerHTML = "";
+                    if (data.loginHistory && data.loginHistory.length > 0) {
+                        data.loginHistory.forEach(log => {
+                            let statusBadge = "";
+                            if (log.status === 'ACTIVE') {
+                                statusBadge = `<span class="badge bg-success bg-opacity-10 text-success border px-2 py-0.5" style="font-size: 10px; border-color: rgba(16, 185, 129, 0.15) !important;">ACTIVE</span>`;
+                            } else if (log.status === 'COMPLETED') {
+                                statusBadge = `<span class="badge bg-primary bg-opacity-10 text-primary border px-2 py-0.5" style="font-size: 10px; border-color: rgba(79, 70, 229, 0.15) !important;">COMPLETED</span>`;
+                            } else if (log.status === 'TERMINATED') {
+                                statusBadge = `<span class="badge bg-danger bg-opacity-10 text-danger border px-2 py-0.5" style="font-size: 10px; border-color: rgba(239, 68, 68, 0.15) !important;">TERMINATED</span>`;
+                            } else {
+                                statusBadge = `<span class="badge bg-secondary text-white px-2 py-0.5" style="font-size: 10px;">${log.status}</span>`;
+                            }
+
+                            loginBody.innerHTML += `
+                                <tr class="detail-item-log text-secondary">
+                                    <td class="fw-bold">${log.loginTime}</td>
+                                    <td>${log.logoutTime}</td>
+                                    <td>${log.ip}</td>
+                                    <td>${log.device} (${log.browser})</td>
+                                    <td>${statusBadge}</td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        loginBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted small py-3">No login logs found</td></tr>`;
+                    }
+
+                    // Fill Login Attempts
+                    const attemptBody = document.getElementById("modalAttemptHistoryBody");
+                    attemptBody.innerHTML = "";
+                    if (data.attemptHistory && data.attemptHistory.length > 0) {
+                        data.attemptHistory.forEach(att => {
+                            let resBadge = "";
+                            if (att.result === 'SUCCESS') {
+                                resBadge = `<span class="badge bg-success bg-opacity-10 text-success border px-2 py-0.5" style="font-size: 10px; border-color: rgba(16, 185, 129, 0.15) !important;">SUCCESS</span>`;
+                            } else {
+                                resBadge = `<span class="badge bg-danger bg-opacity-10 text-danger border px-2 py-0.5" style="font-size: 10px; border-color: rgba(239, 68, 68, 0.15) !important;">BLOCKED</span>`;
+                            }
+
+                            attemptBody.innerHTML += `
+                                <tr class="detail-item-log text-secondary">
+                                    <td class="fw-bold">${att.time}</td>
+                                    <td>${att.ip}</td>
+                                    <td>${att.device} (${att.browser})</td>
+                                    <td>${resBadge}</td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        attemptBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted small py-3">No attempt history found</td></tr>`;
+                    }
+
+                    // Fill Devices
+                    const deviceList = document.getElementById("modalDeviceList");
+                    deviceList.innerHTML = "";
+                    if (data.deviceHistory && data.deviceHistory.length > 0) {
+                        data.deviceHistory.forEach(device => {
+                            deviceList.innerHTML += `<li class="list-group-item bg-transparent border-0 px-0 py-1 text-secondary small"><i class="bi bi-laptop me-2 text-primary"></i>${device}</li>`;
+                        });
+                    } else {
+                        deviceList.innerHTML = `<li class="list-group-item bg-transparent border-0 px-0 py-1 text-muted small">No devices registered</li>`;
+                    }
+
+                    // Fill IPs
+                    const ipList = document.getElementById("modalIpList");
+                    ipList.innerHTML = "";
+                    if (data.ipHistory && data.ipHistory.length > 0) {
+                        data.ipHistory.forEach(ip => {
+                            ipList.innerHTML += `<li class="list-group-item bg-transparent border-0 px-0 py-1 text-secondary small"><i class="bi bi-globe me-2 text-primary"></i>${ip}</li>`;
+                        });
+                    } else {
+                        ipList.innerHTML = `<li class="list-group-item bg-transparent border-0 px-0 py-1 text-muted small">No IP addresses registered</li>`;
+                    }
+                    
+                    // Fill Proctoring Violations
+                    const violationBody = document.getElementById("modalViolationHistoryBody");
+                    violationBody.innerHTML = "";
+                    if (data.violationHistory && data.violationHistory.length > 0) {
+                        data.violationHistory.forEach(v => {
+                            violationBody.innerHTML += `
+                                <tr class="detail-item-log text-secondary">
+                                    <td class="fw-bold">${v.time}</td>
+                                    <td><span class="badge bg-danger bg-opacity-10 text-danger border px-2 py-0.5" style="font-size: 10px; border-color: rgba(239, 68, 68, 0.15) !important;">${v.eventType}</span></td>
+                                    <td>Exam ID: ${v.examId} (${v.examType})</td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        violationBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted small py-3">No violations logged</td></tr>`;
+                    }
+
+                    // Show Modal
+                    modalObj.show();
+                })
+                .catch(err => {
+                    console.error("Failed to load student details: ", err);
+                    alert("Error: Could not retrieve student session details.");
+                });
+        }
+    </script>
+</body>
+</html>

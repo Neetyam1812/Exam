@@ -256,6 +256,52 @@
     const questionsContainer = document.getElementById('questionsContainer');
     window.lastActiveQuestionId = null;
     window.isNavigating = false;
+    window.examQuestions = [];
+
+    async function updateActivityStatus(customStatus) {
+        try {
+            const examIdVal = document.getElementById('examId') ? document.getElementById('examId').value : null;
+
+            let currentSectionLabel = "Q1";
+            let activeQNo = 1;
+
+            if (window.lastActiveQuestionId && window.examQuestions && window.examQuestions.length > 0) {
+                const q = window.examQuestions.find(item => item.id == window.lastActiveQuestionId);
+                if (q) {
+                    currentSectionLabel = q.questionGroup || "Q1";
+                    const sameGroupQs = window.examQuestions.filter(item => item.questionGroup === q.questionGroup);
+                    const idx = sameGroupQs.findIndex(item => item.id == window.lastActiveQuestionId);
+                    if (idx !== -1) {
+                        activeQNo = idx + 1;
+                    }
+                }
+            }
+
+            let remSecs = typeof remainingSeconds !== 'undefined' ? remainingSeconds : 0;
+            let hrs = Math.floor(remSecs / 3600);
+            let mins = Math.floor((remSecs % 3600) / 60);
+            let secs = remSecs % 60;
+            let timeString = (hrs < 10 ? "0"+hrs : hrs) + ":" + 
+                             (mins < 10 ? "0"+mins : mins) + ":" + 
+                             (secs < 10 ? "0"+secs : secs);
+
+            const payload = {
+                examId: examIdVal,
+                currentSection: currentSectionLabel,
+                currentQuestionNo: activeQNo,
+                timeRemaining: timeString,
+                status: customStatus || "Active"
+            };
+
+            await fetch('/student/update-activity', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+        } catch (e) {
+            console.error("Failed to post activity update:", e);
+        }
+    }
     
     // Prevent leaving page
     window.onbeforeunload = function() {
@@ -271,6 +317,7 @@
                 throw new Error(`Server responded with ${response.status}: ${errorText}`);
             }
             const questions = await response.json();
+            window.examQuestions = questions;
             console.log("Fetched questions:", questions.length);
             
             if (questions.length === 0) {
@@ -351,9 +398,11 @@
             document.querySelectorAll('.answer-area').forEach(textarea => {
                 textarea.addEventListener('focus', function() {
                     window.lastActiveQuestionId = this.getAttribute('data-qid');
+                    updateActivityStatus("Active");
                 });
                 textarea.addEventListener('input', function() {
                     window.lastActiveQuestionId = this.getAttribute('data-qid');
+                    updateActivityStatus("Active");
                 });
                 textarea.addEventListener('input', debounce(function() {
                     saveAnswer(this.getAttribute('data-qid'), this.value);
@@ -365,6 +414,15 @@
             }
             document.getElementById('loadingOverlay').style.display = 'none';
             startTimer();
+
+            try {
+                updateActivityStatus("Active");
+                setInterval(() => {
+                    updateActivityStatus("Active");
+                }, 10000);
+            } catch (e) {
+                console.error(e);
+            }
 
         } catch (error) {
             console.error('Initialization Error:', error);

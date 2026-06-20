@@ -23,6 +23,21 @@ public class StudentActiveSession {
     @Column(name = "last_activity", nullable = false)
     private LocalDateTime lastActivity;
 
+    @Column(name = "logout_time")
+    private LocalDateTime logoutTime;
+
+    @Column(name = "ip_address")
+    private String ipAddress;
+
+    @Column(name = "browser_info")
+    private String browserInfo;
+
+    @Column(name = "device_info")
+    private String deviceInfo;
+
+    @Column(name = "status")
+    private String status = "ACTIVE";
+
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 
@@ -33,6 +48,19 @@ public class StudentActiveSession {
         this.sessionId = sessionId;
         this.loginTime = LocalDateTime.now();
         this.lastActivity = LocalDateTime.now();
+        this.status = "ACTIVE";
+        this.isActive = true;
+    }
+
+    public StudentActiveSession(String studentId, String sessionId, String ipAddress, String browserInfo, String deviceInfo) {
+        this.studentId = studentId;
+        this.sessionId = sessionId;
+        this.loginTime = LocalDateTime.now();
+        this.lastActivity = LocalDateTime.now();
+        this.ipAddress = ipAddress;
+        this.browserInfo = browserInfo;
+        this.deviceInfo = deviceInfo;
+        this.status = "ACTIVE";
         this.isActive = true;
     }
 
@@ -51,6 +79,29 @@ public class StudentActiveSession {
     public LocalDateTime getLastActivity() { return lastActivity; }
     public void setLastActivity(LocalDateTime lastActivity) { this.lastActivity = lastActivity; }
 
+    public LocalDateTime getLogoutTime() { return logoutTime; }
+    public void setLogoutTime(LocalDateTime logoutTime) { this.logoutTime = logoutTime; }
+
+    public String getIpAddress() { return ipAddress; }
+    public void setIpAddress(String ipAddress) { this.ipAddress = ipAddress; }
+
+    public String getBrowserInfo() { return browserInfo; }
+    public void setBrowserInfo(String browserInfo) { this.browserInfo = browserInfo; }
+
+    public String getDeviceInfo() { return deviceInfo; }
+    public void setDeviceInfo(String deviceInfo) { this.deviceInfo = deviceInfo; }
+
+    public String getStatus() {
+        return status != null ? status : "ACTIVE";
+    }
+    public void setStatus(String status) { 
+        this.status = status; 
+        this.isActive = "ACTIVE".equalsIgnoreCase(status);
+    }
+
     public boolean isActive() { return isActive; }
-    public void setActive(boolean active) { isActive = active; }
+    public void setActive(boolean active) { 
+        isActive = active; 
+        this.status = active ? "ACTIVE" : "COMPLETED";
+    }
 }

@@ -214,6 +214,23 @@
             padding: 0 1.75rem;
         }
 
+        /* Make date and time input picker icons visible in dark mode */
+        .dark-theme input[type="date"]::-webkit-calendar-picker-indicator,
+        .dark-theme input[type="time"]::-webkit-calendar-picker-indicator,
+        .dark input[type="date"]::-webkit-calendar-picker-indicator,
+        .dark input[type="time"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            opacity: 0.8;
+            cursor: pointer;
+            transition: opacity 0.15s ease;
+        }
+        .dark-theme input[type="date"]::-webkit-calendar-picker-indicator:hover,
+        .dark-theme input[type="time"]::-webkit-calendar-picker-indicator:hover,
+        .dark input[type="date"]::-webkit-calendar-picker-indicator:hover,
+        .dark input[type="time"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
+
         @media (max-width: 991.98px) {
             .main-content {
                 margin-left: 0;
@@ -272,8 +289,8 @@
                         </div>
                     </div>
 
-                    <!-- Row 2: Semester, Exam Duration, Total Marks -->
-                    <div class="col-md-4">
+                    <!-- Row 2: Semester, Exam Duration, Total Marks, Exam Date -->
+                    <div class="col-md-3">
                         <div class="form-floating">
                             <select class="form-select fw-medium" id="semester" name="semester" required>
                                 <option value="" selected disabled>Select Semester</option>
@@ -291,7 +308,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="form-floating">
                             <input type="number" class="form-control fw-medium" id="duration" name="duration" placeholder=" " min="1" max="300" required>
                             <label for="duration">Exam Duration (minutes)</label>
@@ -299,11 +316,19 @@
                         </div>
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="form-floating">
                             <input type="number" class="form-control fw-medium" id="totalMarks" name="totalMarks" placeholder=" " min="1" max="500" required>
                             <label for="totalMarks">Total Marks</label>
                             <div class="invalid-feedback">Please enter valid total marks (1-500).</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="form-floating">
+                            <input type="date" class="form-control fw-medium" id="examDate" name="examDate" placeholder=" " required>
+                            <label for="examDate">Exam Date</label>
+                            <div class="invalid-feedback">Please select a valid future exam date.</div>
                         </div>
                     </div>
                 </div>
@@ -437,6 +462,24 @@
                 const form = document.querySelector('.needs-validation');
                 if (form) form.classList.remove('was-validated');
             }, 50);
+        });
+
+        // Set minimum selectable date to today's date (local timezone)
+        const todayLocal = new Date();
+        const yyyy = todayLocal.getFullYear();
+        const mm = String(todayLocal.getMonth() + 1).padStart(2, '0');
+        const dd = String(todayLocal.getDate()).padStart(2, '0');
+        const formattedDate = `${yyyy}-${mm}-${dd}`;
+        const examDateInput = document.getElementById('examDate');
+        examDateInput.setAttribute('min', formattedDate);
+
+        // Open calendar picker when clicking anywhere on the input field box
+        examDateInput.addEventListener('click', () => {
+            try {
+                examDateInput.showPicker();
+            } catch (e) {
+                console.log("showPicker not supported or failed:", e);
+            }
         });
     </script>
 </body>
