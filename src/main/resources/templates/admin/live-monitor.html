@@ -203,6 +203,55 @@
         body.dark-theme .form-control:focus, body.dark-theme .form-select:focus {
             background-color: #1e293b;
         }
+
+        /* Segmented status buttons */
+        .status-tab-btn {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 14px;
+            padding: 0.65rem 1.25rem;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            transition: var(--transition-smooth);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--card-shadow);
+        }
+
+        .status-tab-btn:hover {
+            border-color: var(--primary);
+            color: var(--text-primary);
+            background-color: var(--primary-light);
+            transform: translateY(-1px);
+        }
+
+        .status-tab-btn.active {
+            background: var(--primary-gradient);
+            color: white !important;
+            border-color: transparent;
+            box-shadow: 0 4px 14px rgba(255, 107, 0, 0.2);
+        }
+
+        .status-tab-btn.active i {
+            color: white !important;
+        }
+
+        /* New status badge colors */
+        .status-logged-in {
+            background-color: rgba(6, 182, 212, 0.1);
+            color: #0891b2;
+            border: 1px solid rgba(6, 182, 212, 0.2);
+        }
+
+        .status-offline {
+            background-color: rgba(100, 116, 139, 0.1);
+            color: var(--text-muted);
+            border: 1px solid rgba(100, 116, 139, 0.2);
+        }
     </style>
     <script>
         (function() {
@@ -238,7 +287,7 @@
         <!-- Filters Box -->
         <div class="filter-panel mb-4">
             <form id="filterForm" class="row g-3 align-items-end" onsubmit="event.preventDefault();">
-                <div class="col-md-4">
+                <div class="col-md-5">
                     <label class="form-label label-custom fw-bold small text-meta" for="searchInput">Search Student</label>
                     <div class="input-group">
                         <span class="input-group-text border-end-0 bg-transparent" style="border-color: var(--border-color); color: var(--text-muted);">
@@ -247,29 +296,38 @@
                         <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="Search by Enrollment Number..." th:value="${searchQuery}">
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="form-label label-custom fw-bold small text-meta" for="divisionSelect">Filter by Division</label>
                     <select id="divisionSelect" class="form-select">
                         <option value="">All Divisions</option>
                         <option th:each="divName : ${distinctDivisions}" th:value="${divName}" th:text="${divName}" th:selected="${divName == selectedDivision}"></option>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label label-custom fw-bold small text-meta" for="statusSelect">Filter by Status</label>
-                    <select id="statusSelect" class="form-select">
-                        <option value="">All Statuses</option>
-                        <option value="Active" th:selected="${selectedStatus == 'Active'}">Active</option>
-                        <option value="Inactive" th:selected="${selectedStatus == 'Inactive'}">Inactive</option>
-                        <option value="Submitted" th:selected="${selectedStatus == 'Submitted'}">Submitted</option>
-                        <option value="Terminated" th:selected="${selectedStatus == 'Terminated'}">Terminated</option>
-                    </select>
-                </div>
-                <div class="col-md-2 d-grid">
+                <div class="col-md-3 d-grid">
                     <button type="button" class="btn btn-outline-primary" id="clearFiltersBtn">
                         <i class="bi bi-x-circle me-1"></i> Clear Filters
                     </button>
                 </div>
             </form>
+        </div>
+
+        <!-- Status Tabs Bar -->
+        <div class="d-flex flex-wrap gap-2 mb-4" id="statusTabsBar">
+            <button type="button" class="status-tab-btn active" data-status="all">
+                <i class="bi bi-people-fill me-1.5"></i> All Students (<span id="count-all">0</span>)
+            </button>
+            <button type="button" class="status-tab-btn" data-status="started">
+                <i class="bi bi-play-circle-fill me-1.5 text-success"></i> Started Exam (<span id="count-started">0</span>)
+            </button>
+            <button type="button" class="status-tab-btn" data-status="logged-in-not-started">
+                <i class="bi bi-box-arrow-in-right me-1.5 text-warning"></i> Logged In, Not Started (<span id="count-logged-in-not-started">0</span>)
+            </button>
+            <button type="button" class="status-tab-btn" data-status="not-logged-in">
+                <i class="bi bi-cloud-slash-fill me-1.5 text-muted"></i> Not Logged In (<span id="count-not-logged-in">0</span>)
+            </button>
+            <button type="button" class="status-tab-btn" data-status="completed">
+                <i class="bi bi-check-circle-fill me-1.5 text-primary"></i> Completed (<span id="count-completed">0</span>)
+            </button>
         </div>
 
         <!-- Monitoring List -->
@@ -309,13 +367,15 @@
         document.addEventListener("DOMContentLoaded", function() {
             const searchInput = document.getElementById("searchInput");
             const divisionSelect = document.getElementById("divisionSelect");
-            const statusSelect = document.getElementById("statusSelect");
             const clearFiltersBtn = document.getElementById("clearFiltersBtn");
             const tableBody = document.getElementById("activityTableBody");
             const refreshIndicator = document.getElementById("auto-refresh-indicator");
+            const tabButtons = document.querySelectorAll(".status-tab-btn");
 
             let countdown = 5;
             let refreshInterval;
+            let cachedActivities = [];
+            let selectedStatusFilter = "all";
 
             function decrementTimeString(timeStr) {
                 if (!timeStr || timeStr === "N/A" || !timeStr.includes(":")) return timeStr;
@@ -360,7 +420,7 @@
                     let seconds = date.getSeconds();
                     const ampm = hours >= 12 ? 'PM' : 'AM';
                     hours = hours % 12;
-                    hours = hours ? hours : 12; // the hour '0' should be '12'
+                    hours = hours ? hours : 12;
                     minutes = minutes < 10 ? '0' + minutes : minutes;
                     seconds = seconds < 10 ? '0' + seconds : seconds;
                     return hours + ':' + minutes + ':' + seconds + ' ' + ampm;
@@ -372,12 +432,10 @@
             async function fetchActivityData() {
                 const search = searchInput.value.trim();
                 const division = divisionSelect.value;
-                const status = statusSelect.value;
                 
                 let url = `/admin/live-monitor?format=json`;
                 if (search) url += `&search=${encodeURIComponent(search)}`;
                 if (division) url += `&division=${encodeURIComponent(division)}`;
-                if (status) url += `&status=${encodeURIComponent(status)}`;
 
                 try {
                     const response = await fetch(url, {
@@ -397,7 +455,47 @@
             }
 
             function updateTable(activities) {
-                if (!activities || activities.length === 0) {
+                cachedActivities = activities || [];
+
+                // Calculate category counts
+                let countAll = cachedActivities.length;
+                let countStarted = 0;
+                let countLoggedInNotStarted = 0;
+                let countNotLoggedIn = 0;
+                let countCompleted = 0;
+
+                cachedActivities.forEach(act => {
+                    const s = act.status.toLowerCase();
+                    if (s === "active" || s === "inactive") {
+                        countStarted++;
+                    } else if (s === "loggedinnotstarted") {
+                        countLoggedInNotStarted++;
+                    } else if (s === "notloggedin") {
+                        countNotLoggedIn++;
+                    } else if (s === "submitted" || s === "terminated") {
+                        countCompleted++;
+                    }
+                });
+
+                document.getElementById("count-all").textContent = countAll;
+                document.getElementById("count-started").textContent = countStarted;
+                document.getElementById("count-logged-in-not-started").textContent = countLoggedInNotStarted;
+                document.getElementById("count-not-logged-in").textContent = countNotLoggedIn;
+                document.getElementById("count-completed").textContent = countCompleted;
+
+                // Filter based on active tab
+                let filtered = cachedActivities;
+                if (selectedStatusFilter === "started") {
+                    filtered = cachedActivities.filter(act => act.status === "Active" || act.status === "Inactive");
+                } else if (selectedStatusFilter === "logged-in-not-started") {
+                    filtered = cachedActivities.filter(act => act.status === "LoggedInNotStarted");
+                } else if (selectedStatusFilter === "not-logged-in") {
+                    filtered = cachedActivities.filter(act => act.status === "NotLoggedIn");
+                } else if (selectedStatusFilter === "completed") {
+                    filtered = cachedActivities.filter(act => act.status === "Submitted" || act.status === "Terminated");
+                }
+
+                if (!filtered || filtered.length === 0) {
                     tableBody.innerHTML = `
                         <tr id="empty-state-row">
                             <td colspan="10" class="text-center py-5">
@@ -409,10 +507,11 @@
                 }
 
                 let html = "";
-                activities.forEach(act => {
+                filtered.forEach(act => {
                     const statusClass = act.status.toLowerCase();
                     let badgeClass = "status-terminated";
                     let pulseDotHtml = "";
+                    let displayStatus = act.status.toUpperCase();
 
                     if (statusClass === "active") {
                         badgeClass = "status-active";
@@ -421,6 +520,12 @@
                         badgeClass = "status-inactive";
                     } else if (statusClass === "submitted") {
                         badgeClass = "status-submitted";
+                    } else if (statusClass === "loggedinnotstarted") {
+                        badgeClass = "status-logged-in";
+                        displayStatus = "ONLINE";
+                    } else if (statusClass === "notloggedin") {
+                        badgeClass = "status-offline";
+                        displayStatus = "OFFLINE";
                     }
 
                     const initials = act.studentName ? act.studentName.substring(0, 1).toUpperCase() : "S";
@@ -447,7 +552,7 @@
                             <td>
                                 <span class="status-badge-premium ${badgeClass}">
                                     ${pulseDotHtml}
-                                    <span>${act.status.toUpperCase()}</span>
+                                    <span>${displayStatus}</span>
                                 </span>
                             </td>
                             <td class="text-meta font-monospace">${lastActivityFormatted}</td>
@@ -480,7 +585,7 @@
             // Bind Event Listeners for Filters
             searchInput.addEventListener("input", function() {
                 fetchActivityData();
-                startTimer(); // Reset countdown on input
+                startTimer();
             });
 
             divisionSelect.addEventListener("change", function() {
@@ -488,15 +593,22 @@
                 startTimer();
             });
 
-            statusSelect.addEventListener("change", function() {
-                fetchActivityData();
-                startTimer();
+            // Bind status tab buttons
+            tabButtons.forEach(btn => {
+                btn.addEventListener("click", function() {
+                    tabButtons.forEach(b => b.classList.remove("active"));
+                    this.classList.add("active");
+                    selectedStatusFilter = this.getAttribute("data-status");
+                    updateTable(cachedActivities);
+                });
             });
 
             clearFiltersBtn.addEventListener("click", function() {
                 searchInput.value = "";
                 divisionSelect.value = "";
-                statusSelect.value = "";
+                tabButtons.forEach(b => b.classList.remove("active"));
+                document.querySelector('[data-status="all"]').classList.add("active");
+                selectedStatusFilter = "all";
                 fetchActivityData();
                 startTimer();
             });

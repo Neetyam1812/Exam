@@ -385,7 +385,7 @@
     <div class="student-badge">
         🎓 <span th:text="${session.loggedInStudent} + ' (' + ${session.loggedInStudent} + ')'">23CS001 (23CS001)</span>
     </div>
-    <div id="timerDisplay" class="pill-timer">Time Remaining: 00:00:00</div>
+    <div id="timerDisplay" class="pill-timer">Time Remaining: --:--:--</div>
 </header>
 
 <!-- 2. Secondary Info Bar -->
@@ -507,7 +507,13 @@
 <script>
     const attemptId = document.getElementById('attemptId').value;
     const type = document.getElementById('type').value;
-    let remainingSeconds = parseInt(document.getElementById('remainingSeconds').value);
+    // Use sessionStorage if available and > server value (avoids showing 00:00 on section navigation)
+    const serverRemainingSeconds = parseInt(document.getElementById('remainingSeconds').value) || 0;
+    const storedKey = 'exam_remaining_' + attemptId;
+    const storedRemaining = parseInt(sessionStorage.getItem(storedKey) || '0');
+    // Use stored value if it's within ±30s of server value and server returned 0 or stored is fresher
+    let remainingSeconds = (storedRemaining > 0 && serverRemainingSeconds === 0) ? storedRemaining : serverRemainingSeconds;
+    sessionStorage.removeItem(storedKey); // Clear after use
     const currentIndex = parseInt(document.getElementById('currentIndex').value);
     const tabTerminationEnabled = document.getElementById('tabTerminationEnabled').value === 'true';
     
@@ -744,13 +750,36 @@
     async function navigateSection(direction) {
         window.isNavigating = true;
         document.querySelectorAll('.btn-footer').forEach(btn => btn.disabled = true);
+        // Save current live countdown to sessionStorage BEFORE navigating
+        // so the next section page never briefly shows 00:00:00
+        if (remainingSeconds > 0) {
+            sessionStorage.setItem(storedKey, remainingSeconds.toString());
+        }
         await saveAllAnswers();
         let newIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
         window.location.href = `/student/exam/section/${newIndex}`;
     }
 
+    function formatTime(totalSecs) {
+        const hrs  = Math.floor(totalSecs / 3600);
+        const mins = Math.floor((totalSecs % 3600) / 60);
+        const secs = totalSecs % 60;
+        return (hrs  < 10 ? "0"+hrs  : hrs)  + ":" +
+               (mins < 10 ? "0"+mins : mins) + ":" +
+               (secs < 10 ? "0"+secs : secs);
+    }
+
     function startTimer() {
         const display = document.getElementById('timerDisplay');
+
+        // ── immediately show the correct time (fixes the 00:00:00 flash on load) ──
+        if (remainingSeconds > 0) {
+            display.innerText = "Time Remaining: " + formatTime(remainingSeconds);
+            if (remainingSeconds <= 600) display.style.backgroundColor = "#dc3545";
+        } else {
+            display.innerText = "Time Remaining: 00:00:00";
+        }
+
         const interval = setInterval(function () {
             if (remainingSeconds <= 0) {
                 clearInterval(interval);
@@ -758,16 +787,9 @@
                 autoSubmitExam();
                 return;
             }
-            let hrs = Math.floor(remainingSeconds / 3600);
-            let mins = Math.floor((remainingSeconds % 3600) / 60);
-            let secs = remainingSeconds % 60;
-            display.innerText = "Time Remaining: " +
-                (hrs < 10 ? "0"+hrs : hrs) + ":" + 
-                (mins < 10 ? "0"+mins : mins) + ":" + 
-                (secs < 10 ? "0"+secs : secs);
-
-            if (remainingSeconds <= 600) display.style.backgroundColor = "#dc3545";
             remainingSeconds--;
+            display.innerText = "Time Remaining: " + formatTime(remainingSeconds);
+            if (remainingSeconds <= 600) display.style.backgroundColor = "#dc3545";
         }, 1000);
     }
     startTimer();
